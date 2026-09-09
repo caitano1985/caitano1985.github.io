@@ -4,7 +4,7 @@ Crie um site de portfólio profissional, em português (pt-BR) e (IN-EUA), para 
 
 ## SOBRE A PESSOA
 
-- Nome: Josimar Caitano
+- Nome: Josimar Caitano da Silva
 
 - Marca pessoal: Josinfo
 
