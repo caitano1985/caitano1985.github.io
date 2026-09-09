@@ -1,32 +1,6 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { getProject } from "@/data/projects";
+import { Link } from "@tanstack/react-router";
 import { useI18n } from "@/lib/i18n";
-
-export const Route = createFileRoute("/projetos/$slug")({
-  loader: ({ params }) => {
-    const project = getProject(params.slug);
-    if (!project) throw notFound();
-    return { slug: project.slug, title: project.title.pt, summary: project.summary.pt };
-  },
-  head: ({ loaderData }) => {
-    if (!loaderData) {
-      return {
-        meta: [{ title: "Projeto não encontrado | Josinfo" }, { name: "robots", content: "noindex" }],
-      };
-    }
-    return {
-      meta: [
-        { title: `${loaderData.title} | Projetos — Josinfo` },
-        { name: "description", content: loaderData.summary },
-        { property: "og:title", content: `${loaderData.title} | Josinfo` },
-        { property: "og:description", content: loaderData.summary },
-        { property: "og:type", content: "article" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
-  },
-  component: ProjectPage,
-});
+import type { Project } from "@/data/projects";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -37,17 +11,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function ProjectPage() {
-  const { slug } = Route.useParams();
+export function ProjectDetail({ project }: { project: Project }) {
   const { t, lang } = useI18n();
-  const project = getProject(slug)!;
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-16">
-      <Link
-        to="/projetos"
-        className="font-mono text-sm text-primary transition-opacity hover:opacity-80"
-      >
+      <Link to="/projetos" className="font-mono text-sm text-primary transition-opacity hover:opacity-80">
         ← {t("projects.back")}
       </Link>
 
@@ -70,10 +39,7 @@ function ProjectPage() {
       <Section title={t("projects.tech")}>
         <div className="flex flex-wrap gap-2">
           {project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded border border-border bg-secondary px-2 py-1 font-mono text-xs"
-            >
+            <span key={tag} className="rounded border border-border bg-secondary px-2 py-1 font-mono text-xs">
               {tag}
             </span>
           ))}

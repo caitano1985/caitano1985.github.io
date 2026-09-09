@@ -6,8 +6,7 @@ export function ProjectCard({ project }: { project: Project }) {
   const { lang } = useI18n();
   return (
     <Link
-      to="/projetos/$slug"
-      params={{ slug: project.slug }}
+      to={`/projetos/${project.slug}`}
       className="card-hover group flex flex-col overflow-hidden rounded-xl border border-border bg-card"
     >
       <img
