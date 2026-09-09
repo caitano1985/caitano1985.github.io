@@ -6,7 +6,7 @@ Crie um site de portfólio profissional, em português (pt-BR) e (IN-EUA), para 
 
 - Nome: Josimar Caitano da Silva
 
-- Marca pessoal: Josinfo
+- Marca pessoal: Josimaru
 
 - Certificação: CCIE x2 (Cisco Certified Internetwork Expert, dupla certificação)
 
