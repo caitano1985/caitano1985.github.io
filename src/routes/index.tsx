@@ -12,7 +12,7 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Josimar Caitano (Josinfo) — CCIE x2 | Arquiteto de Redes" },
+      { title: "Josimar Caitano (JOSIMARU) — CCIE x2 | Arquiteto de Redes" },
       {
         name: "description",
         content:
