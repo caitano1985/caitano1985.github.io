@@ -1,39 +1,35 @@
 import subprocess
 import sys
 
-def executar_comando(comando):
-    """Executa um comando no terminal e lida com possíveis falhas."""
-    print(f"\n⚡ Executando: {comando}")
-    try:
-        resultado = subprocess.run(comando, shell=True, check=True, text=True, capture_output=True)
-        print(resultado.stdout)
-    except subprocess.CalledProcessError as erro:
-        print(f"❌ Falha crítica ao executar: {comando}")
-        print(erro.stderr)
-        sys.exit(1)
+def executar(comando):
+    print(f"\n[RODANDO] {comando}")
+    # Captura a saída do comando para vermos o erro real
+    processo = subprocess.run(comando, shell=True, capture_output=True, text=True)
+    
+    if processo.stdout:
+        print(process.stdout)
+    if processo.stderr:
+        print(">>> LOG DE ERRO/AVISO:")
+        print(process.stderr)
+        
+    return processo.returncode
 
-def iniciar_deploy():
-    """Gerencia o ciclo de vida do versionamento."""
-    print("🔥 Iniciando protocolo de deploy para a ULL Arena...\n")
+def main():
+    print("Iniciando diagnóstico da vitrine...")
     
-    # 1. Verifica o status atual
-    executar_comando("git status")
+    # Executa o build local para forçar o erro a aparecer na tela
+    codigo_build = executar("bun run build")
     
-    # 2. Adiciona todos os arquivos modificados
-    executar_comando("git add .")
-    
-    # 3. Solicita a mensagem de commit
-    mensagem = input("💬 Digite a mensagem do commit (ex: feat: adiciona card): ")
-    if not mensagem.strip():
-        print("⚠️ Nenhuma mensagem fornecida. Operação abortada para manter a governança do código.")
+    if codigo_build != 0:
+        print("\n❌ FALHA NO BUILD: O script parou porque encontrou o erro que está travando o GitHub.")
+        print("Copie todos os logs acima e mande no chat.")
         sys.exit(1)
         
-    executar_comando(f'git commit -m "{mensagem}"')
-    
-    # 4. Envia para o GitHub
-    executar_comando("git push")
-    
-    print("\n✅ Deploy concluído com sucesso! A infraestrutura está na nuvem.")
+    print("\n✅ BUILD COM SUCESSO! Não há erros no código.")
+    print("Iniciando deploy automático...")
+    executar("git add -A")
+    executar('git commit -m "fix: correcoes finais para ULL Arena"')
+    executar("git push")
 
 if __name__ == "__main__":
-    iniciar_deploy()
+    main()
