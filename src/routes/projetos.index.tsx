@@ -10,7 +10,7 @@ export const Route = createFileRoute("/projetos/")({
       {
         name: "description",
         content:
-          "Estudos de caso de arquitetura e implementação de redes: Cisco DNA Center, multicast PIM/IGMP e mais.",
+          "Estudos de caso de arquitetura e implementação de redes: Ultra-Baixa Latência (ULL), High-Frequency Trading (HFT) e conectividade B3.",
       },
       { property: "og:title", content: "Projetos de Rede | Josinfo" },
       {
