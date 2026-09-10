@@ -5,15 +5,9 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { projects } from "@/data/projects";
 import { useI18n } from "@/lib/i18n";
 
-import type { Project } from "./types";
-import { dnaCenter } from "./dna-center";
-import { multicast } from "./multicast";
 
-export type { Project, LocalizedText, LocalizedList } from "./types";
 
-export const projects: Project[] = [dnaCenter, multicast];
 
-export const getProject = (slug: string) => projects.find((p) => p.slug === slug);
 
 export const Route = createFileRoute("/")({
   head: () => ({
