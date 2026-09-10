@@ -23,8 +23,8 @@ export const projects: Project[] = [
     tags: ["ULL", "HFT", "B3 Exchange", "Nexus", "Ultra-Low Latency"],
     title: { pt: "ULL Arena - HFT & Exchange Connectivity", en: "ULL Arena - HFT & Exchange Connectivity" },
     summary: {
-      pt: "Arquitetura de rede de ultra-baixa latência (ULL) desenhada para ambientes de High-Frequency Trading (HFT). Foco em infraestrutura determinística para roteamento de ordens na B3.",
-      en: "Ultra-low latency (ULL) network architecture designed for High-Frequency Trading (HFT) environments. Focus on deterministic infrastructure for B3 order routing."
+      pt: "Arquitetura de rede de ultra-baixa latência (ULL) desenhada para ambientes de High-Frequency Trading (HFT). Foco em infraestrutura determinística para roteamento de ordens.",
+      en: "Ultra-low latency (ULL) network architecture designed for High-Frequency Trading (HFT) environments. Focus on deterministic infrastructure for order routing."
     },
     context: {
       pt: "Otimização da camada de rede para garantir tempos de execução na casa dos microssegundos para aplicações críticas do mercado financeiro conectadas às exchanges.",
@@ -44,12 +44,12 @@ export const projects: Project[] = [
     },
     results: {
       pt: [
-        "Redução severa do RTT (Round Trip Time) até a B3.",
+        "Redução severa do RTT (Round Trip Time).",
         "Estabilidade garantida durante picos de volatilidade do mercado.",
         "Conformidade total com os requisitos técnicos globais de HFT."
       ],
       en: [
-        "Severe reduction of RTT (Round Trip Time) to B3.",
+        "Severe reduction of RTT (Round Trip Time).",
         "Guaranteed stability during market volatility spikes.",
         "Full compliance with global HFT technical requirements."
       ]
