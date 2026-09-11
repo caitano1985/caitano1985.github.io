@@ -11,6 +11,7 @@ export default defineConfig({
     server: { entry: "server" },
     prerender: {
       enabled: true,
+      ignore: ["/ull-arena", "/ull-arena/"],
     },
   },
 });
