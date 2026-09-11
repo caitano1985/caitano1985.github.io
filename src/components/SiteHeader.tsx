@@ -7,6 +7,7 @@ const sections = [
   ["experiencia", "nav.experience"],
   ["certificacoes", "nav.certs"],
   ["ensino", "nav.teaching"],
+  ["academia", "nav.academic"],
   ["projetos", "nav.projects"],
   ["conteudo", "nav.content"],
   ["contato", "nav.contact"],
@@ -23,8 +24,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
         <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-mono text-base font-bold text-primary">josinfo</span>
-          <span className="hidden text-xs text-muted-foreground sm:inline">Josimar Caitano</span>
+          <span className="font-mono text-base font-bold text-primary">Josimar Caitano</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">じょしまる</span>
         </Link>
 
         <nav className="hidden items-center gap-5 lg:flex">
@@ -40,19 +41,23 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-md border border-border font-mono text-xs">
-            {(["pt", "en"] as const).map((l) => (
+          <div className="flex overflow-hidden rounded-md border border-border text-sm">
+            {([
+              { code: "en" as const, flag: "🇺🇸", label: "English (US)" },
+              { code: "es" as const, flag: "🇪🇸", label: "Español (ES)" },
+              { code: "pt" as const, flag: "🇧🇷", label: "Português (BR)" },
+            ]).map(({ code, flag, label }) => (
               <button
-                key={l}
-                onClick={() => setLang(l)}
-                aria-label={l === "pt" ? "Português (pt-BR)" : "English (en-US)"}
+                key={code}
+                onClick={() => setLang(code)}
+                aria-label={label}
                 className={`px-2 py-1 transition-colors ${
-                  lang === l
+                  lang === code
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-primary"
                 }`}
               >
-                {l === "pt" ? "PT-BR" : "EN-US"}
+                {flag}
               </button>
             ))}
           </div>

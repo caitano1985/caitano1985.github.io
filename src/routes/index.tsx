@@ -12,17 +12,17 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Josimar Caitano (JOSIMARU) — CCIE x2 | Arquiteto de Redes" },
+      { title: "Josimar Caitano — Principal Solutions Architect | Capital Markets & Enterprise Infrastructure" },
       {
         name: "description",
         content:
-          "Portfólio de Josimar Caitano (Josinfo): CCIE x2, Principal IP Solutions Architect for Financial Services, instrutor de CCNA DevNet, CCNP Encor e labs CCIE.",
+          "Mission-critical network architect specializing in ultra-low latency (ULL/HFT) trading infrastructure, multi-cloud connectivity, and enterprise security governance for capital markets.",
       },
-      { property: "og:title", content: "Josimar Caitano (Josinfo) — CCIE x2 | Arquiteto de Redes" },
+      { property: "og:title", content: "Josimar Caitano — Principal Solutions Architect | Capital Markets" },
       {
         property: "og:description",
         content:
-          "Especialista sênior em redes: roteamento avançado, segurança, NOC e arquitetura IP para o setor financeiro.",
+          "Architecting ultra-low latency infrastructure for the world's fastest financial markets. Enterprise networking, cybersecurity, and technical leadership.",
       },
       { property: "og:type", content: "profile" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -43,11 +43,13 @@ function SectionHead({ label, title }: { label: string; title: string }) {
 function Home() {
   const { t, lang } = useI18n();
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const experiences = [
     { role: "exp.role1", company: "exp.company1", period: "exp.period1", desc: "exp.desc1", current: true },
     { role: "exp.role2", company: "exp.company2", period: "exp.period2", desc: "exp.desc2", current: false },
     { role: "exp.role3", company: "exp.company3", period: "exp.period3", desc: "exp.desc3", current: false },
+    { role: "exp.role4", company: "exp.company4", period: "exp.period4", desc: "exp.desc4", current: false },
   ];
 
   const courses: [string, string][] = [
@@ -56,16 +58,22 @@ function Home() {
     ["teach.c3", "teach.c3d"],
   ];
 
-  const contents: [string, string, string][] = [
-    ["content.a1", "content.a1d", "artigo"],
-    ["content.a2", "content.a2d", "artigo"],
-    ["content.v1", "content.v1d", "vídeo"],
-    ["content.v2", "content.v2d", "vídeo"],
+  const contents: [string, string, string, string][] = [
+    ["content.yt", "content.ytd", "youtube", "content.ytLink"],
+    ["content.a1", "content.a1d", "article", ""],
   ];
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setSending(true);
+    try {
+      const form = e.target as HTMLFormElement;
+      const data = new FormData(form);
+      const res = await fetch("https://formspree.io/f/xeogrgvp", {
+        method: "POST", body: data, headers: { Accept: "application/json" },
+      });
+      if (res.ok) { setSent(true); form.reset(); }
+    } catch { /* silent */ } finally { setSending(false); }
   };
 
   return (
@@ -78,18 +86,18 @@ function Home() {
           aria-hidden
           style={{
             background:
-              "radial-gradient(70% 60% at 20% 0%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 70%)",
+              "radial-gradient(70% 60% at 20% 0%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 70%)",
           }}
         />
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-5 py-20 md:grid-cols-[1.3fr_1fr] md:py-28">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 font-mono text-[11px] text-muted-foreground">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neon" />
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
               {t("hero.badge")}
             </span>
             <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">
-              Josimar Caitano
-              <span className="block font-mono text-xl text-primary sm:text-2xl">// josinfo</span>
+              {t("hero.name")}
+              <span className="block font-mono text-xl text-primary sm:text-2xl">{t("hero.alias")}</span>
             </h1>
             <p className="mt-4 max-w-xl font-mono text-sm text-primary sm:text-base">
               {t("hero.role")}
@@ -110,11 +118,11 @@ function Home() {
               </a>
             </div>
             <div className="mt-6 flex gap-4 font-mono text-xs text-muted-foreground">
-              <a href="#contato" className="hover:text-primary">
-                linkedin/[placeholder]
+              <a href="https://www.linkedin.com/in/josimar-caitano/" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+                linkedin/josimar-caitano
               </a>
-              <a href="#contato" className="hover:text-primary">
-                youtube/[placeholder]
+              <a href="https://www.youtube.com/@Josinfo" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
+                youtube/@Josinfo
               </a>
             </div>
           </div>
@@ -127,9 +135,7 @@ function Home() {
               height={1024}
               className="w-full rounded-2xl border border-border object-cover"
             />
-            <figcaption className="mt-2 text-center font-mono text-[11px] text-muted-foreground">
-              {t("hero.photoNote")}
-            </figcaption>
+            {/* photo caption removed */}
           </figure>
         </div>
       </section>
@@ -180,17 +186,10 @@ function Home() {
       <section id="certificacoes" className="mx-auto max-w-6xl px-5 py-20">
         <SectionHead label="./certifications" title={t("certs.title")} />
         <div className="grid gap-5 md:grid-cols-3">
-          <div className="glow-ring rounded-xl border border-primary/40 bg-card p-6">
-            <p className="font-mono text-4xl font-bold text-primary">{t("certs.ccie")}</p>
-            <p className="mt-3 text-sm text-muted-foreground">{t("certs.ccieDesc")}</p>
-          </div>
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-dashed border-border bg-card/50 p-6"
-            >
-              <p className="font-mono text-sm text-muted-foreground">{t("certs.other")}</p>
-              <p className="mt-3 text-sm text-muted-foreground">{t("certs.otherDesc")}</p>
+          {(["c1", "c2", "c3"] as const).map((key, i) => (
+            <div key={key} className={`rounded-xl border bg-card p-6 ${i === 0 ? "glow-ring border-primary/40" : "border-border"}`}>
+              <p className={`font-mono text-sm font-semibold ${i === 0 ? "text-primary" : "text-muted-foreground"}`}>{t(`certs.${key}`)}</p>
+              <p className="mt-3 text-sm text-muted-foreground">{t(`certs.${key}d`)}</p>
             </div>
           ))}
         </div>
@@ -212,6 +211,15 @@ function Home() {
             <p className="mono-label">{t("teach.method")}</p>
             <p className="mt-3 leading-relaxed text-muted-foreground">{t("teach.methodDesc")}</p>
           </div>
+        </div>
+      </section>
+
+      {/* ACADEMY */}
+      <section id="academia" className="mx-auto max-w-6xl px-5 py-20">
+        <SectionHead label="./academy" title={t("academic.title")} />
+        <p className="-mt-4 mb-8 text-muted-foreground">{t("academic.subtitle")}</p>
+        <div className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center">
+          <p className="font-mono text-sm text-muted-foreground">{t("academic.coming")}</p>
         </div>
       </section>
 
@@ -237,16 +245,16 @@ function Home() {
         <div className="mx-auto max-w-6xl px-5 py-20">
           <SectionHead label="./content" title={t("content.title")} />
           <div className="grid gap-5 sm:grid-cols-2">
-            {contents.map(([title, desc, kind]) => (
+            {contents.map(([title, desc, kind, link]) => (
               <div key={title} className="card-hover rounded-xl border border-border bg-card p-6">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-neon">
-                  {kind}
-                </span>
+                <span className="font-mono text-[11px] uppercase tracking-widest text-neon">{kind}</span>
                 <h3 className="mt-2 font-semibold">{t(title)}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(desc)}</p>
-                <span className="mt-4 inline-block font-mono text-xs text-muted-foreground">
-                  {t("content.link")}
-                </span>
+                {link ? (
+                  <a href={t(link)} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block font-mono text-xs text-primary hover:underline">{t("content.link")} →</a>
+                ) : (
+                  <span className="mt-4 inline-block font-mono text-xs text-muted-foreground">{t("content.linkSoon")}</span>
+                )}
               </div>
             ))}
           </div>
@@ -262,15 +270,15 @@ function Home() {
             <ul className="mt-6 space-y-3 font-mono text-sm">
               <li>
                 <span className="text-muted-foreground">email:</span>{" "}
-                <span className="text-primary">[placeholder]@exemplo.com</span>
+                <a href="mailto:josimaru@gmail.com" className="text-primary hover:underline">josimaru@gmail.com</a>
               </li>
               <li>
                 <span className="text-muted-foreground">linkedin:</span>{" "}
-                <span className="text-primary">/in/[placeholder]</span>
+                <a href="https://www.linkedin.com/in/josimar-caitano/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">/in/josimar-caitano</a>
               </li>
               <li>
                 <span className="text-muted-foreground">youtube:</span>{" "}
-                <span className="text-primary">/@[placeholder]</span>
+                <a href="https://www.youtube.com/@Josinfo" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">/@Josinfo</a>
               </li>
             </ul>
           </div>
@@ -281,6 +289,7 @@ function Home() {
             </label>
             <input
               id="nome"
+              name="name"
               required
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
             />
@@ -292,6 +301,7 @@ function Home() {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
               required
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
@@ -304,18 +314,20 @@ function Home() {
             </label>
             <textarea
               id="mensagem"
+              name="message"
               rows={4}
               required
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
             />
             <button
               type="submit"
-              className="mt-5 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              disabled={sending || sent}
+              className="mt-5 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
             >
-              {t("contact.send")}
+              {sending ? "Sending..." : sent ? "✓ Sent" : t("contact.send")}
             </button>
             {sent && (
-              <p className="mt-3 font-mono text-xs text-neon">{t("contact.sent")}</p>
+              <p className="mt-3 font-mono text-xs text-primary">{t("contact.sent")}</p>
             )}
           </form>
         </div>

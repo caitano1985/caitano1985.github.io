@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ULL Arena — Ultra Baixa Latência para Mercados de Capitais | Josimar Caitano</title>
+<title>Mercado Financeiro — Bastidores | Josimar Caitano</title>
 <meta name="description" content="Laboratórios interativos de infraestrutura de ultra baixa latência: topologia de colocation, corrida de pacotes, prova do firewall, rotas globais entre bolsas e jogo de arbitragem internacional.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -329,9 +329,28 @@ footer .mt{margin-top:22px;padding-top:18px;border-top:1px solid #1B3F6C;font-si
  .pcts{grid-template-columns:1fr 1fr}
 }
 button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--bl);outline-offset:2px;border-radius:6px}
+
+.main-nav{position:sticky;top:0;z-index:999;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--ln);font-family:"DM Sans",system-ui,sans-serif}
+.main-nav-inner{max-width:var(--mw);margin:0 auto;display:flex;align-items:center;gap:1.5rem;padding:.65rem 1.5rem}
+.main-nav-brand{display:flex;align-items:baseline;gap:.5rem;text-decoration:none;flex-shrink:0}
+.main-nav-name{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:.9rem;color:var(--bl)}
+.main-nav-alias{font-size:.75rem;color:var(--mu2)}
+.main-nav-links{display:flex;align-items:center;gap:1.25rem;flex:1}
+.main-nav-links a{font-size:.82rem;color:var(--tx2);text-decoration:none;transition:color .15s;white-space:nowrap}
+.main-nav-links a:hover{color:var(--bl)}
+.main-nav-home{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--bl);text-decoration:none;white-space:nowrap}
+.main-nav-home:hover{text-decoration:underline}
+@media(max-width:900px){.main-nav-links{display:none}.main-nav-home{margin-left:auto}}
+.tb{top:45px !important}
+
 </style>
 </head>
 <body data-lens="eng" data-lang="en">
+<nav class="main-nav"><div class="main-nav-inner">
+<a href="/" class="main-nav-brand"><span class="main-nav-name">Josimar Caitano</span><span class="main-nav-alias">じょしまる</span></a>
+<div class="main-nav-links"><a href="/#about">About</a><a href="/#experiencia">Experience</a><a href="/#certificacoes">Certifications</a><a href="/#ensino">Teaching</a><a href="/#academia">Academy</a><a href="/#projetos">Projects</a><a href="/#conteudo">Content</a><a href="/#contato">Contact</a></div>
+<a href="/" class="main-nav-home">← Home</a>
+</div></nav>
 
 <div class="tb"><div class="r">
  <span class="bd">
@@ -341,7 +360,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
    <line x1="13" y1="15" x2="13" y2="2" stroke="#08213E" stroke-width="3"/>
    <line x1="18" y1="15" x2="18" y2="5" stroke="#0B5CD5" stroke-width="3"/>
    <line x1="23" y1="15" x2="23" y2="9" stroke="#00BCEB" stroke-width="3"/></g></svg>
-  ULL Arena <span class="s">· CaIT Networks</span></span>
+  Mercado Financeiro <span class="s">— Bastidores</span></span>
  <span class="sp"></span>
  <div class="seg flags" role="group" aria-label="Language">
   <button type="button" data-lang="en" aria-pressed="true" title="English">🇺🇸</button>
@@ -360,7 +379,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
  <p class="ld" data-i18n="hero.ld">Sete laboratórios jogáveis. Você monta a topologia, remove obstáculos do caminho do pacote, prova por que firewall não entra em ambiente de negociação, mede rotas entre bolsas do mundo e disputa uma janela de arbitragem entre Brasil e Estados Unidos. Alterne a lente entre engenharia e board a qualquer momento.</p>
  <div class="hm"><div class="av" aria-hidden="true">JC</div><div>
   <div class="n">Josimar Caitano</div>
-  <div class="rr" data-i18n="hero.role">Double CCIE (Enterprise + Service Provider) · CCDE · CaIT Networks</div></div></div>
+  <div class="rr" data-i18n="hero.role">Principal Solutions Architect | Enterprise Networking & Cybersecurity | Capital Markets</div></div></div>
  <div class="hook">
   <p class="q" data-i18n="hook.q">Antes de qualquer diagrama, um exercício de escala. Quanto o mercado se move num piscar de olhos?</p>
   <button class="btn" id="blink" type="button" data-i18n="hook.btn">Piscar os olhos</button>
@@ -534,7 +553,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
      <rect x="504" y="394" width="196" height="72" rx="12" fill="#0B5CD5"/>
      <text x="602" y="420" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" data-i18n="sv.muxa">Triton — Mux / Agregação</text>
      <text x="602" y="439" text-anchor="middle" font-size="11.5" fill="#BBD6FA" data-i18n="sv.muxb">N:1 no uplink da bolsa</text>
-     <text x="602" y="456" text-anchor="middle" font-size="12" font-weight="700" fill="#9FE9FF" class="lat" data-ull="+39 ns" data-naive="+900 ns">+39 ns</text>
+     <text x="602" y="456" text-anchor="middle" font-size="12" font-weight="700" fill="#9FE9FF" class="lat" data-ull="+39 ns" data-naive="+900 ns">order mux +39 ns</text>
     </g>
 
     <g id="g-fw" class="node" data-k="fw" font-family="DM Sans, sans-serif">
@@ -709,19 +728,19 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
      <text x="1080" y="114" text-anchor="middle" font-size="10.5" fill="#8FB6DC">ASN 28596</text>
      <text x="928" y="146" text-anchor="middle" font-size="10.5" font-weight="700" fill="#B87610">2 × 10 Gbps · BFD 100 ms × 3</text>
      <line x1="776" y1="126" x2="776" y2="182" stroke="#B87610" stroke-width="2.5"/>
-     <line x1="1080" y1="126" x2="1080" y2="182" stroke="#B87610" stroke-width="2.5"/>
+     <line x1="1080" y1="126" x2="876" y2="182" stroke="#B87610" stroke-width="2.5"/>
      <!-- CE control plane -->
      <rect x="980" y="182" width="200" height="62" rx="9" fill="#8DA0B5"/>
-     <text x="1080" y="203" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">CE 01 / CE 02</text>
+     <text x="1080" y="203" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Triton 01 / 02</text>
      <text x="1080" y="219" text-anchor="middle" font-size="10" fill="#F1F5F9" data-i18n="sr.ctrl">plano de controle</text>
-     <text x="1080" y="235" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">eBGP · PIM · FHRP · BFD</text>
+     <text x="1080" y="235" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">eBGP AS priv · PIM SM · BFD</text>
      <!-- Fusion L1 -->
      <rect x="676" y="182" width="200" height="62" rx="9" fill="#00BCEB"/>
-     <text x="776" y="203" text-anchor="middle" font-size="12.5" font-weight="700" fill="#03293A">Fusion L1</text>
+     <text x="776" y="203" text-anchor="middle" font-size="12.5" font-weight="700" fill="#03293A">Fusion</text>
      <text x="776" y="219" text-anchor="middle" font-size="10.5" fill="#04455E" data-i18n="sr.fan">fanout elétrico 1:N</text>
      <text x="776" y="235" text-anchor="middle" font-size="10.5" font-weight="700" fill="#03293A">+5 ns</text>
-     <text x="900" y="200" font-size="9.5" font-weight="700" fill="#63768E" data-i18n="sr.split">planos separados</text>
-     <line x1="876" y1="213" x2="980" y2="213" stroke="#BFD5E8" stroke-width="2" stroke-dasharray="3 3"/>
+     <text x="900" y="200" font-size="9.5" font-weight="700" fill="#63768E" data-i18n="sr.leak">leak A15</text>
+     <line x1="876" y1="213" x2="980" y2="213" stroke="#8DA0B5" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#rB)"/>
      <!-- servers elite -->
      <g fill="#12395F">
       <rect x="676" y="300" width="150" height="60" rx="9"/><rect x="853" y="300" width="150" height="60" rx="9"/><rect x="1030" y="300" width="150" height="60" rx="9"/>
@@ -730,7 +749,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
       <text x="751" y="322">Servidor 01</text><text x="928" y="322">Servidor 02</text><text x="1105" y="322">Servidor 03</text>
      </g>
      <g font-size="9.5" fill="#7FD8F2" text-anchor="middle">
-      <text x="751" y="338">ExaNIC dual-port</text><text x="928" y="338">ExaNIC dual-port</text><text x="1105" y="338">ExaNIC dual-port</text>
+      <text x="751" y="338">SolarFlare NIC</text><text x="928" y="338">SolarFlare NIC</text><text x="1105" y="338">SolarFlare NIC</text>
       <text x="751" y="352">mcast RX · TCP TX</text><text x="928" y="352">mcast RX · TCP TX</text><text x="1105" y="352">mcast RX · TCP TX</text>
      </g>
      <line x1="776" y1="244" x2="751" y2="300" stroke="#0F8B4C" stroke-width="2.5" marker-end="url(#rG)"/>
@@ -1075,11 +1094,11 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
 
 <footer><div class="r">
  <h3>Josimar Caitano</h3>
- <p class="cr"><b>Double CCIE</b> — Enterprise Infrastructure + Service Provider &nbsp;·&nbsp; <b>CCDE</b><br>
-  <span data-i18n="ft.1">Fundador, CaIT Networks · educador e mentor Cisco</span><br>
+ <p class="cr"><b>Josimar Caitano</b> — Principal Solutions Architect | Capital Markets<br>
+  <span data-i18n="ft.1">Cisco Networking Academy instructor since 2006</span><br>
   <span data-i18n="ft.2">Engenharia de redes de alta performance para mercados de capitais</span></p>
  <p class="oep">O.E.P. — <span data-i18n="ft.oep">Ordem · Estratégia · Paciência</span></p>
- <p class="mt" data-i18n="ft.legal">ULL Arena · laboratórios interativos de ultra baixa latência · v4.0 — Material didático original. Latências, custos e parâmetros econômicos são ordens de grandeza públicas e premissas ilustrativas, destinadas ao ensino do raciocínio de arquitetura. Não constituem recomendação de investimento nem especificação de projeto. Licença MIT.</p>
+ <p class="mt" data-i18n="ft.legal">Mercado Financeiro — Bastidores · laboratórios interativos de ultra baixa latência · v4.0 — Material didático original. Latências, custos e parâmetros econômicos são ordens de grandeza públicas e premissas ilustrativas, destinadas ao ensino do raciocínio de arquitetura. Não constituem recomendação de investimento nem especificação de projeto. Licença MIT.</p>
 </div></footer>
 <script>
 /* ======================= i18n ======================= */
@@ -1089,10 +1108,10 @@ en:{
 "hero.eb":"Interactive market-infrastructure laboratories",
 "hero.h1":"Time is the only <em>asset class</em> nobody can print.",
 "hero.ld":"Seven playable laboratories. You build the topology, strip obstacles from the packet's path, prove why a firewall has no place in a trading environment, measure routes between the world's exchanges and race an arbitrage window between Brazil and the United States. Switch the lens between engineering and board at any time.",
-"hero.role":"Double CCIE (Enterprise + Service Provider) · CCDE · CaIT Networks",
+"hero.role":"Principal Solutions Architect | Enterprise Networking & Cybersecurity | Capital Markets",
 "hook.q":"Before any diagram, an exercise in scale. How far does the market move in the blink of an eye?",
 "hook.btn":"Blink your eyes",
-"nav.1":"1 · Scale","nav.2":"2 · Topology","nav.3":"3 · Obstacle course","nav.4":"4 · The firewall proof","nav.5":"5 · The killer tail","nav.6":"6 · Global routes","nav.7":"7 · Arbitrage BR↔US","nav.8":"8 · Build the desk","nav.9":"9 · The time judge","nav.10":"10 · Board questions","nav.tese":"Economic thesis","nav.rack":"3.1 · B3 rack","s7.hint2":"One asset, two venues. When one side gets cheaper, you buy there and sell on the other. Pick the infrastructure, start, and execute the correct side before the window closes. You and the robot contest the same ten rounds at once.","s7.b1":"BUY BR · SELL US","s7.b2":"BUY US · SELL BR","s7.colh":"YOU","s7.colr":"ROBOT — SAME INFRASTRUCTURE","s7.hit":"HITS","s7.pnl":"RESULT","s7.idle":"idle","s7.rt":"YOUR AVERAGE REACTION","s7.wt":"AVERAGE WINDOW","s7.rl":"ROBOT LATENCY","s7.ft":"Final score",
+"nav.1":"1 · Scale","nav.2":"2 · Topology","nav.3":"3 · Obstacle course","nav.4":"4 · The firewall proof","nav.5":"5 · The killer tail","nav.6":"6 · Global routes","nav.7":"7 · Arbitrage BR↔US","nav.8":"8 · Build the desk","nav.9":"9 · The time judge","nav.10":"10 · Board questions","nav.tese":"Economic thesis","nav.rack":"3.1 · B3 rack","s7.hint2":"One asset, two venues. When one side gets cheaper, you buy there and sell on the other. Pick the infrastructure, start, and execute the correct side before the window closes. You and the robot contest the same ten rounds at once.","s7.b1":"BUY BR · SELL US","s7.b2":"BUY US · SELL BR","s7.colh":"YOU","s7.colr":"ROBOT — SAME INFRASTRUCTURE","s7.hit":"HITS","s7.pnl":"RESULT","s7.idle":"idle","s7.rt":"YOUR AVERAGE REACTION","s7.wt":"AVERAGE WINDOW","s7.rl":"ROBOT LATENCY","s7.ft":"Final score","sr.k":"Module 3.1 — the real cage","sr.h":"B3 Trading Rack: what the exchange demands and what elite does","sr.p":"B3 leaves no choice: the Trading Rack modality <strong>requires</strong> routed Layer 3 access, dual connections, and BGP with the exchange PEs. No cage without a router. The difference between a common operation and an elite one is not having or not having the CE — it is <strong>where it sits relative to the critical path</strong>.","sr.lab":"B3 compliance × elite configuration","sr.left":"B3 COMPLIANT — CE IN THE FEED PATH","sr.right":"ELITE — CE OUT OF THE FEED PATH","sr.mdrt":"routed market data","sr.swconv":"Conventional L2/L3 switch","sr.lt":"TOTAL PATH COST","sr.lb":"the feed traverses L3 routing before reaching the strategy","sr.rb":"the CE still exists — it is just not in the market data path","sr.ctrl":"control plane","sr.fan":"electrical fanout 1:N","sr.split":"planes separated","sr.leak":"leak A15","sr.mdl1":"market data direct on L1","sr.ordtx":"TCP orders","sr.cap":"Trading Rack requirements and how the elite architecture meets them without paying latency","sr.c1":"B3 requirement","sr.c2":"Common implementation","sr.c3":"Elite implementation","sr.r1a":"Routed Layer 3 access","sr.r1b":"CE in the feed and order path","sr.r1c":"CE only in control plane; data via L1","sr.r2a":"Dual connections","sr.r2b":"FHRP with convergence in seconds","sr.r2c":"FHRP + BFD 100 ms × 3 · sub-second","sr.r3a":"Optimized eBGP routing","sr.r3b":"Default timers, no BFD","sr.r3c":"Timers 7/21 + BFD + prefix filters","sr.r4a":"UMDF multicast via PIM sparse","sr.r4b":"Join on CE, software replication","sr.r4c":"Join on CE, electrical replication on L1","sr.r5a":"Redundant feeds A and B","sr.r5b":"Feed arbitrage in application","sr.r5c":"A/B arbitrage in FPGA on the NIC","sr.eng":"The common misreading of the B3 manual is concluding that because the modality requires Layer 3, the router must sit in the market data path. It does not. The CE exists to establish the eBGP session, announce the Trading Rack block, maintain PIM adjacency, and join the UMDF groups. Once the multicast tree is formed, the traffic can be delivered to the Fusion and electrically replicated to servers without going back through routing processing. The CE stays in the control plane; data runs on Layer 1. This separation is the difference between 156 µs and 294 ns.","sr.board":"Two institutions can be equally compliant with the same exchange manual and operate at latency regimes separated by three orders of magnitude. Regulatory compliance and competitive advantage are independent axes — meeting the requirement is the floor, not the strategy. What separates the two is an architecture decision that costs no additional license or contract: it costs knowing where to place each box.",
 "tag.lab":"LABORATORY","tag.eng":"ENGINEERING NOTE","tag.board":"READING FOR THE BOARD","tag.topo":"TOPOLOGY","tag.game":"GAME","tag.model":"MODEL",
 "s1.k":"Module 1","s1.h":"Scale: why your intuition is wrong",
 "s1.p":"Nobody feels a nanosecond. That is why ULL infrastructure decisions get made badly — the brain cannot tell \u201cfast\u201d from \u201cfast enough\u201d. The fix is to stretch time until it fits human experience.",
@@ -1194,20 +1213,20 @@ en:{
 "s10.p":"Every ULL project lives or dies on five committee questions. Each has two correct answers — the engineer's and the board's — and whoever can give both gets the approval.",
 "s10.ft":"CLOSING",
 "s10.fb":"The institution that treats latency infrastructure as an IT cost defends it with a spreadsheet. The one that treats it as market infrastructure defends it with a thesis. The difference is not in the budget approved — it is in who, inside the house, can translate nanoseconds into risk, revenue and timeline.",
-"ft.1":"Founder, CaIT Networks · Cisco educator and mentor",
+"ft.1":"Cisco Networking Academy instructor since 2006",
 "ft.2":"High-performance network engineering for capital markets",
 "ft.oep":"Order · Strategy · Patience",
-"ft.legal":"ULL Arena · interactive ultra-low-latency laboratories · v4.0 — Original teaching material. Latencies, costs and economic parameters are public orders of magnitude and illustrative assumptions, intended to teach architectural reasoning. They are not investment advice nor a project specification. MIT licence."
+"ft.legal":"Mercado Financeiro — Bastidores · interactive ultra-low-latency laboratories · v4.0 — Original teaching material. Latencies, costs and economic parameters are public orders of magnitude and illustrative assumptions, intended to teach architectural reasoning. They are not investment advice nor a project specification. MIT licence."
 },
 es:{
 "lens.eng":"Ingeniería","lens.board":"Directorio",
 "hero.eb":"Laboratorios interactivos de infraestructura de mercado",
 "hero.h1":"El tiempo es la única <em>clase de activo</em> que nadie puede imprimir.",
 "hero.ld":"Siete laboratorios jugables. Usted construye la topología, retira obstáculos del camino del paquete, demuestra por qué un firewall no cabe en un entorno de negociación, mide rutas entre las bolsas del mundo y disputa una ventana de arbitraje entre Brasil y Estados Unidos. Cambie la lente entre ingeniería y directorio cuando quiera.",
-"hero.role":"Double CCIE (Enterprise + Service Provider) · CCDE · CaIT Networks",
+"hero.role":"Principal Solutions Architect | Enterprise Networking & Cybersecurity | Capital Markets",
 "hook.q":"Antes de cualquier diagrama, un ejercicio de escala. ¿Cuánto se mueve el mercado en un parpadeo?",
 "hook.btn":"Parpadear",
-"nav.1":"1 · La escala","nav.2":"2 · La topología","nav.3":"3 · Pista de obstáculos","nav.4":"4 · La prueba del firewall","nav.5":"5 · La cola que mata","nav.6":"6 · Rutas globales","nav.7":"7 · Arbitraje BR↔US","nav.8":"8 · Arme la mesa","nav.9":"9 · El juez del tiempo","nav.10":"10 · Preguntas del directorio","nav.tese":"Tesis económica","nav.rack":"3.1 · Rack B3","s7.hint2":"Un mismo activo, dos plazas. Cuando un lado se abarata, usted compra allí y vende en el otro. Elija la infraestructura, inicie y ejecute el lado correcto antes de que cierre la ventana. Usted y el robot disputan las mismas diez rondas a la vez.","s7.b1":"COMPRAR BR · VENDER US","s7.b2":"COMPRAR US · VENDER BR","s7.colh":"USTED","s7.colr":"ROBOT — MISMA INFRAESTRUCTURA","s7.hit":"ACIERTOS","s7.pnl":"RESULTADO","s7.idle":"esperando","s7.rt":"SU REACCIÓN MEDIA","s7.wt":"VENTANA MEDIA","s7.rl":"LATENCIA DEL ROBOT","s7.ft":"Marcador final",
+"nav.1":"1 · La escala","nav.2":"2 · La topología","nav.3":"3 · Pista de obstáculos","nav.4":"4 · La prueba del firewall","nav.5":"5 · La cola que mata","nav.6":"6 · Rutas globales","nav.7":"7 · Arbitraje BR↔US","nav.8":"8 · Arme la mesa","nav.9":"9 · El juez del tiempo","nav.10":"10 · Preguntas del directorio","nav.tese":"Tesis económica","nav.rack":"3.1 · Rack B3","s7.hint2":"Un mismo activo, dos plazas. Cuando un lado se abarata, usted compra allí y vende en el otro. Elija la infraestructura, inicie y ejecute el lado correcto antes de que cierre la ventana. Usted y el robot disputan las mismas diez rondas a la vez.","s7.b1":"COMPRAR BR · VENDER US","s7.b2":"COMPRAR US · VENDER BR","s7.colh":"USTED","s7.colr":"ROBOT — MISMA INFRAESTRUCTURA","s7.hit":"ACIERTOS","s7.pnl":"RESULTADO","s7.idle":"esperando","s7.rt":"SU REACCIÓN MEDIA","s7.wt":"VENTANA MEDIA","s7.rl":"LATENCIA DEL ROBOT","s7.ft":"Marcador final","sr.k":"Módulo 3.1 — la jaula real","sr.h":"Rack Negociación B3: lo que la bolsa exige y lo que la élite hace","sr.p":"B3 no deja elegir: la modalidad Rack Negociación <strong>obliga</strong> acceso en Capa 3 ruteado, conexiones dualizadas y BGP con los PEs de la bolsa. No existe jaula sin router. La diferencia entre una operación común y una de élite no es tener o no tener el CE — es <strong>dónde queda en relación al camino crítico</strong>.","sr.lab":"Conformidad B3 × configuración de élite","sr.left":"CONFORME A B3 — CE EN EL CAMINO DEL FEED","sr.right":"ÉLITE — CE FUERA DEL CAMINO DEL FEED","sr.mdrt":"market data ruteado","sr.swconv":"Switch L2/L3 convencional","sr.lt":"COSTO TOTAL DEL CAMINO","sr.lb":"el feed atraviesa ruteo L3 antes de llegar a la estrategia","sr.rb":"el CE sigue existiendo — simplemente no está en el camino del market data","sr.ctrl":"plano de control","sr.fan":"fanout eléctrico 1:N","sr.split":"planos separados","sr.leak":"leak A15","sr.mdl1":"market data directo en L1","sr.ordtx":"órdenes TCP","sr.cap":"Exigencias del Rack Negociación y cómo la arquitectura de élite las cumple sin pagar latencia","sr.c1":"Exigencia de B3","sr.c2":"Implementación común","sr.c3":"Implementación de élite","sr.r1a":"Acceso en Capa 3 ruteado","sr.r1b":"CE en el camino del feed y de las órdenes","sr.r1c":"CE solo en plano de control; datos vía L1","sr.r2a":"Conexiones dualizadas","sr.r2b":"FHRP con convergencia en segundos","sr.r2c":"FHRP + BFD 100 ms × 3 · sub-segundo","sr.r3a":"Ruteo eBGP optimizado","sr.r3b":"Timers por defecto, sin BFD","sr.r3c":"Timers 7/21 + BFD + filtros de prefijo","sr.r4a":"Multicast UMDF vía PIM sparse","sr.r4b":"Join en CE, replicación en software","sr.r4c":"Join en CE, replicación eléctrica en L1","sr.r5a":"Feeds A y B redundantes","sr.r5b":"Arbitraje de feed en aplicación","sr.r5c":"Arbitraje A/B en FPGA en la NIC","sr.eng":"La lectura errónea del manual de B3 es concluir que, porque la modalidad exige Capa 3, el router debe estar en el camino del market data. No es así. El CE existe para establecer la sesión eBGP, anunciar el bloque del Rack Negociación, mantener la adyacencia PIM y hacer el join de los grupos UMDF. Una vez formado el árbol multicast, el tráfico puede entregarse al Fusion y replicarse eléctricamente a los servidores sin volver a atravesar procesamiento de ruteo. El CE queda en el plano de control; el dato corre en Capa 1. Esta separación es la diferencia entre 156 µs y 294 ns.","sr.board":"Dos instituciones pueden estar igualmente conformes al mismo manual de la bolsa y operar en regímenes de latencia separados por tres órdenes de magnitud. Conformidad regulatoria y ventaja competitiva son ejes independientes — cumplir el requisito es el piso, no la estrategia. Lo que separa a las dos es una decisión de arquitectura que no cuesta más licencia ni más contrato: cuesta saber dónde colocar cada caja.",
 "tag.lab":"LABORATORIO","tag.eng":"NOTA DE INGENIERÍA","tag.board":"LECTURA PARA EL DIRECTORIO","tag.topo":"TOPOLOGÍA","tag.game":"JUEGO","tag.model":"MODELO",
 "s1.k":"Módulo 1","s1.h":"La escala: por qué su intuición se equivoca",
 "s1.p":"Nadie siente un nanosegundo. Por eso las decisiones de infraestructura en ULL se toman mal — el cerebro no distingue \u201crápido\u201d de \u201clo bastante rápido\u201d. La corrección es estirar el tiempo hasta que quepa en la experiencia humana.",
@@ -1309,10 +1328,10 @@ es:{
 "s10.p":"Todo proyecto de ULL vive o muere en cinco preguntas de comité. Cada una tiene dos respuestas correctas — la del ingeniero y la del directorio — y quien sabe dar ambas consigue la aprobación.",
 "s10.ft":"CIERRE",
 "s10.fb":"La institución que trata la infraestructura de latencia como costo de TI la defiende con planilla. La que la trata como infraestructura de mercado la defiende con tesis. La diferencia no está en el presupuesto aprobado — está en quién, dentro de la casa, sabe traducir nanosegundos en riesgo, ingreso y plazo.",
-"ft.1":"Fundador, CaIT Networks · educador y mentor Cisco",
+"ft.1":"Instructor Cisco Networking Academy desde 2006",
 "ft.2":"Ingeniería de redes de alto rendimiento para mercados de capitales",
 "ft.oep":"Orden · Estrategia · Paciencia",
-"ft.legal":"ULL Arena · laboratorios interactivos de ultra baja latencia · v4.0 — Material didáctico original. Latencias, costos y parámetros económicos son órdenes de magnitud públicas y premisas ilustrativas, destinadas a enseñar el razonamiento de arquitectura. No constituyen recomendación de inversión ni especificación de proyecto. Licencia MIT."
+"ft.legal":"Mercado Financeiro — Bastidores · laboratorios interactivos de ultra baja latencia · v4.0 — Material didáctico original. Latencias, costos y parámetros económicos son órdenes de magnitud públicas y premisas ilustrativas, destinadas a enseñar el razonamiento de arquitectura. No constituyen recomendación de inversión ni especificación de proyecto. Licencia MIT."
 }
 };
 

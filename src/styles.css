@@ -30,36 +30,36 @@
   --color-ring: var(--ring);
   --color-surface: var(--surface);
   --color-neon: var(--neon);
-  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.18 0.028 250);
-  --foreground: oklch(0.95 0.008 240);
-  --surface: oklch(0.22 0.03 250);
-  --card: oklch(0.235 0.03 250);
-  --card-foreground: oklch(0.95 0.008 240);
-  --popover: oklch(0.235 0.03 250);
-  --popover-foreground: oklch(0.95 0.008 240);
-  --primary: oklch(0.82 0.15 195);
-  --primary-foreground: oklch(0.18 0.028 250);
-  --neon: oklch(0.85 0.2 145);
-  --secondary: oklch(0.28 0.032 250);
-  --secondary-foreground: oklch(0.95 0.008 240);
-  --muted: oklch(0.27 0.03 250);
-  --muted-foreground: oklch(0.72 0.02 240);
-  --accent: oklch(0.3 0.05 220);
-  --accent-foreground: oklch(0.95 0.008 240);
-  --destructive: oklch(0.62 0.2 25);
-  --destructive-foreground: oklch(0.97 0 0);
-  --border: oklch(0.32 0.03 250);
-  --input: oklch(0.3 0.03 250);
-  --ring: oklch(0.82 0.15 195);
-  --grid-line: oklch(0.28 0.03 250 / 55%);
-  --glow-primary: 0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent),
-    0 12px 40px -14px color-mix(in oklab, var(--primary) 55%, transparent);
+  --background: #ffffff;
+  --foreground: #08213E;
+  --surface: #F4F9FD;
+  --card: #ffffff;
+  --card-foreground: #08213E;
+  --popover: #ffffff;
+  --popover-foreground: #08213E;
+  --primary: #0B5CD5;
+  --primary-foreground: #ffffff;
+  --neon: #0F8B4C;
+  --secondary: #E5F1FA;
+  --secondary-foreground: #12395F;
+  --muted: #F4F9FD;
+  --muted-foreground: #4A5E78;
+  --accent: #E5F1FA;
+  --accent-foreground: #08213E;
+  --destructive: #C93327;
+  --destructive-foreground: #ffffff;
+  --border: #DCE7F1;
+  --input: #DCE7F1;
+  --ring: #0B5CD5;
+  --grid-line: rgba(220,231,241,0.55);
+  --glow-primary: 0 1px 2px rgba(8,33,62,.05),
+    0 16px 40px -26px rgba(11,92,213,.25);
 }
 
 @layer base {

@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-surface/40">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <span className="font-mono text-xs">
-          josinfo // Josimar Caitano — CCIE x2
+          Josimar Caitano // じょしまる
         </span>
         <span className="text-xs">
           © {new Date().getFullYear()} Josimar Caitano. {t("footer.rights")}

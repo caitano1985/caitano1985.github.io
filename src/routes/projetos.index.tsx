@@ -6,13 +6,13 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/projetos/")({
   head: () => ({
     meta: [
-      { title: "Projetos de Rede | Josimar Caitano — Josinfo" },
+      { title: "Projects | Josimar Caitano — Principal Solutions Architect" },
       {
         name: "description",
         content:
           "Estudos de caso de arquitetura e implementação de redes: Ultra-Baixa Latência (ULL), High-Frequency Trading (HFT) e conectividade B3.",
       },
-      { property: "og:title", content: "Projetos de Rede | Josinfo" },
+      { property: "og:title", content: "Projects | Josimar Caitano" },
       {
         property: "og:description",
         content: "Estudos de caso de arquitetura e implementação de redes por Josimar Caitano.",
