@@ -58,9 +58,9 @@ function Home() {
     ["teach.c3", "teach.c3d"],
   ];
 
-  const contents: [string, string, string, string][] = [
-    ["content.yt", "content.ytd", "youtube", "content.ytLink"],
-    ["content.a1", "content.a1d", "article", ""],
+  const perspectives: [string, string, string, string, string][] = [
+    ["content.a1", "content.a1d", "essay", "content.a1Link", "content.read"],
+    ["content.yt", "content.ytd", "youtube", "content.ytLink", "content.link"],
   ];
 
   const onSubmit = async (e: FormEvent) => {
@@ -240,18 +240,27 @@ function Home() {
         </Link>
       </section>
 
-      {/* CONTENT */}
-      <section id="conteudo" className="border-y border-border bg-surface/40">
+      {/* PERSPECTIVE */}
+      <section id="perspective" className="border-y border-border bg-surface/40">
         <div className="mx-auto max-w-6xl px-5 py-20">
-          <SectionHead label="./content" title={t("content.title")} />
+          <SectionHead label="./perspective" title={t("content.title")} />
+          <p className="-mt-4 mb-8 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            {t("content.sub")}
+          </p>
           <div className="grid gap-5 sm:grid-cols-2">
-            {contents.map(([title, desc, kind, link]) => (
+            {perspectives.map(([title, desc, kind, link, cta]) => (
               <div key={title} className="card-hover rounded-xl border border-border bg-card p-6">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-neon">{kind}</span>
                 <h3 className="mt-2 font-semibold">{t(title)}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(desc)}</p>
                 {link ? (
-                  <a href={t(link)} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block font-mono text-xs text-primary hover:underline">{t("content.link")} →</a>
+                  <a
+                    href={t(link)}
+                    {...(kind === "youtube" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    className="mt-4 inline-block font-mono text-xs text-primary hover:underline"
+                  >
+                    {t(cta)} →
+                  </a>
                 ) : (
                   <span className="mt-4 inline-block font-mono text-xs text-muted-foreground">{t("content.linkSoon")}</span>
                 )}

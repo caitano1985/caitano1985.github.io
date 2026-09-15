@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>From Network Architect to Trading Network Specialist | Josimar Caitano</title>
-<meta name="description" content="Twenty years of infrastructure, three continents, one market that changed everything — and what crossing that frontier taught me about the value of the outsider.">
+<meta name="description" content="Twenty years of infrastructure, three continents, one market that changed everything — and what crossing that frontier taught me about the value of the rookie.">
 <meta property="og:title" content="From Network Architect to Trading Network Specialist">
 <meta property="og:description" content="Twenty years of infrastructure, three continents, one market that changed everything.">
 <meta property="og:type" content="article">
@@ -36,7 +36,6 @@ a{color:var(--bl)}
 p{margin:0 0 20px;color:var(--tx2)}
 strong{color:var(--ink);font-weight:700}
 
-/* nav global */
 
 
 
@@ -49,18 +48,16 @@ strong{color:var(--ink);font-weight:700}
 
 @media(max-width:900px){}
 
-/* topbar */
-.tb{background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--ln);position:sticky;top:45px;z-index:60}
-.tb .r{max-width:var(--mw);margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.bd{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--ink);font-size:15px}
-.bd .s{color:var(--mu);font-weight:400}
-.tb .sp{flex:1}
-.seg{display:inline-flex;background:var(--t2);border:1px solid var(--sf);border-radius:999px;padding:3px;gap:2px}
-.seg button{appearance:none;border:0;cursor:pointer;font-family:inherit;font-weight:600;font-size:12.5px;padding:6px 13px;
- border-radius:999px;background:transparent;color:var(--mu);white-space:nowrap;transition:.14s}
-.seg button[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:var(--s1)}
-.seg button:hover:not([aria-pressed="true"]){color:var(--ink)}
-.seg.flags button{font-size:15px;padding:5px 10px;line-height:1}
+
+
+
+
+
+
+
+
+
+
 
 /* hero */
 .hero{background:radial-gradient(85% 105% at 90% -12%,#D9EEFA 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#FAFDFF,#fff);border-bottom:1px solid var(--ln)}
@@ -135,8 +132,6 @@ footer .oep{margin-top:20px;font-size:14px;color:var(--cy);font-weight:700}
 footer .mt{margin-top:22px;padding-top:18px;border-top:1px solid #1B3F6C;font-size:12.5px;color:#7590B4;line-height:1.75}
 
 /* bloco exclusivo PT-BR */
-.pt-only{display:none}
-body[data-lang="pt"] .pt-only{display:block}
 .note.nv{border-left-color:var(--gd);background:#FCFAF3}
 .note.nv .t{color:var(--gd)}
 
@@ -157,7 +152,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--bl);outline-offset:
 <header class="hero"><div class="r">
  <p class="eb" data-i18n="h.kicker">Essay · Capital Markets Technology</p>
  <h1 data-i18n="h.title">From Network Architect to Trading Network Specialist</h1>
- <p class="ld" data-i18n="h.lead">Twenty years of infrastructure, three continents, one market that changed everything — and what crossing that frontier taught me about the value of the outsider.</p>
+ <p class="ld" data-i18n="h.lead">Twenty years of infrastructure, three continents, one market that changed everything — and what crossing that frontier taught me about the value of the rookie.</p>
  <div class="hm"><div class="av" aria-hidden="true">JC</div><div>
   <div class="n">Josimar Caitano</div>
   <div class="rr" data-i18n="h.role">Principal Solutions Architect · NTT DATA · Capital Markets Infrastructure</div></div></div>
@@ -174,19 +169,19 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--bl);outline-offset:
  <p class="lead" data-i18n="p.1">Electronic trading infrastructure is not a destination most engineers plan for. It is a world that operates in nanoseconds, shapes global liquidity, and keeps capital markets functioning without ceremony. When everything runs correctly, no one notices. When it does not, the consequences arrive before most people can formulate a response.</p>
  <p data-i18n="p.2">I did not enter this domain because it was the logical next step. I entered because I have never retreated from unfamiliar territory.</p>
 
- <div class="note nv pt-only">
-  <p class="t">NOTA DO AUTOR — O NOVATO</p>
-  <p>Ao longo deste texto eu me chamo de <strong>“O Novato”</strong>. Pode soar estranho vindo de alguém com vinte anos de estrada, mas é exatamente o que eu era ao entrar numa instituição financeira: o cara que entendia de rede como poucos e não fazia ideia de como um banco funcionava por dentro. Levei um tempo para perceber que aquilo não era um defeito no meu currículo. Era a minha maior vantagem.</p>
+ <div class="note nv">
+  <p class="t" data-i18n="nv.t">AUTHOR’S NOTE — THE ROOKIE</p>
+  <p data-i18n="nv.b">Throughout this piece I call myself <strong>“the Rookie”</strong>. It may sound odd coming from someone with twenty years on the road, but that is exactly what I was when I walked into a financial institution: the guy who understood networks as few did, and had no idea how a bank actually worked on the inside. It took me a while to see that this was not a gap in my résumé. It was my greatest advantage.</p>
  </div>
 </section>
 
 <section>
  <p class="ln" data-i18n="s1.k">I</p>
- <h2 data-i18n="s1.h">The Advantage of the Outsider</h2>
+ <h2 data-i18n="s1.h">The Advantage of the Rookie</h2>
  <p data-i18n="s1.p1">Twenty years building critical infrastructure across American, European, and Asian enterprises left me with something the financial markets did not expect to find in a network architect: the capacity to perceive what those inside the system had long since stopped questioning.</p>
- <p data-i18n="s1.p2">The outsider is not an intruder. The outsider is the professional who arrives without the accumulated bias of institutional familiarity — who still asks the obvious question that no one inside the room dares to raise. In the right environment, that question is worth considerably more than the answer everyone already has.</p>
+ <p data-i18n="s1.p2">The Rookie is not an intruder. He is the professional who arrives without the accumulated bias of institutional familiarity — who still asks the obvious question that no one inside the room dares to raise. In the right environment, that question is worth considerably more than the answer everyone already has.</p>
  <p data-i18n="s1.p3">When I joined a brokerage connected to a stock exchange, I did not know how a bank operated. I did not know how a broker-dealer functioned. I did not know the back office, the pre-trade workflow, the post-trade settlement cycle, the regulatory architecture, or the clearing mechanisms. What I knew with precision was what happened to every packet that crossed that network — and that knowledge was exactly what no one in the room could articulate.</p>
- <p class="pull" data-i18n="s1.pull">The outsider does not accept “this is how it has always been done” as an answer. That question, asked in the right room, is worth a fortune.</p>
+ <p class="pull" data-i18n="s1.pull">The Rookie does not accept “this is how it has always been done” as an answer. That question, asked in the right room, is worth a fortune.</p>
 </section>
 
 <section>
@@ -260,7 +255,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--bl);outline-offset:
  <p class="ln" data-i18n="s3.k">III</p>
  <h2 data-i18n="s3.h">Navigating Complexity Without Surrendering Identity</h2>
  <p data-i18n="s3.p1">High-performance trading environments test more than technical competence. They test who you are when the vocabulary surrounding you is not your own — when your credentials belong to a discipline that the room has not yet learned to respect.</p>
- <p data-i18n="s3.p2">There were meetings where my background was assessed before my solution. There were moments of institutional pressure where the trader needed an answer in seconds and the diagnostic was still in progress. The outsider experiences this not as humiliation, but as signal: here is a gap that no one has yet closed.</p>
+ <p data-i18n="s3.p2">There were meetings where my background was assessed before my solution. There were moments of institutional pressure where the trader needed an answer in seconds and the diagnostic was still in progress. The Rookie experiences this not as humiliation, but as signal: here is a gap that no one has yet closed.</p>
  <p data-i18n="s3.p3">That realization reoriented everything. I did not abandon the identity I had built across two decades. I expanded the territory it covered.</p>
 </section>
 
@@ -279,9 +274,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--bl);outline-offset:
 
 <section>
  <p class="ln" data-i18n="s5.k">V</p>
- <h2 data-i18n="s5.h">What Twenty Years Taught Me</h2>
+ <h2 data-i18n="s5.h">What Twenty Years Taught Me Inside a Financial Institution</h2>
  <div class="cards c2">
-  <div class="card"><p class="k">01</p><p data-i18n="s5.c1">The outsider retains an advantage the insider forfeited: the willingness to ask the question everyone else has normalized into silence.</p></div>
+  <div class="card"><p class="k">01</p><p data-i18n="s5.c1">The Rookie retains an advantage the insider forfeited: the willingness to ask the question everyone else has normalized into silence.</p></div>
   <div class="card"><p class="k">02</p><p data-i18n="s5.c2">Hostile environments are not obstacles. They are maps — they reveal precisely where the territory has not yet been claimed.</p></div>
   <div class="card"><p class="k">03</p><p data-i18n="s5.c3">Executive confidence does not precede the work. It is the residue of having done what others declined.</p></div>
   <div class="card"><p class="k">04</p><p data-i18n="s5.c4">Complexity does not reward bravado. It rewards the professional who remains in the field when others withdraw.</p></div>
@@ -328,16 +323,18 @@ es:{
 "tb.sub":"— Tecnología de Mercados de Capitales",
 "h.kicker":"Ensayo · Tecnología de Mercados de Capitales",
 "h.title":"De Arquitecto de Redes a Especialista en Redes de Trading",
-"h.lead":"Veinte años de infraestructura, tres continentes, un mercado que lo cambió todo — y lo que cruzar esa frontera me enseñó sobre el valor del forastero.",
+"h.lead":"Veinte años de infraestructura, tres continentes, un mercado que lo cambió todo — y lo que cruzar esa frontera me enseñó sobre el valor del Novato.",
 "h.role":"Principal Solutions Architect · NTT DATA · Infraestructura de Mercados de Capitales",
 "h.date":"Septiembre 2026","h.read":"8 min de lectura","h.cat":"Carrera · Infraestructura de Mercado",
 "p.1":"La infraestructura de negociación electrónica no es un destino que la mayoría de los ingenieros planifica. Es un mundo que opera en nanosegundos, moldea la liquidez global y mantiene los mercados de capitales funcionando sin ceremonia. Cuando todo funciona correctamente, nadie lo nota. Cuando no, las consecuencias llegan antes de que la mayoría pueda formular una respuesta.",
+"nv.t":"NOTA DEL AUTOR — EL NOVATO",
+"nv.b":"A lo largo de este texto me llamo <strong>“el Novato”</strong>. Puede sonar raro viniendo de alguien con veinte años de camino, pero es exactamente lo que yo era al entrar en una institución financiera: el que entendía de redes como pocos y no tenía idea de cómo funcionaba un banco por dentro. Me tomó un tiempo entender que aquello no era un defecto en mi currículum. Era mi mayor ventaja.",
 "p.2":"No entré en este dominio porque fuera el siguiente paso lógico. Entré porque nunca he retrocedido ante un territorio desconocido.",
-"s1.k":"I","s1.h":"La Ventaja del Forastero",
+"s1.k":"I","s1.h":"La Ventaja del Novato",
 "s1.p1":"Veinte años construyendo infraestructura crítica en empresas americanas, europeas y asiáticas me dejaron algo que los mercados financieros no esperaban encontrar en un arquitecto de redes: la capacidad de percibir lo que quienes estaban dentro del sistema hacía tiempo habían dejado de cuestionar.",
-"s1.p2":"El forastero no es un intruso. El forastero es el profesional que llega sin el sesgo acumulado de la familiaridad institucional — el que todavía hace la pregunta obvia que nadie dentro de la sala se atreve a plantear. En el entorno adecuado, esa pregunta vale considerablemente más que la respuesta que todos ya tienen.",
+"s1.p2":"El Novato no es un intruso. Es el profesional que llega sin el sesgo acumulado de la familiaridad institucional — el que todavía hace la pregunta obvia que nadie dentro de la sala se atreve a plantear. En el entorno adecuado, esa pregunta vale considerablemente más que la respuesta que todos ya tienen.",
 "s1.p3":"Cuando me incorporé a una corredora conectada a una bolsa de valores, no sabía cómo operaba un banco. No sabía cómo funcionaba un broker-dealer. No conocía el back office, el flujo pre-trade, el ciclo de liquidación post-trade, la arquitectura regulatoria ni los mecanismos de clearing. Lo que sí sabía con precisión era qué le ocurría a cada paquete que cruzaba esa red — y ese conocimiento era exactamente lo que nadie en la sala podía articular.",
-"s1.pull":"El forastero no acepta “siempre se ha hecho así” como respuesta. Esa pregunta, formulada en la sala correcta, vale una fortuna.",
+"s1.pull":"El Novato no acepta “siempre se ha hecho así” como respuesta. Esa pregunta, formulada en la sala correcta, vale una fortuna.",
 "s2.k":"II","s2.h":"El Momento en que la Escala se Vuelve Real",
 "s2.p1":"Todo ingeniero que trabaja en la intersección entre infraestructura y mercados financieros tiene un punto de inflexión. Un momento en que el sistema deja de ser una abstracción y se revela como algo vivo, consecuente e implacable.",
 "s2.p2":"Para mí, ese momento llegó dentro de una corredora en colocation con una bolsa de valores. No hubo drama, ni atmósfera cinematográfica de piso de operaciones. Solo servidores equipados con tarjetas de red especializadas — componentes que cuestan más de tres mil dólares por unidad — generando dos flujos simultáneos: un canal multicast con market data y un flujo TCP de órdenes atravesando una pila de switches, routers y gateways de bolsa diseñada con precisión.",
@@ -354,7 +351,7 @@ es:{
 "fig.cap":"Órdenes de magnitud sobre un eje logarítmico. La distancia entre un parpadeo humano y un ciclo completo de negociación no es una diferencia de velocidad — es una diferencia de dimensión.",
 "s3.k":"III","s3.h":"Navegar la Complejidad Sin Rendir la Identidad",
 "s3.p1":"Los entornos de trading de alto rendimiento ponen a prueba más que la competencia técnica. Ponen a prueba quién eres cuando el vocabulario que te rodea no es el tuyo — cuando tus credenciales pertenecen a una disciplina que la sala aún no ha aprendido a respetar.",
-"s3.p2":"Hubo reuniones donde se evaluó mi trayectoria antes que mi solución. Hubo momentos de presión institucional en que el trader necesitaba una respuesta en segundos y el diagnóstico seguía en curso. El forastero vive esto no como humillación, sino como señal: aquí hay una brecha que nadie ha cerrado todavía.",
+"s3.p2":"Hubo reuniones donde se evaluó mi trayectoria antes que mi solución. Hubo momentos de presión institucional en que el trader necesitaba una respuesta en segundos y el diagnóstico seguía en curso. El Novato vive esto no como humillación, sino como señal: aquí hay una brecha que nadie ha cerrado todavía.",
 "s3.p3":"Esa constatación reorientó todo. No abandoné la identidad que había construido durante dos décadas. Expandí el territorio que cubría.",
 "s4.k":"IV","s4.h":"La Credibilidad Que Se Gana, No Se Declara",
 "s4.p1":"En entornos donde lo que está en juego se mide en milisegundos y puntos base, la credibilidad no se declara en un currículum. Se construye a través de una secuencia de entregas que otros declinaron intentar:",
@@ -363,8 +360,8 @@ es:{
 "s4.l3":"Convertirme en el profesional al que se llama cuando el problema ya derrotó a la experiencia disponible",
 "s4.l4":"Ganar la confianza de las áreas de negocio mediante consistencia, no volumen",
 "s4.p2":"Estas contribuciones no aparecen en titulares. Construyen la base que permite, con el tiempo, sentarse frente a cualquier managing director de cualquier institución global y ser recibido como par.",
-"s5.k":"V","s5.h":"Lo Que Veinte Años Me Enseñaron",
-"s5.c1":"El forastero conserva una ventaja que el insider perdió: la voluntad de hacer la pregunta que todos los demás han normalizado en silencio.",
+"s5.k":"V","s5.h":"Lo Que Veinte Años Me Enseñaron Dentro de una Institución Financiera",
+"s5.c1":"El Novato conserva una ventaja que el insider perdió: la voluntad de hacer la pregunta que todos los demás han normalizado en silencio.",
 "s5.c2":"Los entornos hostiles no son obstáculos. Son mapas — revelan exactamente dónde el territorio aún no ha sido reclamado.",
 "s5.c3":"La confianza ejecutiva no precede al trabajo. Es el residuo de haber hecho lo que otros declinaron.",
 "s5.c4":"La complejidad no premia la bravuconería. Premia al profesional que permanece en el campo cuando otros se retiran.",
@@ -392,6 +389,8 @@ pt:{
 "h.role":"Principal Solutions Architect · NTT DATA · Infraestrutura de Mercado de Capitais",
 "h.date":"Setembro de 2026","h.read":"8 min de leitura","h.cat":"Carreira · Infraestrutura de Mercado",
 "p.1":"Infraestrutura de negociação eletrônica não é um destino que a maioria dos engenheiros planeja. É um mundo que opera em nanossegundos, molda a liquidez global e mantém o mercado de capitais funcionando sem cerimônia. Quando tudo funciona corretamente, ninguém percebe. Quando não funciona, as consequências chegam antes que a maioria consiga formular uma resposta.",
+"nv.t":"NOTA DO AUTOR — O NOVATO",
+"nv.b":"Ao longo deste texto eu me chamo de <strong>“O Novato”</strong>. Pode soar estranho vindo de alguém com vinte anos de estrada, mas é exatamente o que eu era ao entrar numa instituição financeira: o cara que entendia de rede como poucos e não fazia ideia de como um banco funcionava por dentro. Levei um tempo para perceber que aquilo não era um defeito no meu currículo. Era a minha maior vantagem.",
 "p.2":"Não entrei nesse domínio porque era o próximo passo lógico. Entrei porque nunca recuei diante de território desconhecido.",
 "s1.k":"I","s1.h":"A Vantagem do Novato",
 "s1.p1":"Vinte anos construindo infraestrutura crítica em empresas americanas, europeias e asiáticas me deixaram com algo que o mercado financeiro não esperava encontrar em um arquiteto de redes: a capacidade de enxergar o que quem estava dentro do sistema havia muito tempo deixara de questionar.",
@@ -459,8 +458,9 @@ function applyLang(lang){
     if(v==null)return;
     n.innerHTML=v;
   });
-  window.addEventListener("jc:lang", function(e){ applyLang(e.detail.lang); });
-applyLang((window.jcHeader && window.jcHeader.lang) || "en");
+}
+window.addEventListener("jc:lang",function(e){applyLang(e.detail.lang);});
+applyLang((window.jcHeader&&window.jcHeader.lang)||"en");
 })();
 </script>
 </body>

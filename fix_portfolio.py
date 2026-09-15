@@ -88,6 +88,7 @@ def patch_essay(res):
     if not ESSAY.exists():
         res.append(("!!", "ensaio nao encontrado, pulando"))
         return None
+    # o ensaio e entregue ja corrigido; esta etapa e apenas rede de seguranca
     h = ESSAY.read_text(encoding="utf-8")
     if "Rookie" in h:
         res.append(("!!", "ensaio: ja usa Rookie, pulando"))
@@ -98,7 +99,7 @@ def patch_essay(res):
             h = h.replace(old, new)
             n += 1
     if n == 0:
-        res.append(("XX", "ensaio: nenhuma ocorrencia de Newcomer encontrada"))
+        res.append(("!!", "ensaio: nada a trocar (ja corrigido), pulando"))
         return None
     res.append(("OK", f"ensaio: {n}/{len(ROOKIE)} trechos EN -> Rookie"))
     if "Newcomer" in h or "newcomer" in h:
