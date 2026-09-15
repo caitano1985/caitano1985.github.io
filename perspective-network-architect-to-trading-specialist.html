@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>From Network Architect to Trading Network Specialist | Josimar Caitano</title>
+<meta name="description" content="Twenty years of infrastructure, three continents, one market that changed everything — and what crossing that frontier taught me about the value of the outsider.">
+<meta property="og:title" content="From Network Architect to Trading Network Specialist">
+<meta property="og:description" content="Twenty years of infrastructure, three continents, one market that changed everything.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#08213E;--ink2:#12395F;--tx:#2A3B52;--tx2:#4A5E78;
+ --cy:#00BCEB;--cy2:#0093B8;--bl:#0B5CD5;--bl2:#073B87;
+ --t1:#F4F9FD;--t2:#E5F1FA;--sf:#D2E7F5;
+ --ln:#DCE7F1;--ln2:#BFD5E8;
+ --gn:#0F8B4C;--gnb:#E7F6EE;--gnl:#B6E2CA;
+ --am:#B87610;--amb:#FDF5E7;--aml:#EEDCB2;
+ --rd:#C93327;--rdb:#FCEDEB;--rdl:#F0C6C0;
+ --gd:#8E7124;--mu:#63768E;--mu2:#93A6BB;
+ --s1:0 1px 2px rgba(8,33,62,.05);
+ --s2:0 1px 2px rgba(8,33,62,.05),0 16px 40px -26px rgba(8,33,62,.4);
+ --mw:1220px;--rw:78ch}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:#fff;color:var(--tx);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ font-size:18px;line-height:1.68;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);letter-spacing:-.02em;font-weight:700;margin:0}
+a{color:var(--bl)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.in{max-width:var(--mw);margin:0 auto;padding:0 24px}
+.rd-w{max-width:var(--rw);margin:0 auto}
+p{margin:0 0 20px;color:var(--tx2)}
+strong{color:var(--ink);font-weight:700}
+
+/* nav global */
+.main-nav{position:sticky;top:0;z-index:999;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--ln)}
+.main-nav-inner{max-width:var(--mw);margin:0 auto;display:flex;align-items:center;gap:1.5rem;padding:.65rem 1.5rem}
+.main-nav-brand{display:flex;align-items:baseline;gap:.5rem;text-decoration:none;flex-shrink:0}
+.main-nav-name{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:.9rem;color:var(--bl)}
+.main-nav-alias{font-size:.75rem;color:var(--mu2)}
+.main-nav-links{display:flex;align-items:center;gap:1.25rem;flex:1}
+.main-nav-links a{font-size:.82rem;color:var(--tx2);text-decoration:none;transition:color .15s;white-space:nowrap}
+.main-nav-links a:hover{color:var(--bl)}
+.main-nav-home{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--bl);text-decoration:none;white-space:nowrap}
+.main-nav-home:hover{text-decoration:underline}
+@media(max-width:900px){.main-nav-links{display:none}.main-nav-home{margin-left:auto}}
+
+/* topbar */
+.tb{background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--ln);position:sticky;top:45px;z-index:60}
+.tb .r{max-width:var(--mw);margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bd{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--ink);font-size:15px}
+.bd .s{color:var(--mu);font-weight:400}
+.tb .sp{flex:1}
+.seg{display:inline-flex;background:var(--t2);border:1px solid var(--sf);border-radius:999px;padding:3px;gap:2px}
+.seg button{appearance:none;border:0;cursor:pointer;font-family:inherit;font-weight:600;font-size:12.5px;padding:6px 13px;
+ border-radius:999px;background:transparent;color:var(--mu);white-space:nowrap;transition:.14s}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:var(--s1)}
+.seg button:hover:not([aria-pressed="true"]){color:var(--ink)}
+.seg.flags button{font-size:15px;padding:5px 10px;line-height:1}
+
+/* hero */
+.hero{background:radial-gradient(85% 105% at 90% -12%,#D9EEFA 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#FAFDFF,#fff);border-bottom:1px solid var(--ln)}
+.hero .r{max-width:var(--mw);margin:0 auto;padding:62px 24px 44px}
+.eb{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:700;color:var(--bl);margin:0 0 18px}
+.eb::before{content:"";width:28px;height:3px;border-radius:3px;background:var(--cy)}
+.hero h1{font-size:clamp(32px,5vw,56px);line-height:1.04;max-width:20ch;margin:0 0 20px;letter-spacing:-.032em}
+.hero .ld{font-size:clamp(18px,2vw,22px);color:var(--tx2);max-width:64ch;margin:0 0 28px}
+.hm{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.av{width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,var(--bl),var(--cy));display:grid;place-items:center;
+ color:#fff;font-weight:700;font-size:18px;flex:none;box-shadow:var(--s2)}
+.hm .n{font-weight:700;color:var(--ink);font-size:15px;line-height:1.25}
+.hm .rr{font-size:13px;color:var(--mu)}
+.meta{margin-top:22px;display:flex;gap:18px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--mu)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.meta i{width:6px;height:6px;border-radius:50%;background:var(--cy);display:block}
+
+/* article */
+main{padding:10px 0 0}
+article section{padding:44px 0 4px;border-top:1px solid var(--ln)}
+article section:first-child{border-top:0;padding-top:52px}
+.ln{font-size:12.5px;font-weight:700;color:var(--bl);margin:0 0 10px;display:flex;align-items:center;gap:10px}
+.ln::before{content:"";width:20px;height:3px;border-radius:3px;background:var(--cy)}
+article h2{font-size:clamp(25px,3.3vw,36px);line-height:1.12;margin:0 0 20px;max-width:24ch}
+.lead{font-size:20px;color:var(--tx);margin-bottom:22px}
+.pull{font-weight:700;font-size:clamp(20px,2.7vw,27px);line-height:1.3;color:var(--ink);border-left:4px solid var(--cy);
+ padding:10px 0 10px 24px;margin:32px 0;letter-spacing:-.02em}
+.pull cite{display:block;font-style:normal;font-size:13px;font-weight:600;color:var(--mu);margin-top:12px;font-family:"IBM Plex Mono",monospace}
+.note{border-left:3px solid var(--cy);background:var(--t1);border-radius:0 14px 14px 0;padding:18px 22px;margin:26px 0}
+.note .t{font-size:11.5px;font-weight:700;color:var(--bl);margin:0 0 7px;letter-spacing:.04em}
+.note p{margin:0;font-size:16.5px;color:var(--tx)}
+.note.g{border-left-color:var(--gd);background:#FCFAF3}.note.g .t{color:var(--gd)}
+ul.cl{margin:20px 0 26px;padding:0;list-style:none}
+ul.cl li{position:relative;padding-left:28px;margin:11px 0;color:var(--tx2)}
+ul.cl li::before{content:"";position:absolute;left:5px;top:.72em;width:8px;height:8px;background:var(--cy);border-radius:2px}
+ul.cl li strong{color:var(--ink)}
+
+/* figura escala */
+.fig{background:#fff;border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0}
+.figh{padding:16px 22px;border-bottom:1px solid var(--ln);background:var(--t1)}
+.figh .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:7px}
+.figh .t::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cy)}
+.figh h3{font-size:16.5px;margin:10px 0 0}
+.figb{padding:8px 10px 0;background:
+ linear-gradient(90deg,rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,
+ linear-gradient(rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,#fff}
+.figb svg{width:100%;height:auto;display:block}
+.figf{padding:14px 22px 18px;border-top:1px solid var(--ln);background:#FCFDFE;font-size:14px;color:var(--mu)}
+
+/* princípios */
+.cards{display:grid;gap:14px;margin:24px 0}
+.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid var(--ln);border-top:3px solid var(--cy);border-radius:14px;padding:20px;box-shadow:var(--s2)}
+.card .k{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--bl);margin:0 0 8px}
+.card p{margin:0;font-size:15.5px;color:var(--tx2)}
+
+/* assinatura */
+.sig{margin:46px 0 0;padding:26px;border:1px solid var(--ln);border-radius:18px;background:var(--t1)}
+.sig .nm{font-size:19px;font-weight:700;color:var(--ink);margin:0 0 4px}
+.sig .rl{font-size:14.5px;color:var(--tx2);margin:0}
+.sig .oep{margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--cy2);font-weight:600}
+
+footer{background:var(--ink);color:#BCD0E7;margin-top:60px}
+footer .r{max-width:var(--mw);margin:0 auto;padding:50px 24px}
+footer h3{color:#fff;font-size:23px;margin:0 0 10px}
+footer .cr{font-size:14.5px;color:#92A9C9;line-height:2}
+footer .cr b{color:#E4EEFA}
+footer .lk{margin-top:18px;display:flex;gap:20px;flex-wrap:wrap}
+footer .lk a{color:var(--cy);font-family:"IBM Plex Mono",monospace;font-size:13.5px;text-decoration:none}
+footer .lk a:hover{text-decoration:underline}
+footer .oep{margin-top:20px;font-size:14px;color:var(--cy);font-weight:700}
+footer .mt{margin-top:22px;padding-top:18px;border-top:1px solid #1B3F6C;font-size:12.5px;color:#7590B4;line-height:1.75}
+
+/* bloco exclusivo PT-BR */
+.pt-only{display:none}
+body[data-lang="pt"] .pt-only{display:block}
+.note.nv{border-left-color:var(--gd);background:#FCFAF3}
+.note.nv .t{color:var(--gd)}
+
+@media(max-width:720px){.c2{grid-template-columns:1fr}body{font-size:17px}}
+button:focus-visible,a:focus-visible{outline:2px solid var(--bl);outline-offset:2px;border-radius:6px}
+</style>
+</head>
+<body data-lang="en">
+
+<nav class="main-nav"><div class="main-nav-inner">
+<a href="/" class="main-nav-brand"><span class="main-nav-name">Josimar Caitano</span><span class="main-nav-alias">じょしまる</span></a>
+<div class="main-nav-links">
+ <a href="/#about" data-i18n="nv.about">About</a>
+ <a href="/#academia" data-i18n="nv.academy">Academy</a>
+ <a href="/#projetos" data-i18n="nv.projects">Projects</a>
+ <a href="/#perspective" data-i18n="nv.perspective">Perspective</a>
+ <a href="/#contato" data-i18n="nv.contact">Contact</a>
+</div>
+<a href="/" class="main-nav-home">← Home</a>
+</div></nav>
+
+<div class="tb"><div class="r">
+ <span class="bd">
+  <svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><g stroke-linecap="round">
+   <line x1="3" y1="15" x2="3" y2="9" stroke="#00BCEB" stroke-width="3"/>
+   <line x1="8" y1="15" x2="8" y2="5" stroke="#0B5CD5" stroke-width="3"/>
+   <line x1="13" y1="15" x2="13" y2="2" stroke="#08213E" stroke-width="3"/>
+   <line x1="18" y1="15" x2="18" y2="5" stroke="#0B5CD5" stroke-width="3"/>
+   <line x1="23" y1="15" x2="23" y2="9" stroke="#00BCEB" stroke-width="3"/></g></svg>
+  Perspective <span class="s" data-i18n="tb.sub">— Capital Markets Technology</span></span>
+ <span class="sp"></span>
+ <div class="seg flags" role="group" aria-label="Language">
+  <button type="button" data-lang="en" aria-pressed="true" title="English">🇺🇸</button>
+  <button type="button" data-lang="es" aria-pressed="false" title="Español">🇪🇸</button>
+  <button type="button" data-lang="pt" aria-pressed="false" title="Português">🇧🇷</button>
+ </div>
+</div></div>
+
+<header class="hero"><div class="r">
+ <p class="eb" data-i18n="h.kicker">Essay · Capital Markets Technology</p>
+ <h1 data-i18n="h.title">From Network Architect to Trading Network Specialist</h1>
+ <p class="ld" data-i18n="h.lead">Twenty years of infrastructure, three continents, one market that changed everything — and what crossing that frontier taught me about the value of the outsider.</p>
+ <div class="hm"><div class="av" aria-hidden="true">JC</div><div>
+  <div class="n">Josimar Caitano</div>
+  <div class="rr" data-i18n="h.role">Principal Solutions Architect · NTT DATA · Capital Markets Infrastructure</div></div></div>
+ <div class="meta">
+  <span><i></i><span data-i18n="h.date">September 2026</span></span>
+  <span><i></i><span data-i18n="h.read">8 min read</span></span>
+  <span><i></i><span data-i18n="h.cat">Career · Market Infrastructure</span></span>
+ </div>
+</div></header>
+
+<main class="in"><article class="rd-w">
+
+<section>
+ <p class="lead" data-i18n="p.1">Electronic trading infrastructure is not a destination most engineers plan for. It is a world that operates in nanoseconds, shapes global liquidity, and keeps capital markets functioning without ceremony. When everything runs correctly, no one notices. When it does not, the consequences arrive before most people can formulate a response.</p>
+ <p data-i18n="p.2">I did not enter this domain because it was the logical next step. I entered because I have never retreated from unfamiliar territory.</p>
+
+ <div class="note nv pt-only">
+  <p class="t">NOTA DO AUTOR — O NOVATO</p>
+  <p>Ao longo deste texto eu me chamo de <strong>“O Novato”</strong>. Pode soar estranho vindo de alguém com vinte anos de estrada, mas é exatamente o que eu era ao entrar numa instituição financeira: o cara que entendia de rede como poucos e não fazia ideia de como um banco funcionava por dentro. Levei um tempo para perceber que aquilo não era um defeito no meu currículo. Era a minha maior vantagem.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s1.k">I</p>
+ <h2 data-i18n="s1.h">The Advantage of the Outsider</h2>
+ <p data-i18n="s1.p1">Twenty years building critical infrastructure across American, European, and Asian enterprises left me with something the financial markets did not expect to find in a network architect: the capacity to perceive what those inside the system had long since stopped questioning.</p>
+ <p data-i18n="s1.p2">The outsider is not an intruder. The outsider is the professional who arrives without the accumulated bias of institutional familiarity — who still asks the obvious question that no one inside the room dares to raise. In the right environment, that question is worth considerably more than the answer everyone already has.</p>
+ <p data-i18n="s1.p3">When I joined a brokerage connected to a stock exchange, I did not know how a bank operated. I did not know how a broker-dealer functioned. I did not know the back office, the pre-trade workflow, the post-trade settlement cycle, the regulatory architecture, or the clearing mechanisms. What I knew with precision was what happened to every packet that crossed that network — and that knowledge was exactly what no one in the room could articulate.</p>
+ <p class="pull" data-i18n="s1.pull">The outsider does not accept “this is how it has always been done” as an answer. That question, asked in the right room, is worth a fortune.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s2.k">II</p>
+ <h2 data-i18n="s2.h">The Moment Scale Becomes Real</h2>
+ <p data-i18n="s2.p1">Every engineer working at the intersection of infrastructure and financial markets has a turning point. A moment when the system ceases to be an abstraction and reveals itself as something alive, consequential, and unforgiving.</p>
+ <p data-i18n="s2.p2">For me, that moment arrived inside a brokerage co-located with a stock exchange. There was no drama, no cinematic trading floor atmosphere. Only servers equipped with specialized network interface cards — components priced above three thousand dollars per unit — generating two simultaneous flows: a multicast channel carrying market data, and a TCP order stream traversing a precisely engineered stack of switches, routers, and exchange gateways.</p>
+ <p data-i18n="s2.p3">Each packet crossing that infrastructure represented:</p>
+ <ul class="cl">
+  <li data-i18n="s2.l1">A capital allocation decision from an institutional fund</li>
+  <li data-i18n="s2.l2">A dealer adjusting exposure before the market moved</li>
+  <li data-i18n="s2.l3">An order that required processing within a fraction of a millisecond</li>
+  <li data-i18n="s2.l4">A real client whose capital depended on absolute precision</li>
+ </ul>
+ <p data-i18n="s2.p4">Until that point, I had seen multicast carry television signals across carrier networks. In that co-location facility, I understood for the first time that the same protocol can carry something of an entirely different order of magnitude. The network was not supporting the market. The network was the market.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig.tag">SCALE</span>
+   <h3 data-i18n="fig.h">Where human time ends and market time begins</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 260" role="img" aria-label="Logarithmic scale of latency">
+    <defs>
+     <linearGradient id="gr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00BCEB"/><stop offset="1" stop-color="#0B5CD5"/>
+     </linearGradient>
+    </defs>
+    <g font-family="DM Sans, sans-serif">
+     <line x1="70" y1="150" x2="840" y2="150" stroke="var(--ln2)" stroke-width="2"/>
+     <rect x="70" y="146" width="770" height="8" rx="4" fill="url(#gr)" opacity=".18"/>
+
+     <!-- tick 1: 100 ms -->
+     <g>
+      <line x1="770" y1="112" x2="770" y2="188" stroke="#C93327" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="770" cy="150" r="7" fill="#C93327"/>
+      <text x="770" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="fig.t1">Blink of an eye</text>
+      <text x="770" y="214" text-anchor="middle" font-size="13" font-weight="700" fill="#C93327" font-family="IBM Plex Mono, monospace">100 ms</text>
+     </g>
+     <!-- tick 2: janela arbitragem -->
+     <g>
+      <line x1="500" y1="118" x2="500" y2="182" stroke="#B87610" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="500" cy="150" r="6" fill="#B87610"/>
+      <text x="500" y="104" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="fig.t2">Arbitrage window</text>
+      <text x="500" y="208" text-anchor="middle" font-size="13" font-weight="700" fill="#B87610" font-family="IBM Plex Mono, monospace">~40 ms</text>
+     </g>
+     <!-- tick 3: tick-to-trade -->
+     <g>
+      <line x1="150" y1="118" x2="150" y2="182" stroke="#0F8B4C" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="150" cy="150" r="6" fill="#0F8B4C"/>
+      <text x="150" y="104" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="fig.t3">Tick-to-trade</text>
+      <text x="150" y="208" text-anchor="middle" font-size="13" font-weight="700" fill="#0F8B4C" font-family="IBM Plex Mono, monospace">~300 ns</text>
+     </g>
+
+     <text x="70" y="244" font-size="11.5" fill="#93A6BB" data-i18n="fig.axis">logarithmic scale · faster</text>
+     <text x="840" y="244" text-anchor="end" font-size="11.5" fill="#93A6BB" data-i18n="fig.axis2">slower</text>
+     <text x="455" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#0B5CD5" font-family="IBM Plex Mono, monospace" data-i18n="fig.gap">≈ 330,000×</text>
+     <path d="M150,54 L150,86" stroke="#0B5CD5" stroke-width="1.5" stroke-dasharray="4 4"/>
+     <path d="M770,54 L770,86" stroke="#0B5CD5" stroke-width="1.5" stroke-dasharray="4 4"/>
+     <path d="M150,54 L770,54" stroke="#0B5CD5" stroke-width="1.5" stroke-dasharray="4 4"/>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig.cap">Orders of magnitude, drawn on a logarithmic axis. The distance between a human blink and a full trading cycle is not a difference in speed — it is a difference in dimension.</div>
+ </div>
+
+ <p data-i18n="s2.p5">I ran the arithmetic once, out of curiosity. A human eye blinks in roughly one hundred milliseconds. In that single blink, an order leaving one of those servers could reach the matching engine, be filled, and have the confirmation travel back — more than three hundred times over. We were not operating faster than people. We were operating in a dimension where the question of human speed had stopped being relevant.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s3.k">III</p>
+ <h2 data-i18n="s3.h">Navigating Complexity Without Surrendering Identity</h2>
+ <p data-i18n="s3.p1">High-performance trading environments test more than technical competence. They test who you are when the vocabulary surrounding you is not your own — when your credentials belong to a discipline that the room has not yet learned to respect.</p>
+ <p data-i18n="s3.p2">There were meetings where my background was assessed before my solution. There were moments of institutional pressure where the trader needed an answer in seconds and the diagnostic was still in progress. The outsider experiences this not as humiliation, but as signal: here is a gap that no one has yet closed.</p>
+ <p data-i18n="s3.p3">That realization reoriented everything. I did not abandon the identity I had built across two decades. I expanded the territory it covered.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s4.k">IV</p>
+ <h2 data-i18n="s4.h">The Credibility That Is Earned, Not Claimed</h2>
+ <p data-i18n="s4.p1">In environments where the stakes are measured in milliseconds and basis points, credibility is not declared in a résumé. It is constructed through a sequence of deliverables that others declined to attempt:</p>
+ <ul class="cl">
+  <li data-i18n="s4.l1">Understanding and building an international arbitrage environment that allowed the trading team to select optimal execution between Brazil and the United States in real time</li>
+  <li data-i18n="s4.l2">Presenting to the CTO and business leadership the case for how an HFT/ULL infrastructure could materially impact business outcomes — translating engineering precision into investment thesis</li>
+  <li data-i18n="s4.l3">Becoming the professional called when the problem had already defeated the available expertise</li>
+  <li data-i18n="s4.l4">Earning the trust of business stakeholders through consistency, not volume</li>
+ </ul>
+ <p data-i18n="s4.p2">These contributions do not appear in headlines. They build the foundation that allows you, in time, to sit across from any managing director at any global institution and be received as a peer.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s5.k">V</p>
+ <h2 data-i18n="s5.h">What Twenty Years Taught Me</h2>
+ <div class="cards c2">
+  <div class="card"><p class="k">01</p><p data-i18n="s5.c1">The outsider retains an advantage the insider forfeited: the willingness to ask the question everyone else has normalized into silence.</p></div>
+  <div class="card"><p class="k">02</p><p data-i18n="s5.c2">Hostile environments are not obstacles. They are maps — they reveal precisely where the territory has not yet been claimed.</p></div>
+  <div class="card"><p class="k">03</p><p data-i18n="s5.c3">Executive confidence does not precede the work. It is the residue of having done what others declined.</p></div>
+  <div class="card"><p class="k">04</p><p data-i18n="s5.c4">Complexity does not reward bravado. It rewards the professional who remains in the field when others withdraw.</p></div>
+  <div class="card" style="border-top-color:var(--gd)"><p class="k" style="color:var(--gd)">05</p><p data-i18n="s5.c5">Fear is not the adversary. It is the signal that you are standing exactly where growth is possible.</p></div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s6.k">VI</p>
+ <h2 data-i18n="s6.h">Why I Write This</h2>
+ <p data-i18n="s6.p1">When I entered the financial markets, I did not know anyone who had crossed from network infrastructure into trading technology and mapped the full terrain. I did not know how long recognition would require. I did not know that the preceding twenty years were precisely the credential that would make me valuable in that environment.</p>
+ <p data-i18n="s6.p2">I did not know how a bank functions. I did not know how a brokerage operates. I know now that the full scope extends far beyond network architecture — clearing, settlement, regulatory frameworks, back office, the IPC and RTM networks that carry voice and data between desks, and the submarine cables that decide which continent hears a price first. There remains a great deal to learn.</p>
+ <p data-i18n="s6.p3">And it is precisely that awareness — that productive discomfort in the face of what remains unknown — that functions as the structural foundation.</p>
+ <p data-i18n="s6.p4">Because the professional who learns to convert that discomfort into forward motion does not stop at the technical room. Does not stop at the co-location facility. Does not stop at the brokerage floor.</p>
+ <p class="pull" data-i18n="s6.pull">That professional arrives at the table where the decisions are made.</p>
+ <p data-i18n="s6.p5">I write this for anyone who looks at financial markets technology — or any domain that appears too vast, too specialized, too foreign — and thinks: this is not for me.</p>
+ <div class="note g">
+  <p class="t" data-i18n="s6.nt">CLOSING</p>
+  <p data-i18n="s6.nb">You do not need certainty to begin. You need the first step. Your path does not need to be perfect. It only needs to be yours.</p>
+ </div>
+
+</section>
+
+</article></main>
+
+<footer><div class="r">
+ <h3>Josimar Caitano</h3>
+ <p class="cr"><b>Josimar Caitano</b> — Principal Solutions Architect | Capital Markets<br>
+  <span data-i18n="ft.1">Cisco Networking Academy instructor since 2006</span><br>
+  <span data-i18n="ft.2">High-performance network engineering for capital markets</span></p>
+ <div class="lk">
+  <a href="https://www.linkedin.com/in/josimar-caitano/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+  <a href="https://www.youtube.com/@Josinfo" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+  <a href="mailto:josimaru@gmail.com">josimaru@gmail.com</a>
+ </div>
+ <p class="oep">O.E.P. — <span data-i18n="ft.oep">Order · Strategy · Patience</span></p>
+ <p class="mt" data-i18n="ft.legal">Perspective · essays on capital markets technology and infrastructure strategy · v1.0 — Original editorial material. Views expressed are the author’s own and do not represent any employer or institution. Latency figures are public orders of magnitude and illustrative assumptions, intended to teach architectural reasoning. They are not investment advice nor a project specification. MIT licence.</p>
+</div></footer>
+
+<script>
+var T={
+es:{
+"nv.about":"Sobre","nv.academy":"Academia","nv.projects":"Proyectos","nv.perspective":"Perspectiva","nv.contact":"Contacto",
+"tb.sub":"— Tecnología de Mercados de Capitales",
+"h.kicker":"Ensayo · Tecnología de Mercados de Capitales",
+"h.title":"De Arquitecto de Redes a Especialista en Redes de Trading",
+"h.lead":"Veinte años de infraestructura, tres continentes, un mercado que lo cambió todo — y lo que cruzar esa frontera me enseñó sobre el valor del forastero.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestructura de Mercados de Capitales",
+"h.date":"Septiembre 2026","h.read":"8 min de lectura","h.cat":"Carrera · Infraestructura de Mercado",
+"p.1":"La infraestructura de negociación electrónica no es un destino que la mayoría de los ingenieros planifica. Es un mundo que opera en nanosegundos, moldea la liquidez global y mantiene los mercados de capitales funcionando sin ceremonia. Cuando todo funciona correctamente, nadie lo nota. Cuando no, las consecuencias llegan antes de que la mayoría pueda formular una respuesta.",
+"p.2":"No entré en este dominio porque fuera el siguiente paso lógico. Entré porque nunca he retrocedido ante un territorio desconocido.",
+"s1.k":"I","s1.h":"La Ventaja del Forastero",
+"s1.p1":"Veinte años construyendo infraestructura crítica en empresas americanas, europeas y asiáticas me dejaron algo que los mercados financieros no esperaban encontrar en un arquitecto de redes: la capacidad de percibir lo que quienes estaban dentro del sistema hacía tiempo habían dejado de cuestionar.",
+"s1.p2":"El forastero no es un intruso. El forastero es el profesional que llega sin el sesgo acumulado de la familiaridad institucional — el que todavía hace la pregunta obvia que nadie dentro de la sala se atreve a plantear. En el entorno adecuado, esa pregunta vale considerablemente más que la respuesta que todos ya tienen.",
+"s1.p3":"Cuando me incorporé a una corredora conectada a una bolsa de valores, no sabía cómo operaba un banco. No sabía cómo funcionaba un broker-dealer. No conocía el back office, el flujo pre-trade, el ciclo de liquidación post-trade, la arquitectura regulatoria ni los mecanismos de clearing. Lo que sí sabía con precisión era qué le ocurría a cada paquete que cruzaba esa red — y ese conocimiento era exactamente lo que nadie en la sala podía articular.",
+"s1.pull":"El forastero no acepta “siempre se ha hecho así” como respuesta. Esa pregunta, formulada en la sala correcta, vale una fortuna.",
+"s2.k":"II","s2.h":"El Momento en que la Escala se Vuelve Real",
+"s2.p1":"Todo ingeniero que trabaja en la intersección entre infraestructura y mercados financieros tiene un punto de inflexión. Un momento en que el sistema deja de ser una abstracción y se revela como algo vivo, consecuente e implacable.",
+"s2.p2":"Para mí, ese momento llegó dentro de una corredora en colocation con una bolsa de valores. No hubo drama, ni atmósfera cinematográfica de piso de operaciones. Solo servidores equipados con tarjetas de red especializadas — componentes que cuestan más de tres mil dólares por unidad — generando dos flujos simultáneos: un canal multicast con market data y un flujo TCP de órdenes atravesando una pila de switches, routers y gateways de bolsa diseñada con precisión.",
+"s2.p3":"Cada paquete que cruzaba esa infraestructura representaba:",
+"s2.l1":"Una decisión de asignación de capital de un fondo institucional",
+"s2.l2":"Un dealer ajustando exposición antes de que el mercado se moviera",
+"s2.l3":"Una orden que requería procesamiento en una fracción de milisegundo",
+"s2.l4":"Un cliente real cuyo capital dependía de una precisión absoluta",
+"s2.p4":"Hasta ese momento, había visto multicast transportar señales de televisión por redes de operadores. En aquella sala de colocation entendí por primera vez que el mismo protocolo puede transportar algo de un orden de magnitud completamente distinto. La red no soportaba al mercado. La red era el mercado.",
+"s2.p5":"Hice el cálculo una vez, por curiosidad. Un ojo humano parpadea en aproximadamente cien milisegundos. En ese único parpadeo, una orden saliendo de uno de aquellos servidores podía alcanzar el matching engine, ejecutarse y tener la confirmación de vuelta — más de trescientas veces seguidas. No operábamos más rápido que las personas. Operábamos en una dimensión donde la cuestión de la velocidad humana había dejado de ser relevante.",
+"fig.tag":"ESCALA","fig.h":"Donde termina el tiempo humano y empieza el tiempo del mercado",
+"fig.t1":"Parpadeo","fig.t2":"Ventana de arbitraje","fig.t3":"Tick-to-trade",
+"fig.axis":"escala logarítmica · más rápido","fig.axis2":"más lento","fig.gap":"≈ 330.000×",
+"fig.cap":"Órdenes de magnitud sobre un eje logarítmico. La distancia entre un parpadeo humano y un ciclo completo de negociación no es una diferencia de velocidad — es una diferencia de dimensión.",
+"s3.k":"III","s3.h":"Navegar la Complejidad Sin Rendir la Identidad",
+"s3.p1":"Los entornos de trading de alto rendimiento ponen a prueba más que la competencia técnica. Ponen a prueba quién eres cuando el vocabulario que te rodea no es el tuyo — cuando tus credenciales pertenecen a una disciplina que la sala aún no ha aprendido a respetar.",
+"s3.p2":"Hubo reuniones donde se evaluó mi trayectoria antes que mi solución. Hubo momentos de presión institucional en que el trader necesitaba una respuesta en segundos y el diagnóstico seguía en curso. El forastero vive esto no como humillación, sino como señal: aquí hay una brecha que nadie ha cerrado todavía.",
+"s3.p3":"Esa constatación reorientó todo. No abandoné la identidad que había construido durante dos décadas. Expandí el territorio que cubría.",
+"s4.k":"IV","s4.h":"La Credibilidad Que Se Gana, No Se Declara",
+"s4.p1":"En entornos donde lo que está en juego se mide en milisegundos y puntos base, la credibilidad no se declara en un currículum. Se construye a través de una secuencia de entregas que otros declinaron intentar:",
+"s4.l1":"Comprender y construir un entorno de arbitraje internacional que permitió al equipo de trading seleccionar la ejecución óptima entre Brasil y Estados Unidos en tiempo real",
+"s4.l2":"Presentar al CTO y al liderazgo de negocio el caso de cómo una infraestructura HFT/ULL podía impactar materialmente los resultados — traduciendo precisión de ingeniería en tesis de inversión",
+"s4.l3":"Convertirme en el profesional al que se llama cuando el problema ya derrotó a la experiencia disponible",
+"s4.l4":"Ganar la confianza de las áreas de negocio mediante consistencia, no volumen",
+"s4.p2":"Estas contribuciones no aparecen en titulares. Construyen la base que permite, con el tiempo, sentarse frente a cualquier managing director de cualquier institución global y ser recibido como par.",
+"s5.k":"V","s5.h":"Lo Que Veinte Años Me Enseñaron",
+"s5.c1":"El forastero conserva una ventaja que el insider perdió: la voluntad de hacer la pregunta que todos los demás han normalizado en silencio.",
+"s5.c2":"Los entornos hostiles no son obstáculos. Son mapas — revelan exactamente dónde el territorio aún no ha sido reclamado.",
+"s5.c3":"La confianza ejecutiva no precede al trabajo. Es el residuo de haber hecho lo que otros declinaron.",
+"s5.c4":"La complejidad no premia la bravuconería. Premia al profesional que permanece en el campo cuando otros se retiran.",
+"s5.c5":"El miedo no es el adversario. Es la señal de que estás exactamente donde el crecimiento es posible.",
+"s6.k":"VI","s6.h":"Por Qué Escribo Esto",
+"s6.p1":"Cuando entré en los mercados financieros, no conocía a nadie que hubiera cruzado desde la infraestructura de redes hacia la tecnología de trading y mapeado todo el terreno. No sabía cuánto tiempo requeriría el reconocimiento. No sabía que los veinte años previos eran precisamente la credencial que me haría valioso en ese entorno.",
+"s6.p2":"No sabía cómo funciona un banco. No sabía cómo opera una corredora. Ahora sé que el alcance completo se extiende mucho más allá de la arquitectura de redes — clearing, liquidación, marcos regulatorios, back office, las redes IPC y RTM que transportan voz y datos entre mesas, y los cables submarinos que deciden qué continente escucha un precio primero. Queda muchísimo por aprender.",
+"s6.p3":"Y es precisamente esa consciencia — esa incomodidad productiva frente a lo que sigue siendo desconocido — la que funciona como cimiento estructural.",
+"s6.p4":"Porque el profesional que aprende a convertir esa incomodidad en movimiento hacia adelante no se detiene en la sala técnica. No se detiene en el colocation. No se detiene en el piso de la corredora.",
+"s6.pull":"Ese profesional llega a la mesa donde se toman las decisiones.",
+"s6.p5":"Escribo esto para cualquiera que mire la tecnología de los mercados financieros — o cualquier dominio que parezca demasiado vasto, demasiado especializado, demasiado ajeno — y piense: esto no es para mí.",
+"s6.nt":"CIERRE",
+"s6.nb":"No necesitas certeza para empezar. Necesitas el primer paso. Tu camino no tiene que ser perfecto. Solo tiene que ser tuyo.",
+"ft.1":"Instructor Cisco Networking Academy desde 2006",
+"ft.2":"Ingeniería de redes de alto rendimiento para mercados de capitales",
+"ft.oep":"Orden · Estrategia · Paciencia",
+"ft.legal":"Perspectiva · ensayos sobre tecnología de mercados de capitales y estrategia de infraestructura · v1.0 — Material editorial original. Las opiniones expresadas son del autor y no representan a ningún empleador o institución. Las cifras de latencia son órdenes de magnitud públicas y premisas ilustrativas, destinadas a enseñar el razonamiento de arquitectura. No constituyen recomendación de inversión ni especificación de proyecto. Licencia MIT."
+},
+pt:{
+"nv.about":"Sobre","nv.academy":"Academia","nv.projects":"Projetos","nv.perspective":"Perspectiva","nv.contact":"Contato",
+"tb.sub":"— Tecnologia de Mercado de Capitais",
+"h.kicker":"Ensaio · Tecnologia de Mercado de Capitais",
+"h.title":"De Arquiteto de Redes a Especialista em Redes de Trading",
+"h.lead":"Vinte anos de infraestrutura, três continentes, um mercado que mudou tudo — e o que atravessar essa fronteira me ensinou sobre o valor do forasteiro.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestrutura de Mercado de Capitais",
+"h.date":"Setembro de 2026","h.read":"8 min de leitura","h.cat":"Carreira · Infraestrutura de Mercado",
+"p.1":"Infraestrutura de negociação eletrônica não é um destino que a maioria dos engenheiros planeja. É um mundo que opera em nanossegundos, molda a liquidez global e mantém o mercado de capitais funcionando sem cerimônia. Quando tudo funciona corretamente, ninguém percebe. Quando não funciona, as consequências chegam antes que a maioria consiga formular uma resposta.",
+"p.2":"Não entrei nesse domínio porque era o próximo passo lógico. Entrei porque nunca recuei diante de território desconhecido.",
+"s1.k":"I","s1.h":"A Vantagem do Novato",
+"s1.p1":"Vinte anos construindo infraestrutura crítica em empresas americanas, europeias e asiáticas me deixaram com algo que o mercado financeiro não esperava encontrar em um arquiteto de redes: a capacidade de enxergar o que quem estava dentro do sistema havia muito tempo deixara de questionar.",
+"s1.p2":"O Novato não é um intruso. É o profissional que chega sem os vícios de quem já está ali há tempo demais — e que, por isso, ainda faz a pergunta óbvia que ninguém na sala tem coragem de fazer. No ambiente certo, essa pergunta vale muito mais do que a resposta que todo mundo já sabe de cor.",
+"s1.p3":"Quando entrei em uma corretora conectada a uma bolsa de valores, eu não sabia como um banco operava. Não sabia como funcionava um broker-dealer. Não conhecia o back office, o fluxo pré-trade, o ciclo de liquidação pós-trade, a arquitetura regulatória nem os mecanismos de clearing. O que eu sabia com precisão era o que acontecia com cada pacote que atravessava aquela rede — e esse conhecimento era exatamente o que ninguém na sala conseguia articular.",
+"s1.pull":"O Novato não aceita “sempre foi feito assim” como resposta. Essa pergunta, feita na sala certa, vale uma fortuna.",
+"s2.k":"II","s2.h":"O Momento em que a Escala se Torna Real",
+"s2.p1":"Todo engenheiro que trabalha na interseção entre infraestrutura e mercado financeiro tem um ponto de virada. Um momento em que o sistema deixa de ser abstração e se revela como algo vivo, consequente e implacável.",
+"s2.p2":"Para mim, esse momento chegou dentro de uma corretora em colocation com a bolsa. Nada de drama, nada daquela atmosfera de filme sobre pregão. Só servidores com placas de rede especializadas — cada uma custando mais de três mil dólares — gerando dois fluxos ao mesmo tempo: um canal multicast trazendo o market data e um fluxo TCP levando as ordens por uma pilha de switches, roteadores e gateways montada com precisão cirúrgica.",
+"s2.p3":"Cada pacote que atravessava aquela infraestrutura representava:",
+"s2.l1":"Uma decisão de alocação de capital de um fundo institucional",
+"s2.l2":"Um dealer ajustando exposição antes de o mercado se mover",
+"s2.l3":"Uma ordem que exigia processamento em uma fração de milissegundo",
+"s2.l4":"Um cliente real cujo capital dependia de precisão absoluta",
+"s2.p4":"Até aquele ponto, eu tinha visto multicast carregar sinal de televisão em redes de operadora. Naquela sala de colocation, entendi pela primeira vez que o mesmo protocolo pode carregar algo de uma ordem de grandeza inteiramente diferente. A rede não estava apoiando o mercado. A rede era o mercado.",
+"s2.p5":"Fiz a conta uma vez, por curiosidade. Um olho humano pisca em cerca de cem milissegundos. Nesse único piscar, uma ordem saindo de um daqueles servidores conseguiria alcançar o matching engine, ser executada e ter a confirmação de volta — mais de trezentas vezes seguidas. Não estávamos operando mais rápido que as pessoas. Estávamos operando em uma dimensão onde a questão da velocidade humana havia deixado de ser relevante.",
+"fig.tag":"ESCALA","fig.h":"Onde o tempo humano termina e o tempo do mercado começa",
+"fig.t1":"Piscar de olhos","fig.t2":"Janela de arbitragem","fig.t3":"Tick-to-trade",
+"fig.axis":"escala logarítmica · mais rápido","fig.axis2":"mais lento","fig.gap":"≈ 330.000×",
+"fig.cap":"Ordens de grandeza em eixo logarítmico. A distância entre um piscar de olhos humano e um ciclo completo de negociação não é uma diferença de velocidade — é uma diferença de dimensão.",
+"s3.k":"III","s3.h":"Navegar a Complexidade Sem Abrir Mão da Identidade",
+"s3.p1":"Ambientes de trading de alta performance testam mais do que competência técnica. Testam quem você é quando o vocabulário ao seu redor não é o seu — quando suas credenciais pertencem a uma disciplina que a sala ainda não aprendeu a respeitar.",
+"s3.p2":"Teve reunião em que olharam meu histórico antes de olhar minha solução. Teve momento em que o trader precisava de resposta em segundos e o diagnóstico ainda estava em andamento. O Novato não lê isso como humilhação. Lê como sinal: existe aqui uma lacuna que ninguém fechou ainda.",
+"s3.p3":"Essa constatação reorientou tudo. Não abandonei a identidade que construí ao longo de duas décadas. Expandi o território que ela cobria.",
+"s4.k":"IV","s4.h":"A Credibilidade Que Se Conquista, Não a Que Se Declara",
+"s4.p1":"Em ambientes onde o que está em jogo se mede em milissegundos e pontos-base, credibilidade não se declara em currículo. Ela se constrói com uma sequência de entregas que os outros não quiseram encarar:",
+"s4.l1":"Compreender e construir um ambiente de arbitragem internacional que permitiu à mesa de trading escolher a melhor execução entre Brasil e Estados Unidos em tempo real",
+"s4.l2":"Apresentar ao CTO e à liderança de negócio o caso de como uma infraestrutura HFT/ULL poderia impactar materialmente os resultados — traduzindo precisão de engenharia em tese de investimento",
+"s4.l3":"Tornar-me o profissional chamado quando o problema já havia derrotado a expertise disponível",
+"s4.l4":"Conquistar a confiança das áreas de negócio por consistência, não por volume",
+"s4.p2":"Essas contribuições não aparecem em manchetes. Elas constroem a base que permite, com o tempo, sentar diante de qualquer managing director de qualquer instituição global e ser recebido como par.",
+"s5.k":"V","s5.h":"O Que Vinte Anos Me Ensinaram Dentro de uma Instituição Financeira",
+"s5.c1":"O Novato tem uma vantagem que o veterano perdeu: ainda está disposto a fazer a pergunta que todo mundo já aprendeu a engolir calado.",
+"s5.c2":"Ambientes hostis não são obstáculos. São mapas — revelam exatamente onde o território ainda não foi reivindicado.",
+"s5.c3":"Confiança executiva não vem antes do trabalho. Ela é o que sobra depois de você ter feito aquilo que os outros não quiseram fazer.",
+"s5.c4":"Complexidade não premia quem fala mais alto. Premia quem continua em campo depois que os outros já saíram.",
+"s5.c5":"O medo não é o adversário. É o sinal de que você está exatamente onde o crescimento é possível.",
+"s6.k":"VI","s6.h":"Por Que Escrevo Isto",
+"s6.p1":"Quando entrei no mercado financeiro, eu não conhecia ninguém que tivesse feito essa travessia — da infraestrutura de redes para a tecnologia de trading — e mapeado o terreno inteiro. Não sabia quanto tempo levaria para ser reconhecido. E não fazia ideia de que os vinte anos anteriores eram justamente a credencial que me tornaria valioso ali dentro.",
+"s6.p2":"Eu não sabia como um banco funciona. Não sabia como uma corretora opera. Sei agora que o escopo completo se estende muito além da arquitetura de redes — clearing, liquidação, arcabouço regulatório, back office, as redes IPC e RTM que carregam voz e dados entre mesas, e os cabos submarinos que decidem qual continente ouve um preço primeiro. Resta muito a aprender.",
+"s6.p3":"E é precisamente essa consciência — esse desconforto produtivo diante do que permanece desconhecido — que funciona como alicerce estrutural.",
+"s6.p4":"Porque o profissional que aprende a converter esse desconforto em movimento adiante não para na sala técnica. Não para no colocation. Não para no andar da corretora.",
+"s6.pull":"Esse profissional chega à mesa onde as decisões são tomadas.",
+"s6.p5":"Escrevo isto para qualquer um que olhe para a tecnologia do mercado financeiro — ou para qualquer área que pareça grande demais, técnica demais, distante demais — e pense: isso não é para mim.",
+"s6.nt":"FECHAMENTO",
+"s6.nb":"Você não precisa de certeza para começar. Precisa do primeiro passo. Seu caminho não precisa ser perfeito. Só precisa ser seu.",
+"ft.1":"Instrutor Cisco Networking Academy desde 2006",
+"ft.2":"Engenharia de redes de alta performance para mercado de capitais",
+"ft.oep":"Ordem · Estratégia · Paciência",
+"ft.legal":"Perspectiva · ensaios sobre tecnologia de mercado de capitais e estratégia de infraestrutura · v1.0 — Material editorial original. As opiniões expressas são do autor e não representam nenhum empregador ou instituição. Números de latência são ordens de grandeza públicas e premissas ilustrativas, destinadas ao ensino do raciocínio de arquitetura. Não constituem recomendação de investimento nem especificação de projeto. Licença MIT."
+}};
+
+(function(){
+"use strict";
+var origs=null;
+function applyLang(lang){
+  document.body.dataset.lang=lang;
+  document.documentElement.lang=lang==="pt"?"pt-BR":lang;
+  var nodes=document.querySelectorAll("[data-i18n]");
+  if(!origs){origs=new Map();nodes.forEach(function(n){origs.set(n,n.innerHTML);});}
+  nodes.forEach(function(n){
+    var k=n.getAttribute("data-i18n");
+    if(lang==="en"){n.innerHTML=origs.get(n);return;}
+    var v=T[lang]&&T[lang][k];
+    if(v==null)return;
+    n.innerHTML=v;
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".seg.flags button"),function(b){
+    b.setAttribute("aria-pressed",String(b.dataset.lang===lang));
+  });
+  try{localStorage.setItem("jc-lang",lang);}catch(e){}
+}
+Array.prototype.forEach.call(document.querySelectorAll(".seg.flags button"),function(b){
+  b.addEventListener("click",function(){applyLang(b.dataset.lang);});
+});
+var saved=null;
+try{saved=localStorage.getItem("jc-lang");}catch(e){}
+applyLang(saved&&T[saved]?saved:(saved==="en"?"en":"en"));
+})();
+</script>
+</body>
+</html>
