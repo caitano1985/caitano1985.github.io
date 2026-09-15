@@ -37,17 +37,17 @@ p{margin:0 0 20px;color:var(--tx2)}
 strong{color:var(--ink);font-weight:700}
 
 /* nav global */
-
-
-
-
-
-
-
-
-
-
-@media(max-width:900px){}
+.main-nav{position:sticky;top:0;z-index:999;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--ln)}
+.main-nav-inner{max-width:var(--mw);margin:0 auto;display:flex;align-items:center;gap:1.5rem;padding:.65rem 1.5rem}
+.main-nav-brand{display:flex;align-items:baseline;gap:.5rem;text-decoration:none;flex-shrink:0}
+.main-nav-name{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:.9rem;color:var(--bl)}
+.main-nav-alias{font-size:.75rem;color:var(--mu2)}
+.main-nav-links{display:flex;align-items:center;gap:1.25rem;flex:1}
+.main-nav-links a{font-size:.82rem;color:var(--tx2);text-decoration:none;transition:color .15s;white-space:nowrap}
+.main-nav-links a:hover{color:var(--bl)}
+.main-nav-home{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--bl);text-decoration:none;white-space:nowrap}
+.main-nav-home:hover{text-decoration:underline}
+@media(max-width:900px){.main-nav-links{display:none}.main-nav-home{margin-left:auto}}
 
 /* topbar */
 .tb{background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--ln);position:sticky;top:45px;z-index:60}
@@ -145,14 +145,35 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--bl);outline-offset:
 </style>
 </head>
 <body data-lang="en">
-<div id="jc-header"
-     data-title="Perspective"
-     data-sub-en="— Capital Markets Technology"
-     data-sub-es="— Tecnología de Mercados de Capitales"
-     data-sub-pt="— Tecnologia de Mercado de Capitais"></div>
-<script src="/_shared/site-header.js"></script>
 
+<nav class="main-nav"><div class="main-nav-inner">
+<a href="/" class="main-nav-brand"><span class="main-nav-name">Josimar Caitano</span><span class="main-nav-alias">じょしまる</span></a>
+<div class="main-nav-links">
+ <a href="/#about" data-i18n="nv.about">About</a>
+ <a href="/#academia" data-i18n="nv.academy">Academy</a>
+ <a href="/#projetos" data-i18n="nv.projects">Projects</a>
+ <a href="/#perspective" data-i18n="nv.perspective">Perspective</a>
+ <a href="/#contato" data-i18n="nv.contact">Contact</a>
+</div>
+<a href="/" class="main-nav-home">← Home</a>
+</div></nav>
 
+<div class="tb"><div class="r">
+ <span class="bd">
+  <svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><g stroke-linecap="round">
+   <line x1="3" y1="15" x2="3" y2="9" stroke="#00BCEB" stroke-width="3"/>
+   <line x1="8" y1="15" x2="8" y2="5" stroke="#0B5CD5" stroke-width="3"/>
+   <line x1="13" y1="15" x2="13" y2="2" stroke="#08213E" stroke-width="3"/>
+   <line x1="18" y1="15" x2="18" y2="5" stroke="#0B5CD5" stroke-width="3"/>
+   <line x1="23" y1="15" x2="23" y2="9" stroke="#00BCEB" stroke-width="3"/></g></svg>
+  Perspective <span class="s" data-i18n="tb.sub">— Capital Markets Technology</span></span>
+ <span class="sp"></span>
+ <div class="seg flags" role="group" aria-label="Language">
+  <button type="button" data-lang="en" aria-pressed="true" title="English">🇺🇸</button>
+  <button type="button" data-lang="es" aria-pressed="false" title="Español">🇪🇸</button>
+  <button type="button" data-lang="pt" aria-pressed="false" title="Português">🇧🇷</button>
+ </div>
+</div></div>
 
 <header class="hero"><div class="r">
  <p class="eb" data-i18n="h.kicker">Essay · Capital Markets Technology</p>
@@ -459,8 +480,17 @@ function applyLang(lang){
     if(v==null)return;
     n.innerHTML=v;
   });
-  window.addEventListener("jc:lang", function(e){ applyLang(e.detail.lang); });
-applyLang((window.jcHeader && window.jcHeader.lang) || "en");
+  Array.prototype.forEach.call(document.querySelectorAll(".seg.flags button"),function(b){
+    b.setAttribute("aria-pressed",String(b.dataset.lang===lang));
+  });
+  try{localStorage.setItem("jc-lang",lang);}catch(e){}
+}
+Array.prototype.forEach.call(document.querySelectorAll(".seg.flags button"),function(b){
+  b.addEventListener("click",function(){applyLang(b.dataset.lang);});
+});
+var saved=null;
+try{saved=localStorage.getItem("jc-lang");}catch(e){}
+applyLang(saved&&T[saved]?saved:(saved==="en"?"en":"en"));
 })();
 </script>
 </body>

@@ -330,30 +330,48 @@ footer .mt{margin-top:22px;padding-top:18px;border-top:1px solid #1B3F6C;font-si
 }
 button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--bl);outline-offset:2px;border-radius:6px}
 
-
-
-
-
-
-
-
-
-
-
-@media(max-width:900px){}
-
+.main-nav{position:sticky;top:0;z-index:999;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--ln);font-family:"DM Sans",system-ui,sans-serif}
+.main-nav-inner{max-width:var(--mw);margin:0 auto;display:flex;align-items:center;gap:1.5rem;padding:.65rem 1.5rem}
+.main-nav-brand{display:flex;align-items:baseline;gap:.5rem;text-decoration:none;flex-shrink:0}
+.main-nav-name{font-family:"IBM Plex Mono",monospace;font-weight:700;font-size:.9rem;color:var(--bl)}
+.main-nav-alias{font-size:.75rem;color:var(--mu2)}
+.main-nav-links{display:flex;align-items:center;gap:1.25rem;flex:1}
+.main-nav-links a{font-size:.82rem;color:var(--tx2);text-decoration:none;transition:color .15s;white-space:nowrap}
+.main-nav-links a:hover{color:var(--bl)}
+.main-nav-home{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--bl);text-decoration:none;white-space:nowrap}
+.main-nav-home:hover{text-decoration:underline}
+@media(max-width:900px){.main-nav-links{display:none}.main-nav-home{margin-left:auto}}
+.tb{top:45px !important}
 
 </style>
 </head>
 <body data-lens="eng" data-lang="en">
-<div id="jc-header"
-     data-title="Mercado Financeiro"
-     data-lens="true"
-     data-sub-en="— Behind the Scenes"
-     data-sub-es="— Tras Bastidores"
-     data-sub-pt="— Bastidores"></div>
-<script src="/_shared/site-header.js"></script>
+<nav class="main-nav"><div class="main-nav-inner">
+<a href="/" class="main-nav-brand"><span class="main-nav-name">Josimar Caitano</span><span class="main-nav-alias">じょしまる</span></a>
+<div class="main-nav-links"><a href="/#about">About</a><a href="/#experiencia">Experience</a><a href="/#certificacoes">Certifications</a><a href="/#ensino">Teaching</a><a href="/#academia">Academy</a><a href="/#projetos">Projects</a><a href="/#conteudo">Content</a><a href="/#contato">Contact</a></div>
+<a href="/" class="main-nav-home">← Home</a>
+</div></nav>
 
+<div class="tb"><div class="r">
+ <span class="bd">
+  <svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><g stroke-linecap="round">
+   <line x1="3" y1="15" x2="3" y2="9" stroke="#00BCEB" stroke-width="3"/>
+   <line x1="8" y1="15" x2="8" y2="5" stroke="#0B5CD5" stroke-width="3"/>
+   <line x1="13" y1="15" x2="13" y2="2" stroke="#08213E" stroke-width="3"/>
+   <line x1="18" y1="15" x2="18" y2="5" stroke="#0B5CD5" stroke-width="3"/>
+   <line x1="23" y1="15" x2="23" y2="9" stroke="#00BCEB" stroke-width="3"/></g></svg>
+  Mercado Financeiro <span class="s">— Bastidores</span></span>
+ <span class="sp"></span>
+ <div class="seg flags" role="group" aria-label="Language">
+  <button type="button" data-lang="en" aria-pressed="true" title="English">🇺🇸</button>
+  <button type="button" data-lang="pt" aria-pressed="false" title="Português">🇧🇷</button>
+  <button type="button" data-lang="es" aria-pressed="false" title="Español">🇪🇸</button>
+ </div>
+ <div class="seg" role="group" aria-label="Lens">
+  <button type="button" data-lens="eng" aria-pressed="true" data-i18n="lens.eng">Engenharia</button>
+  <button type="button" data-lens="board" aria-pressed="false" data-i18n="lens.board">Board</button>
+ </div>
+</div></div>
 
 <header class="hero"><div class="r">
  <p class="eb" data-i18n="hero.eb">Laboratórios interativos de infraestrutura de mercado</p>
@@ -2246,9 +2264,7 @@ function rebuildAll(){
   setArch(arch);
   $("blinkout").innerHTML = "";
 }
-window.addEventListener("jc:lang", function(e){ applyLang(e.detail.lang); });
-window.addEventListener("jc:lens", function(){ runModel(); });
-applyLang((window.jcHeader && window.jcHeader.lang) || "en");
+applyLang("en");
 setArch("ull");
 arbUpdate();
 })();
