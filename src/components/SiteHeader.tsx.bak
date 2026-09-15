@@ -4,9 +4,12 @@ import { useI18n } from "@/lib/i18n";
 
 const sections = [
   ["about", "nav.about"],
+  ["experiencia", "nav.experience"],
+  ["certificacoes", "nav.certs"],
+  ["ensino", "nav.teaching"],
   ["academia", "nav.academic"],
   ["projetos", "nav.projects"],
-  ["perspective", "nav.perspective"],
+  ["conteudo", "nav.content"],
   ["contato", "nav.contact"],
 ] as const;
 

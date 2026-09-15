@@ -18,9 +18,12 @@ export const dict: Record<Lang, Record<string, string>> = {
   en: {
     // ── Navigation ──
     "nav.about": "About",
+    "nav.experience": "Experience",
+    "nav.certs": "Certifications",
+    "nav.teaching": "Teaching",
     "nav.academic": "Academy",
     "nav.projects": "Projects",
-    "nav.perspective": "Perspective",
+    "nav.content": "Content",
     "nav.contact": "Contact",
 
     // ── Hero ──
@@ -109,15 +112,12 @@ export const dict: Record<Lang, Record<string, string>> = {
     "projects.listTitle": "All Projects",
 
     // ── Content ──
-    "content.title": "Perspective",
-    "content.sub": "Essays on capital markets technology, infrastructure strategy, and the view from the architect's chair.",
-    "content.a1": "From Network Architect to Trading Network Specialist",
-    "content.a1d": "Twenty years of infrastructure, three continents, one market that changed everything — and what crossing that frontier taught me about the value of the outsider.",
-    "content.a1Link": "/perspective/network-architect-to-trading-specialist/",
+    "content.title": "Content & Publications",
     "content.yt": "YouTube — Josinfo",
     "content.ytd": "Technical videos on network architecture, lab walkthroughs, and infrastructure deep-dives.",
     "content.ytLink": "https://www.youtube.com/@Josinfo",
-    "content.read": "Read the essay",
+    "content.a1": "HowTo: Cisco StealthWatch",
+    "content.a1d": "Practical guide to deployment and flow analysis with StealthWatch for network visibility.",
     "content.link": "Watch on YouTube",
     "content.linkSoon": "Coming soon",
 
@@ -140,9 +140,12 @@ export const dict: Record<Lang, Record<string, string>> = {
      ═══════════════════════════════════════════════════════ */
   es: {
     "nav.about": "Sobre mí",
+    "nav.experience": "Experiencia",
+    "nav.certs": "Certificaciones",
+    "nav.teaching": "Enseñanza",
     "nav.academic": "Academia",
     "nav.projects": "Proyectos",
-    "nav.perspective": "Perspectiva",
+    "nav.content": "Contenido",
     "nav.contact": "Contacto",
 
     "hero.badge": "estado: en línea",
@@ -223,15 +226,12 @@ export const dict: Record<Lang, Record<string, string>> = {
     "projects.results": "Resultados y Aprendizajes",
     "projects.listTitle": "Todos los Proyectos",
 
-    "content.title": "Perspectiva",
-    "content.sub": "Ensayos sobre tecnología de mercados de capitales, estrategia de infraestructura y la vista desde la silla del arquitecto.",
-    "content.a1": "De Arquitecto de Redes a Especialista en Redes de Trading",
-    "content.a1d": "Veinte años de infraestructura, tres continentes, un mercado que lo cambió todo — y lo que cruzar esa frontera me enseñó sobre el valor del forastero.",
-    "content.a1Link": "/perspective/network-architect-to-trading-specialist/",
+    "content.title": "Contenido y Publicaciones",
     "content.yt": "YouTube — Josinfo",
     "content.ytd": "Videos técnicos sobre arquitectura de redes, walkthroughs de laboratorio e inmersiones en infraestructura.",
     "content.ytLink": "https://www.youtube.com/@Josinfo",
-    "content.read": "Leer el ensayo",
+    "content.a1": "HowTo: Cisco StealthWatch",
+    "content.a1d": "Guía práctica de implementación y análisis de flujos con StealthWatch para visibilidad de red.",
     "content.link": "Ver en YouTube",
     "content.linkSoon": "Próximamente",
 
@@ -252,9 +252,12 @@ export const dict: Record<Lang, Record<string, string>> = {
      ═══════════════════════════════════════════════════════ */
   pt: {
     "nav.about": "Sobre",
+    "nav.experience": "Experiência",
+    "nav.certs": "Certificações",
+    "nav.teaching": "Ensino",
     "nav.academic": "Academia",
     "nav.projects": "Projetos",
-    "nav.perspective": "Perspectiva",
+    "nav.content": "Conteúdo",
     "nav.contact": "Contato",
 
     "hero.badge": "status: online",
@@ -335,15 +338,12 @@ export const dict: Record<Lang, Record<string, string>> = {
     "projects.results": "Resultados & Aprendizados",
     "projects.listTitle": "Todos os Projetos",
 
-    "content.title": "Perspectiva",
-    "content.sub": "Ensaios sobre tecnologia de mercado de capitais, estratégia de infraestrutura e a visão de quem senta na cadeira do arquiteto.",
-    "content.a1": "De Arquiteto de Redes a Especialista em Redes de Trading",
-    "content.a1d": "Vinte anos de infraestrutura, três continentes, um mercado que mudou tudo — e o que atravessar essa fronteira me ensinou sobre o valor do novato.",
-    "content.a1Link": "/perspective/network-architect-to-trading-specialist/",
+    "content.title": "Conteúdo & Publicações",
     "content.yt": "YouTube — Josinfo",
     "content.ytd": "Vídeos técnicos sobre arquitetura de redes, walkthroughs de laboratório e deep-dives em infraestrutura.",
     "content.ytLink": "https://www.youtube.com/@Josinfo",
-    "content.read": "Ler o ensaio",
+    "content.a1": "HowTo: Cisco StealthWatch",
+    "content.a1d": "Guia prático de implantação e análise de fluxos com StealthWatch para visibilidade de rede.",
     "content.link": "Assistir no YouTube",
     "content.linkSoon": "Em breve",
 
