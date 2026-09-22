@@ -95,6 +95,10 @@ export const dict: Record<Lang, Record<string, string>> = {
     "academic.title": "Academy",
     "academic.subtitle": "Exercises, labs, and study materials for my students.",
     "academic.coming": "Materials available soon",
+    "academic.journal.title": "Trading Network Journal",
+    "academic.journal.desc": "A documented descent from market mechanism to physical infrastructure. One layer per entry, each closing with a lab.",
+    "academic.journal.meta": "3 entries · interactive labs · EN / ES / PT",
+    "academic.journal.cta": "Open the Journal",
 
     // ── Projects ──
     "projects.title": "Projects",
@@ -211,6 +215,10 @@ export const dict: Record<Lang, Record<string, string>> = {
     "academic.title": "Academia",
     "academic.subtitle": "Ejercicios, laboratorios y materiales de estudio para mis alumnos.",
     "academic.coming": "Materiales disponibles pronto",
+    "academic.journal.title": "Diario de Redes de Trading",
+    "academic.journal.desc": "Un descenso documentado desde el mecanismo de mercado hasta la infraestructura física. Una capa por entrada, cada una con su laboratorio.",
+    "academic.journal.meta": "3 entradas · laboratorios interactivos · EN / ES / PT",
+    "academic.journal.cta": "Abrir el Diario",
 
     "projects.title": "Proyectos",
     "projects.subtitle": "Casos de estudio de infraestructura del mundo de los mercados de capitales y networking empresarial.",
@@ -323,6 +331,10 @@ export const dict: Record<Lang, Record<string, string>> = {
     "academic.title": "Academia",
     "academic.subtitle": "Exercícios, laboratórios e materiais de estudo para meus alunos.",
     "academic.coming": "Materiais disponíveis em breve",
+    "academic.journal.title": "Diário de Redes de Trading",
+    "academic.journal.desc": "Uma descida documentada do mecanismo de mercado até a infraestrutura física. Uma camada por entrada, cada uma com seu laboratório.",
+    "academic.journal.meta": "3 entradas · laboratórios interativos · EN / ES / PT",
+    "academic.journal.cta": "Abrir o Diário",
 
     "projects.title": "Projetos",
     "projects.subtitle": "Estudos de caso de infraestrutura do mundo dos mercados de capitais e redes corporativas.",

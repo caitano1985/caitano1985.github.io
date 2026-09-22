@@ -203,9 +203,18 @@ function Home() {
       <section id="academia" className="mx-auto max-w-6xl px-5 py-20">
         <SectionHead label="./academy" title={t("academic.title")} />
         <p className="-mt-4 mb-8 text-muted-foreground">{t("academic.subtitle")}</p>
-        <div className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center">
-          <p className="font-mono text-sm text-muted-foreground">{t("academic.coming")}</p>
-        </div>
+        <a
+          href="/academy/trading-network-journal/"
+          className="group flex flex-col gap-4 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary sm:flex-row sm:items-center sm:gap-6"
+        >
+          <span className="font-mono text-2xl font-semibold text-primary">01&ndash;03</span>
+          <span className="flex-1">
+            <span className="block font-semibold">{t("academic.journal.title")}</span>
+            <span className="mt-1 block text-sm text-muted-foreground">{t("academic.journal.desc")}</span>
+            <span className="mt-2 block font-mono text-xs text-muted-foreground">{t("academic.journal.meta")}</span>
+          </span>
+          <span className="font-mono text-sm text-primary group-hover:underline">{t("academic.journal.cta")} &rarr;</span>
+        </a>
       </section>
 
       {/* PROJECTS */}

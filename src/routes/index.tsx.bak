@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
 import portrait from "@/assets/portrait.jpg";
 import { ProjectCard } from "@/components/ProjectCard";
 import { projects } from "@/data/projects";
@@ -42,8 +41,6 @@ function SectionHead({ label, title }: { label: string; title: string }) {
 
 function Home() {
   const { t, lang } = useI18n();
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
 
   const experiences = [
     { role: "exp.role1", company: "exp.company1", period: "exp.period1", desc: "exp.desc1", current: true },
@@ -63,18 +60,6 @@ function Home() {
     ["content.yt", "content.ytd", "youtube", "content.ytLink", "content.link"],
   ];
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setSending(true);
-    try {
-      const form = e.target as HTMLFormElement;
-      const data = new FormData(form);
-      const res = await fetch("https://formspree.io/f/xeogrgvp", {
-        method: "POST", body: data, headers: { Accept: "application/json" },
-      });
-      if (res.ok) { setSent(true); form.reset(); }
-    } catch { /* silent */ } finally { setSending(false); }
-  };
 
   return (
     <main>
@@ -273,7 +258,7 @@ function Home() {
       {/* CONTACT */}
       <section id="contato" className="mx-auto max-w-6xl px-5 py-20">
         <SectionHead label="./contact" title={t("contact.title")} />
-        <div className="grid gap-10 md:grid-cols-2">
+        <div className="max-w-2xl">
           <div>
             <p className="leading-relaxed text-muted-foreground">{t("contact.desc")}</p>
             <ul className="mt-6 space-y-3 font-mono text-sm">
@@ -291,54 +276,6 @@ function Home() {
               </li>
             </ul>
           </div>
-
-          <form onSubmit={onSubmit} className="rounded-xl border border-border bg-card p-6">
-            <label className="block font-mono text-xs text-muted-foreground" htmlFor="nome">
-              {t("contact.name")}
-            </label>
-            <input
-              id="nome"
-              name="name"
-              required
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-            />
-            <label
-              className="mt-4 block font-mono text-xs text-muted-foreground"
-              htmlFor="email"
-            >
-              {t("contact.email")}
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-            />
-            <label
-              className="mt-4 block font-mono text-xs text-muted-foreground"
-              htmlFor="mensagem"
-            >
-              {t("contact.message")}
-            </label>
-            <textarea
-              id="mensagem"
-              name="message"
-              rows={4}
-              required
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-            />
-            <button
-              type="submit"
-              disabled={sending || sent}
-              className="mt-5 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-            >
-              {sending ? "Sending..." : sent ? "✓ Sent" : t("contact.send")}
-            </button>
-            {sent && (
-              <p className="mt-3 font-mono text-xs text-primary">{t("contact.sent")}</p>
-            )}
-          </form>
         </div>
         <p className="sr-only">{lang}</p>
       </section>
