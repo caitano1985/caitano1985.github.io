@@ -1,66 +1,89 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-patch_journal01_i18n.py
-=======================
-Insere as 4 chaves de traducao que faltam no capitulo 01 do Journal:
+patch_academy_link.py
+=====================
+Liga a secao Academy da home ao Trading Network Journal.
 
-    cmp.ap  cmp.bp   -> blocos ASCII  Trading / Post-Trade
-    mk.ap   mk.bp    -> tabelas       Order Flow / Market Data
+Troca o placeholder "Materials available soon" por um card real
+apontando para /academy/trading-network-journal/
 
-Sem essas chaves os blocos ficam em ingles quando o leitor troca
-a bandeira para ES ou PT.
+Mexe em dois arquivos:
+    src/lib/i18n.tsx      -> 4 chaves novas em en / es / pt
+    src/routes/index.tsx  -> o bloco JSX da secao Academy
 
 Uso:
-    python patch_journal01_i18n.py
+    python patch_academy_link.py --dry-run   # mostra o que mudaria
+    python patch_academy_link.py             # aplica
+    python patch_academy_link.py --revert    # volta do .bak
 
-Idempotente: rodar duas vezes nao duplica nada.
-Faz backup em 01-market-structure.html.bak antes de gravar.
+Idempotente. Faz backup .bak antes de gravar.
+
+IMPORTANTE: o link e um <a href>, nao um <Link to>.
+O caminho vem de public/, e arquivo estatico, nao rota do router.
 """
 
+import argparse
 import re
 import shutil
 import sys
 from pathlib import Path
 
-ALVO = "01-market-structure.html"
+I18N = "src/lib/i18n.tsx"
+ROUTE = "src/routes/index.tsx"
 
-# ── o que inserir, e depois de qual ancora ───────────────────────────
+# ── chaves novas, ancoradas no academic.coming de cada idioma ────────
 
-PATCH_ES = [
-    (
-        '"cmp.a":"TRADING","cmp.b":"POST-TRADE",',
-        '"cmp.ap":"<b>COMPRAR 100 WIN</b>\\n     ↓\\n   ORDEN\\n     ↓\\n CASAMIENTO\\n     ↓\\n  <b>OPERACIÓN</b>",\n'
-        '"cmp.bp":"<b>OPERACIÓN</b>\\n   ↓\\nCLEARING\\n   ↓\\n RIESGO\\n   ↓\\nLIQUIDACIÓN\\n   ↓\\n CUSTODIA",'
+CHAVES = {
+    "en": (
+        '"academic.coming": "Materials available soon",',
+        '    "academic.journal.title": "Trading Network Journal",\n'
+        '    "academic.journal.desc": "A documented descent from market mechanism to physical infrastructure. One layer per entry, each closing with a lab.",\n'
+        '    "academic.journal.meta": "3 entries · interactive labs · EN / ES / PT",\n'
+        '    "academic.journal.cta": "Open the Journal",'
     ),
-    (
-        '"mk.a":"ORDER FLOW · trader → bolsa","mk.b":"MARKET DATA · bolsa → todos",',
-        '"mk.ap":"Protocolo  <b>TCP</b>\\nTopología  unicast 1:1\\nVolumen    moderado\\nFalla      caída de sesión\\nTolerancia <b>cero pérdida</b>",\n'
-        '"mk.bp":"Protocolo  <b>UDP multicast</b>\\nTopología  1:N simultáneo\\nVolumen    enorme\\nFalla      gap de paquete\\nTolerancia <b>gap + recuperar</b>",'
+    "es": (
+        '"academic.coming": "Materiales disponibles pronto",',
+        '    "academic.journal.title": "Diario de Redes de Trading",\n'
+        '    "academic.journal.desc": "Un descenso documentado desde el mecanismo de mercado hasta la infraestructura física. Una capa por entrada, cada una con su laboratorio.",\n'
+        '    "academic.journal.meta": "3 entradas · laboratorios interactivos · EN / ES / PT",\n'
+        '    "academic.journal.cta": "Abrir el Diario",'
     ),
-]
+    "pt": (
+        '"academic.coming": "Materiais disponíveis em breve",',
+        '    "academic.journal.title": "Diário de Redes de Trading",\n'
+        '    "academic.journal.desc": "Uma descida documentada do mecanismo de mercado até a infraestrutura física. Uma camada por entrada, cada uma com seu laboratório.",\n'
+        '    "academic.journal.meta": "3 entradas · laboratórios interativos · EN / ES / PT",\n'
+        '    "academic.journal.cta": "Abrir o Diário",'
+    ),
+}
 
-PATCH_PT = [
-    (
-        '"cmp.a":"NEGOCIAÇÃO","cmp.b":"PÓS-NEGOCIAÇÃO",',
-        '"cmp.ap":"<b>COMPRAR 100 WIN</b>\\n     ↓\\n   ORDEM\\n     ↓\\n CASAMENTO\\n     ↓\\n  <b>NEGÓCIO</b>",\n'
-        '"cmp.bp":"<b>NEGÓCIO</b>\\n   ↓\\nCLEARING\\n   ↓\\n  RISCO\\n   ↓\\nLIQUIDAÇÃO\\n   ↓\\n CUSTÓDIA",'
-    ),
-    (
-        '"mk.a":"ORDER FLOW · trader → bolsa","mk.b":"MARKET DATA · bolsa → todos",',
-        '"mk.ap":"Protocolo  <b>TCP</b>\\nTopologia  unicast 1:1\\nVolume     moderado\\nFalha      queda de sessão\\nTolância <b>perda zero</b>",\n'
-        '"mk.bp":"Protocolo  <b>UDP multicast</b>\\nTopologia  1:N simultâneo\\nVolume     enorme\\nFalha      gap de pacote\\nTolância <b>gap + recuperar</b>",'
-    ),
-]
+# ── o placeholder na home, tolerante a indentacao ────────────────────
 
-# correcao: "Tolerancia" em PT
-PATCH_PT = [
-    (a, b.replace("Tolância", "Tolerância")) for a, b in PATCH_PT
-]
+PLACEHOLDER = re.compile(
+    r'([ \t]*)<div className="rounded-xl border border-dashed[^"]*">\s*'
+    r'<p className="[^"]*">\{t\("academic\.coming"\)\}</p>\s*'
+    r'</div>',
+    re.S,
+)
+
+CARD = '''{i}<a
+{i}  href="/academy/trading-network-journal/"
+{i}  className="group flex flex-col gap-4 rounded-xl border border-border bg-card p-6 transition-colors hover:border-primary sm:flex-row sm:items-center sm:gap-6"
+{i}>
+{i}  <span className="font-mono text-2xl font-semibold text-primary">01&ndash;03</span>
+{i}  <span className="flex-1">
+{i}    <span className="block font-semibold">{{t("academic.journal.title")}}</span>
+{i}    <span className="mt-1 block text-sm text-muted-foreground">{{t("academic.journal.desc")}}</span>
+{i}    <span className="mt-2 block font-mono text-xs text-muted-foreground">{{t("academic.journal.meta")}}</span>
+{i}  </span>
+{i}  <span className="font-mono text-sm text-primary group-hover:underline">{{t("academic.journal.cta")}} &rarr;</span>
+{i}</a>'''
 
 
 class C:
-    OK = "\033[92m"; ERR = "\033[91m"; DIM = "\033[90m"; B = "\033[1m"; END = "\033[0m"
+    OK = "\033[92m"; WARN = "\033[93m"; ERR = "\033[91m"
+    DIM = "\033[90m"; B = "\033[1m"; CY = "\033[96m"; END = "\033[0m"
 
 
 if sys.platform == "win32":
@@ -69,91 +92,141 @@ if sys.platform == "win32":
         k = ctypes.windll.kernel32
         k.SetConsoleMode(k.GetStdHandle(-11), 7)
     except Exception:
-        for n in ("OK", "ERR", "DIM", "B", "END"):
+        for n in ("OK", "WARN", "ERR", "DIM", "B", "CY", "END"):
             setattr(C, n, "")
 
 
-def aplicar(bloco: str, patches, nome: str):
-    """Insere cada patch no bloco. Devolve (bloco novo, quantas chaves inseriu)."""
+def head(t): print(f"\n{C.B}{C.CY}{t}{C.END}")
+def ok(t):   print(f"  {C.OK}OK{C.END}   {t}")
+def warn(t): print(f"  {C.WARN}!{C.END}    {t}")
+def err(t):  print(f"  {C.ERR}FALHA{C.END} {t}")
+def dim(t):  print(f"  {C.DIM}{t}{C.END}")
+
+
+def patch_i18n(txt: str):
+    """Insere as 4 chaves nos tres blocos de idioma."""
     n = 0
-    for ancora, insercao in patches:
-        chaves = re.findall(r'^"([^"]+)":', insercao, re.M)   # ex: cmp.ap, cmp.bp
-        rotulo = " + ".join(chaves)
-        if all(f'"{k}":' in bloco for k in chaves):
-            print(f"  {C.DIM}{nome}: {rotulo} ja existem{C.END}")
+    for lang, (ancora, insercao) in CHAVES.items():
+        if ancora not in txt:
+            err(f"{lang}: nao achei a ancora academic.coming")
+            dim(f"  esperava: {ancora}")
+            return None, -1
+        pos = txt.find(ancora)
+        trecho = txt[pos:pos + 700]
+        if '"academic.journal.title"' in trecho:
+            dim(f"{lang}: chaves ja existem")
             continue
-        if ancora not in bloco:
-            print(f"  {C.ERR}{nome}: ancora nao encontrada para {rotulo}{C.END}")
-            print(f"  {C.DIM}  esperava: {ancora[:60]}...{C.END}")
-            return bloco, -1
-        bloco = bloco.replace(ancora, ancora + "\n" + insercao, 1)
-        print(f"  {C.OK}{nome}: {rotulo} inseridas{C.END}")
-        n += len(chaves)
-    return bloco, n
+        txt = txt[:pos] + ancora + "\n" + insercao + txt[pos + len(ancora):]
+        ok(f"{lang}: 4 chaves inseridas")
+        n += 4
+    return txt, n
+
+
+def patch_route(txt: str):
+    """Troca o placeholder pelo card."""
+    if 'href="/academy/trading-network-journal/"' in txt:
+        dim("card ja existe")
+        return txt, 0
+    m = PLACEHOLDER.search(txt)
+    if not m:
+        err("nao achei o bloco placeholder da secao Academy")
+        dim('  procurei por: <div className="rounded-xl border border-dashed ...">')
+        dim('                  <p ...>{t("academic.coming")}</p>')
+        dim('                </div>')
+        return None, -1
+    indent = m.group(1)
+    novo = CARD.format(i=indent)
+    txt = txt[:m.start()] + novo + txt[m.end():]
+    ok("placeholder trocado pelo card do Journal")
+    return txt, 1
 
 
 def main():
+    ap = argparse.ArgumentParser(description="Liga a Academy ao Trading Network Journal")
+    ap.add_argument("--dry-run", action="store_true", help="mostra sem gravar")
+    ap.add_argument("--revert", action="store_true", help="restaura dos .bak")
+    a = ap.parse_args()
+
     raiz = Path(__file__).resolve().parent
-    arq = raiz / ALVO
-    if not arq.is_file():
-        arq = Path.cwd() / ALVO
-    if not arq.is_file():
-        print(f"{C.ERR}nao encontrei {ALVO}{C.END}")
-        print(f"{C.DIM}rode a partir da raiz do repositorio{C.END}")
-        return 1
+    if not (raiz / "src").is_dir():
+        raiz = Path.cwd()
 
-    print(f"\n{C.B}PATCH i18n — Journal 01{C.END}")
-    print(f"  {C.DIM}{arq}{C.END}\n")
+    f_i18n, f_route = raiz / I18N, raiz / ROUTE
 
-    html = arq.read_text(encoding="utf-8")
+    print(f"\n{C.B}ACADEMY -> TRADING NETWORK JOURNAL{C.END}")
+    dim(f"repo: {raiz}")
 
-    i_es = html.find("es:{")
-    i_pt = html.find("pt:{")
-    if i_es == -1 or i_pt == -1:
-        print(f"{C.ERR}nao encontrei os dicionarios es:{{ }} / pt:{{ }}{C.END}")
-        return 1
+    for f, nome in ((f_i18n, I18N), (f_route, ROUTE)):
+        if not f.is_file():
+            err(f"nao encontrei {nome}")
+            dim("rode a partir da raiz do repositorio")
+            return 1
 
-    cabeca = html[:i_es]
-    bloco_es = html[i_es:i_pt]
-    bloco_pt = html[i_pt:]
-
-    bloco_es, n_es = aplicar(bloco_es, PATCH_ES, "ES")
-    if n_es < 0:
-        return 1
-    bloco_pt, n_pt = aplicar(bloco_pt, PATCH_PT, "PT")
-    if n_pt < 0:
-        return 1
-
-    total = n_es + n_pt
-    if total == 0:
-        print(f"\n{C.OK}Arquivo ja esta completo. Nada a fazer.{C.END}\n")
+    # ── revert ────────────────────────────────────────────────────────
+    if a.revert:
+        head("RESTAURANDO")
+        n = 0
+        for f in (f_i18n, f_route):
+            bak = Path(str(f) + ".bak")
+            if bak.is_file():
+                shutil.copy2(bak, f)
+                ok(f"{f.name} restaurado")
+                n += 1
+            else:
+                warn(f"{f.name}: sem .bak")
+        print(f"\n{C.OK}{n} arquivo(s) restaurado(s){C.END}\n")
         return 0
 
-    novo = cabeca + bloco_es + bloco_pt
-
-    # verificacao antes de gravar
-    chaves = set(re.findall(r'data-i18n="([^"]+)"', novo))
-    j_es, j_pt = novo.find("es:{"), novo.find("pt:{")
-    b_es, b_pt = novo[j_es:j_pt], novo[j_pt:]
-    faltam_es = sorted(k for k in chaves if f'"{k}":' not in b_es)
-    faltam_pt = sorted(k for k in chaves if f'"{k}":' not in b_pt)
-
-    print()
-    if faltam_es or faltam_pt:
-        print(f"{C.ERR}ainda faltam chaves apos o patch — nada foi gravado{C.END}")
-        if faltam_es:
-            print(f"  ES: {', '.join(faltam_es)}")
-        if faltam_pt:
-            print(f"  PT: {', '.join(faltam_pt)}")
+    # ── i18n ──────────────────────────────────────────────────────────
+    head(f"1. {I18N}")
+    t_i18n = f_i18n.read_text(encoding="utf-8")
+    novo_i18n, n1 = patch_i18n(t_i18n)
+    if n1 < 0:
         return 1
 
-    shutil.copy2(arq, arq.with_suffix(".html.bak"))
-    arq.write_text(novo, encoding="utf-8", newline="\n")
+    # ── route ─────────────────────────────────────────────────────────
+    head(f"2. {ROUTE}")
+    t_route = f_route.read_text(encoding="utf-8")
+    novo_route, n2 = patch_route(t_route)
+    if n2 < 0:
+        return 1
 
-    print(f"{C.OK}{C.B}OK{C.END}  {total} chave(s) inserida(s)")
-    print(f"  {C.DIM}{len(chaves)} chaves i18n no total, EN/ES/PT completos{C.END}")
-    print(f"  {C.DIM}backup: {ALVO}.bak{C.END}")
-    print(f"\n  proximo:  python deploy_journal.py --dry-run\n")
+    if n1 == 0 and n2 == 0:
+        print(f"\n{C.OK}Tudo ja aplicado. Nada a fazer.{C.END}\n")
+        return 0
+
+    # ── preview ───────────────────────────────────────────────────────
+    if n2 > 0:
+        head("3. COMO FICA O JSX")
+        m = re.search(r'[ \t]*<a\n[ \t]*href="/academy/trading-network-journal/".*?</a>',
+                      novo_route, re.S)
+        if m:
+            for l in m.group(0).splitlines():
+                print(f"  {C.DIM}{l}{C.END}")
+
+    if a.dry_run:
+        print(f"\n{C.WARN}dry-run: nada foi gravado.{C.END}\n")
+        return 0
+
+    # ── gravar ────────────────────────────────────────────────────────
+    head("4. GRAVANDO")
+    if n1 > 0:
+        shutil.copy2(f_i18n, Path(str(f_i18n) + ".bak"))
+        f_i18n.write_text(novo_i18n, encoding="utf-8", newline="\n")
+        ok(f"{I18N}  ({n1} chaves)")
+    if n2 > 0:
+        shutil.copy2(f_route, Path(str(f_route) + ".bak"))
+        f_route.write_text(novo_route, encoding="utf-8", newline="\n")
+        ok(f"{ROUTE}")
+
+    print(f"""
+{C.B}PROXIMO PASSO{C.END}
+  {C.DIM}teste local:{C.END}  bun run dev      {C.DIM}(ou npm run dev){C.END}
+  {C.DIM}confira:{C.END}      a secao Academy nas 3 bandeiras
+  {C.DIM}publique:{C.END}     git add src && git commit -m "Academy: link para o Journal" && git push
+
+  {C.DIM}se algo quebrar:{C.END}  python patch_academy_link.py --revert
+""")
     return 0
 
 
