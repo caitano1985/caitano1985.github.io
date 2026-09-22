@@ -1,194 +1,161 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-deploy_perspective.py
-Publica o artigo Perspective no repositorio caitano1985.github.io
+patch_journal01_i18n.py
+=======================
+Insere as 4 chaves de traducao que faltam no capitulo 01 do Journal:
+
+    cmp.ap  cmp.bp   -> blocos ASCII  Trading / Post-Trade
+    mk.ap   mk.bp    -> tabelas       Order Flow / Market Data
+
+Sem essas chaves os blocos ficam em ingles quando o leitor troca
+a bandeira para ES ou PT.
 
 Uso:
-    python deploy_perspective.py
-    python deploy_perspective.py --dry-run
-    python deploy_perspective.py --no-push
+    python patch_journal01_i18n.py
+
+Idempotente: rodar duas vezes nao duplica nada.
+Faz backup em 01-market-structure.html.bak antes de gravar.
 """
 
-import argparse
-import os
+import re
 import shutil
-import subprocess
 import sys
-from datetime import date
 from pathlib import Path
 
-# ---------------------------------------------------------------- CONFIG
-REPO_ROOT = Path(__file__).resolve().parent
-SLUG = "network-architect-to-trading-specialist"
-SOURCE_FILE = REPO_ROOT / "perspective-network-architect-to-trading-specialist.html"
-TARGET_DIR = REPO_ROOT / "public" / "perspective" / SLUG
-TARGET_FILE = TARGET_DIR / "index.html"
-BRANCH = "main"
-COMMIT_MSG = f"feat(perspective): publish essay '{SLUG}'"
+ALVO = "01-market-structure.html"
 
-C = {
-    "ok": "\033[92m", "warn": "\033[93m", "err": "\033[91m",
-    "info": "\033[96m", "bold": "\033[1m", "end": "\033[0m",
-}
+# ── o que inserir, e depois de qual ancora ───────────────────────────
 
+PATCH_ES = [
+    (
+        '"cmp.a":"TRADING","cmp.b":"POST-TRADE",',
+        '"cmp.ap":"<b>COMPRAR 100 WIN</b>\\n     ↓\\n   ORDEN\\n     ↓\\n CASAMIENTO\\n     ↓\\n  <b>OPERACIÓN</b>",\n'
+        '"cmp.bp":"<b>OPERACIÓN</b>\\n   ↓\\nCLEARING\\n   ↓\\n RIESGO\\n   ↓\\nLIQUIDACIÓN\\n   ↓\\n CUSTODIA",'
+    ),
+    (
+        '"mk.a":"ORDER FLOW · trader → bolsa","mk.b":"MARKET DATA · bolsa → todos",',
+        '"mk.ap":"Protocolo  <b>TCP</b>\\nTopología  unicast 1:1\\nVolumen    moderado\\nFalla      caída de sesión\\nTolerancia <b>cero pérdida</b>",\n'
+        '"mk.bp":"Protocolo  <b>UDP multicast</b>\\nTopología  1:N simultáneo\\nVolumen    enorme\\nFalla      gap de paquete\\nTolerancia <b>gap + recuperar</b>",'
+    ),
+]
 
-def log(tag, msg):
-    color = {"OK": "ok", "!!": "warn", "XX": "err", "->": "info"}.get(tag, "info")
-    print(f"{C[color]}[{tag}]{C['end']} {msg}")
+PATCH_PT = [
+    (
+        '"cmp.a":"NEGOCIAÇÃO","cmp.b":"PÓS-NEGOCIAÇÃO",',
+        '"cmp.ap":"<b>COMPRAR 100 WIN</b>\\n     ↓\\n   ORDEM\\n     ↓\\n CASAMENTO\\n     ↓\\n  <b>NEGÓCIO</b>",\n'
+        '"cmp.bp":"<b>NEGÓCIO</b>\\n   ↓\\nCLEARING\\n   ↓\\n  RISCO\\n   ↓\\nLIQUIDAÇÃO\\n   ↓\\n CUSTÓDIA",'
+    ),
+    (
+        '"mk.a":"ORDER FLOW · trader → bolsa","mk.b":"MARKET DATA · bolsa → todos",',
+        '"mk.ap":"Protocolo  <b>TCP</b>\\nTopologia  unicast 1:1\\nVolume     moderado\\nFalha      queda de sessão\\nTolância <b>perda zero</b>",\n'
+        '"mk.bp":"Protocolo  <b>UDP multicast</b>\\nTopologia  1:N simultâneo\\nVolume     enorme\\nFalha      gap de pacote\\nTolância <b>gap + recuperar</b>",'
+    ),
+]
 
-
-def run(cmd, check=True, capture=False):
-    log("->", " ".join(cmd))
-    r = subprocess.run(cmd, cwd=REPO_ROOT, check=False,
-                       capture_output=capture, text=True)
-    if check and r.returncode != 0:
-        if capture and r.stderr:
-            print(r.stderr)
-        log("XX", f"comando falhou (exit {r.returncode})")
-        sys.exit(r.returncode)
-    return r
-
-
-def preflight():
-    log("->", "verificando ambiente")
-
-    if not (REPO_ROOT / ".git").exists():
-        log("XX", f"nao e um repositorio git: {REPO_ROOT}")
-        log("!!", "coloque este script na raiz de caitano1985.github.io")
-        sys.exit(1)
-
-    if not SOURCE_FILE.exists():
-        log("XX", f"arquivo de origem nao encontrado: {SOURCE_FILE.name}")
-        log("!!", "coloque o HTML do artigo na raiz do repositorio")
-        sys.exit(1)
-
-    size_kb = SOURCE_FILE.stat().st_size / 1024
-    log("OK", f"origem encontrada: {SOURCE_FILE.name} ({size_kb:.1f} KB)")
-
-    r = run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture=True)
-    current = r.stdout.strip()
-    if current != BRANCH:
-        log("!!", f"branch atual e '{current}', esperado '{BRANCH}'")
-        if input("    continuar mesmo assim? [s/N] ").strip().lower() != "s":
-            sys.exit(0)
-    else:
-        log("OK", f"branch: {current}")
-
-    return True
+# correcao: "Tolerancia" em PT
+PATCH_PT = [
+    (a, b.replace("Tolância", "Tolerância")) for a, b in PATCH_PT
+]
 
 
-def validate_html():
-    log("->", "validando HTML")
-    html = SOURCE_FILE.read_text(encoding="utf-8")
-
-    checks = [
-        ("<!doctype html>", "doctype"),
-        ('data-lang="en"', "idioma base EN"),
-        ('"es":', "traducao ES") if '"es":' in html else ("es:{", "traducao ES"),
-        ("pt:{", "traducao PT-BR"),
-        ("pt-only", "bloco O Novato (PT)"),
-        ("</html>", "fechamento"),
-    ]
-    failed = []
-    for needle, label in checks:
-        if needle in html:
-            log("OK", f"  {label}")
-        else:
-            failed.append(label)
-            log("!!", f"  {label} — NAO ENCONTRADO")
-
-    if failed:
-        log("!!", f"{len(failed)} verificacao(oes) falharam")
-        if input("    continuar? [s/N] ").strip().lower() != "s":
-            sys.exit(1)
-    return True
+class C:
+    OK = "\033[92m"; ERR = "\033[91m"; DIM = "\033[90m"; B = "\033[1m"; END = "\033[0m"
 
 
-def copy_article(dry_run=False):
-    log("->", f"destino: public/perspective/{SLUG}/index.html")
-    if dry_run:
-        log("!!", "dry-run: copia nao executada")
-        return
-    TARGET_DIR.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(SOURCE_FILE, TARGET_FILE)
-    log("OK", f"copiado ({TARGET_FILE.stat().st_size / 1024:.1f} KB)")
+if sys.platform == "win32":
+    try:
+        import ctypes
+        k = ctypes.windll.kernel32
+        k.SetConsoleMode(k.GetStdHandle(-11), 7)
+    except Exception:
+        for n in ("OK", "ERR", "DIM", "B", "END"):
+            setattr(C, n, "")
 
 
-def git_status():
-    r = run(["git", "status", "--porcelain"], capture=True)
-    return r.stdout.strip()
-
-
-def commit_and_push(dry_run=False, push=True):
-    changes = git_status()
-    if not changes:
-        log("!!", "nenhuma alteracao a commitar")
-        return False
-
-    print(f"\n{C['bold']}Alteracoes detectadas:{C['end']}")
-    for line in changes.splitlines():
-        print(f"   {line}")
-    print()
-
-    if dry_run:
-        log("!!", "dry-run: commit e push nao executados")
-        return False
-
-    if input("Confirmar commit e push? [s/N] ").strip().lower() != "s":
-        log("!!", "cancelado pelo usuario")
-        return False
-
-    run(["git", "add", "public/perspective/"])
-    run(["git", "commit", "-m", COMMIT_MSG])
-    log("OK", "commit criado")
-
-    if push:
-        run(["git", "push", "origin", BRANCH])
-        log("OK", "push concluido")
-    else:
-        log("!!", "--no-push: commit local apenas")
-    return True
-
-
-def summary(pushed):
-    url = f"https://caitano1985.github.io/perspective/{SLUG}/"
-    print(f"\n{C['bold']}{'=' * 62}{C['end']}")
-    print(f"{C['bold']}  DEPLOY — PERSPECTIVE{C['end']}")
-    print(f"{'=' * 62}")
-    print(f"  Artigo    : {SLUG}")
-    print(f"  Data      : {date.today().isoformat()}")
-    print(f"  Caminho   : public/perspective/{SLUG}/index.html")
-    print(f"  URL       : {url}")
-    print(f"  Status    : {'PUBLICADO' if pushed else 'LOCAL'}")
-    print(f"{'=' * 62}")
-    if pushed:
-        print(f"\n  O GitHub Actions leva ~1-2 min para concluir o build.")
-        print(f"  Acompanhe: https://github.com/caitano1985/"
-              f"caitano1985.github.io/actions\n")
+def aplicar(bloco: str, patches, nome: str):
+    """Insere cada patch no bloco. Devolve (bloco novo, quantas chaves inseriu)."""
+    n = 0
+    for ancora, insercao in patches:
+        chaves = re.findall(r'^"([^"]+)":', insercao, re.M)   # ex: cmp.ap, cmp.bp
+        rotulo = " + ".join(chaves)
+        if all(f'"{k}":' in bloco for k in chaves):
+            print(f"  {C.DIM}{nome}: {rotulo} ja existem{C.END}")
+            continue
+        if ancora not in bloco:
+            print(f"  {C.ERR}{nome}: ancora nao encontrada para {rotulo}{C.END}")
+            print(f"  {C.DIM}  esperava: {ancora[:60]}...{C.END}")
+            return bloco, -1
+        bloco = bloco.replace(ancora, ancora + "\n" + insercao, 1)
+        print(f"  {C.OK}{nome}: {rotulo} inseridas{C.END}")
+        n += len(chaves)
+    return bloco, n
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Deploy do artigo Perspective")
-    ap.add_argument("--dry-run", action="store_true",
-                    help="simula sem alterar nada")
-    ap.add_argument("--no-push", action="store_true",
-                    help="commita local, nao envia ao remoto")
-    args = ap.parse_args()
+    raiz = Path(__file__).resolve().parent
+    arq = raiz / ALVO
+    if not arq.is_file():
+        arq = Path.cwd() / ALVO
+    if not arq.is_file():
+        print(f"{C.ERR}nao encontrei {ALVO}{C.END}")
+        print(f"{C.DIM}rode a partir da raiz do repositorio{C.END}")
+        return 1
 
-    print(f"\n{C['bold']}Perspective — deploy{C['end']}")
-    print(f"{'-' * 62}\n")
+    print(f"\n{C.B}PATCH i18n — Journal 01{C.END}")
+    print(f"  {C.DIM}{arq}{C.END}\n")
 
-    preflight()
-    validate_html()
-    copy_article(dry_run=args.dry_run)
-    pushed = commit_and_push(dry_run=args.dry_run, push=not args.no_push)
-    summary(pushed)
+    html = arq.read_text(encoding="utf-8")
+
+    i_es = html.find("es:{")
+    i_pt = html.find("pt:{")
+    if i_es == -1 or i_pt == -1:
+        print(f"{C.ERR}nao encontrei os dicionarios es:{{ }} / pt:{{ }}{C.END}")
+        return 1
+
+    cabeca = html[:i_es]
+    bloco_es = html[i_es:i_pt]
+    bloco_pt = html[i_pt:]
+
+    bloco_es, n_es = aplicar(bloco_es, PATCH_ES, "ES")
+    if n_es < 0:
+        return 1
+    bloco_pt, n_pt = aplicar(bloco_pt, PATCH_PT, "PT")
+    if n_pt < 0:
+        return 1
+
+    total = n_es + n_pt
+    if total == 0:
+        print(f"\n{C.OK}Arquivo ja esta completo. Nada a fazer.{C.END}\n")
+        return 0
+
+    novo = cabeca + bloco_es + bloco_pt
+
+    # verificacao antes de gravar
+    chaves = set(re.findall(r'data-i18n="([^"]+)"', novo))
+    j_es, j_pt = novo.find("es:{"), novo.find("pt:{")
+    b_es, b_pt = novo[j_es:j_pt], novo[j_pt:]
+    faltam_es = sorted(k for k in chaves if f'"{k}":' not in b_es)
+    faltam_pt = sorted(k for k in chaves if f'"{k}":' not in b_pt)
+
+    print()
+    if faltam_es or faltam_pt:
+        print(f"{C.ERR}ainda faltam chaves apos o patch — nada foi gravado{C.END}")
+        if faltam_es:
+            print(f"  ES: {', '.join(faltam_es)}")
+        if faltam_pt:
+            print(f"  PT: {', '.join(faltam_pt)}")
+        return 1
+
+    shutil.copy2(arq, arq.with_suffix(".html.bak"))
+    arq.write_text(novo, encoding="utf-8", newline="\n")
+
+    print(f"{C.OK}{C.B}OK{C.END}  {total} chave(s) inserida(s)")
+    print(f"  {C.DIM}{len(chaves)} chaves i18n no total, EN/ES/PT completos{C.END}")
+    print(f"  {C.DIM}backup: {ALVO}.bak{C.END}")
+    print(f"\n  proximo:  python deploy_journal.py --dry-run\n")
+    return 0
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print()
-        log("!!", "interrompido")
-        sys.exit(130)
+    sys.exit(main())

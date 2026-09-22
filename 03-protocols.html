@@ -1,0 +1,1623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trading Protocols &amp; Connectivity — Trading Network Journal 03 | Josimar Caitano</title>
+<meta name="description" content="How trading systems actually talk to each other: application protocols, transport choice, multicast distribution, sequence numbers, gap detection, recovery and sessions.">
+<meta property="og:title" content="Trading Protocols &amp; Connectivity — Trading Network Journal 03">
+<meta property="og:description" content="Reliability does not have to live in the transport protocol. This chapter shows where else it can live.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#08213E;--ink2:#12395F;--tx:#2A3B52;--tx2:#4A5E78;
+ --cy:#00BCEB;--cy2:#0093B8;--bl:#0B5CD5;--bl2:#073B87;
+ --t1:#F4F9FD;--t2:#E5F1FA;--sf:#D2E7F5;
+ --ln:#DCE7F1;--ln2:#BFD5E8;
+ --gn:#0F8B4C;--gnb:#E7F6EE;--gnl:#B6E2CA;
+ --am:#B87610;--amb:#FDF5E7;--aml:#EEDCB2;
+ --rd:#C93327;--rdb:#FCEDEB;--rdl:#F0C6C0;
+ --gd:#8E7124;--mu:#63768E;--mu2:#93A6BB;
+ --s1:0 1px 2px rgba(8,33,62,.05);
+ --s2:0 1px 2px rgba(8,33,62,.05),0 16px 40px -26px rgba(8,33,62,.4);
+ --mw:1220px;--rw:78ch}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:#fff;color:var(--tx);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ font-size:18px;line-height:1.68;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);letter-spacing:-.02em;font-weight:700;margin:0}
+a{color:var(--bl)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.in{max-width:var(--mw);margin:0 auto;padding:0 24px}
+.rd-w{max-width:var(--rw);margin:0 auto}
+p{margin:0 0 20px;color:var(--tx2)}
+strong{color:var(--ink);font-weight:700}
+
+/* hero */
+.hero{background:radial-gradient(85% 105% at 90% -12%,#D9EEFA 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#FAFDFF,#fff);border-bottom:1px solid var(--ln)}
+.hero .r{max-width:var(--mw);margin:0 auto;padding:62px 24px 44px}
+.eb{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:700;color:var(--bl);margin:0 0 18px}
+.eb::before{content:"";width:28px;height:3px;border-radius:3px;background:var(--cy)}
+.hero h1{font-size:clamp(32px,5vw,56px);line-height:1.04;max-width:20ch;margin:0 0 20px;letter-spacing:-.032em}
+.hero .ld{font-size:clamp(18px,2vw,22px);color:var(--tx2);max-width:64ch;margin:0 0 28px}
+.hm{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.av{width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,var(--bl),var(--cy));display:grid;place-items:center;
+ color:#fff;font-weight:700;font-size:18px;flex:none;box-shadow:var(--s2)}
+.hm .n{font-weight:700;color:var(--ink);font-size:15px;line-height:1.25}
+.hm .rr{font-size:13px;color:var(--mu)}
+.meta{margin-top:22px;display:flex;gap:18px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--mu)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.meta i{width:6px;height:6px;border-radius:50%;background:var(--cy);display:block}
+.prv{margin-top:24px;display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--mu);
+ background:#fff;border:1px solid var(--ln);border-radius:999px;padding:7px 16px;text-decoration:none}
+.prv:hover{border-color:var(--bl);color:var(--bl)}
+.prv b{color:var(--ink);font-weight:600}
+
+/* article */
+main{padding:10px 0 0}
+article section{padding:44px 0 4px;border-top:1px solid var(--ln)}
+article section:first-child{border-top:0;padding-top:52px}
+.ln{font-size:12.5px;font-weight:700;color:var(--bl);margin:0 0 10px;display:flex;align-items:center;gap:10px;font-family:"IBM Plex Mono",monospace}
+.ln::before{content:"";width:20px;height:3px;border-radius:3px;background:var(--cy)}
+article h2{font-size:clamp(25px,3.3vw,36px);line-height:1.12;margin:0 0 20px;max-width:24ch}
+article h3{font-size:19px;margin:30px 0 12px}
+.lead{font-size:20px;color:var(--tx);margin-bottom:22px}
+.pull{font-weight:700;font-size:clamp(20px,2.7vw,27px);line-height:1.3;color:var(--ink);border-left:4px solid var(--cy);
+ padding:10px 0 10px 24px;margin:32px 0;letter-spacing:-.02em}
+.note{border-left:3px solid var(--cy);background:var(--t1);border-radius:0 14px 14px 0;padding:18px 22px;margin:26px 0}
+.note .t{font-size:11.5px;font-weight:700;color:var(--bl);margin:0 0 7px;letter-spacing:.04em;font-family:"IBM Plex Mono",monospace}
+.note p{margin:0;font-size:16.5px;color:var(--tx)}
+.note.g{border-left-color:var(--gd);background:#FCFAF3}.note.g .t{color:var(--gd)}
+.note.gn{border-left-color:var(--gn);background:var(--gnb)}.note.gn .t{color:var(--gn)}
+.note.rd{border-left-color:var(--rd);background:var(--rdb)}.note.rd .t{color:var(--rd)}
+ul.cl{margin:20px 0 26px;padding:0;list-style:none}
+ul.cl li{position:relative;padding-left:28px;margin:11px 0;color:var(--tx2)}
+ul.cl li::before{content:"";position:absolute;left:5px;top:.72em;width:8px;height:8px;background:var(--cy);border-radius:2px}
+ul.cl li strong{color:var(--ink)}
+
+/* fig */
+.fig{background:#fff;border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0}
+.figh{padding:16px 22px;border-bottom:1px solid var(--ln);background:var(--t1)}
+.figh .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace}
+.figh .t::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cy)}
+.figh h3{font-size:16.5px;margin:10px 0 0}
+.figb{padding:8px 10px 0;background:
+ linear-gradient(90deg,rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,
+ linear-gradient(rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,#fff}
+.figb svg{width:100%;height:auto;display:block}
+.figf{padding:14px 22px 18px;border-top:1px solid var(--ln);background:#FCFDFE;font-size:14px;color:var(--mu)}
+
+/* cards */
+.cards{display:grid;gap:14px;margin:24px 0}
+.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid var(--ln);border-top:3px solid var(--cy);border-radius:14px;padding:20px;box-shadow:var(--s2)}
+.card .k{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--bl);margin:0 0 8px}
+.card h4{font-size:16px;margin:0 0 8px}
+.card p{margin:0;font-size:15.5px;color:var(--tx2)}
+
+/* compare */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.cmp .p{background:#fff;border:1px solid var(--ln);border-radius:16px;padding:20px;box-shadow:var(--s1)}
+.cmp .p .h{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:700;letter-spacing:.04em;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.cmp .p.a .h{color:var(--bl)}.cmp .p.b .h{color:var(--gn)}
+.cmp .p .h::before{content:"";width:8px;height:8px;border-radius:2px}
+.cmp .p.a .h::before{background:var(--cy)}.cmp .p.b .h::before{background:var(--gn)}
+.cmp pre{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.7;color:var(--tx2);margin:0;white-space:pre;overflow-x:auto}
+.cmp pre b{color:var(--ink)}
+.cmp .ft{margin-top:14px;font-size:14.5px;color:var(--tx2)}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;margin:26px 0;font-size:15px;border:1px solid var(--ln);border-radius:14px;overflow:hidden}
+.tbl caption{caption-side:top;text-align:left;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;padding-bottom:10px}
+.tbl th{background:var(--t1);color:var(--ink);font-weight:700;text-align:left;padding:11px 15px;font-size:13.5px;border-bottom:1px solid var(--ln)}
+.tbl td{padding:11px 15px;border-bottom:1px solid var(--ln);color:var(--tx2);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.y{color:var(--gn);font-weight:600}
+.tbl td.n{color:var(--rd);font-weight:600}
+
+/* ══ jl-stack : layer peeler ══ */
+.jl-stack{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:32px 0;background:#fff}
+.jl-stack-h{padding:16px 22px;background:var(--t1);border-bottom:1px solid var(--ln)}
+.jl-stack-h .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;font-family:"IBM Plex Mono",monospace;display:inline-block;letter-spacing:.04em}
+.jl-stack-h h3{font-size:16.5px;margin:10px 0 0}
+.jl-stack-b{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.jl-layers{padding:18px 20px;border-right:1px solid var(--ln)}
+.jl-ly{border:1px solid var(--ln);border-radius:10px;padding:11px 15px;margin-bottom:8px;cursor:pointer;transition:.15s;background:#fff}
+.jl-ly:last-child{margin-bottom:0}
+.jl-ly:hover{border-color:var(--ln2);background:var(--t1)}
+.jl-ly.on{border-color:var(--cy);background:var(--t2);box-shadow:inset 3px 0 0 var(--cy)}
+.jl-ly .lk{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--mu);letter-spacing:.05em;font-weight:600;margin-bottom:3px}
+.jl-ly .lv{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:var(--ink);font-weight:600}
+.jl-ly.on .lk{color:var(--bl)}
+.jl-sd{padding:20px;background:#FCFDFE;display:flex;align-items:center}
+.jl-sd .dq{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--bl);font-weight:700;letter-spacing:.04em;margin-bottom:8px}
+.jl-sd p{margin:0 0 12px;font-size:15px;color:var(--tx2)}
+.jl-sd .dsee{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mu);background:var(--t1);border-radius:8px;padding:9px 12px;border:1px solid var(--ln)}
+
+/* ══ jl-pick : requirement → transport ══ */
+.jl-req{border:1px solid var(--ln2);border-radius:18px;background:var(--t1);padding:22px;margin:28px 0}
+.jl-req .rh{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:14px}
+.jl-chips{display:flex;flex-wrap:wrap;gap:8px}
+.jl-chip{border:1px solid var(--ln2);background:#fff;border-radius:999px;padding:8px 15px;font-size:14px;color:var(--tx2);cursor:pointer;transition:.15s;font-family:"DM Sans",sans-serif}
+.jl-chip:hover{border-color:var(--bl);color:var(--bl)}
+.jl-chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.jl-rout{margin-top:16px;background:#fff;border:1px solid var(--ln);border-radius:14px;padding:18px 20px}
+.jl-rout .rv{font-family:"IBM Plex Mono",monospace;font-size:24px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.jl-rout .rv.udp{color:var(--gn)}.jl-rout .rv.tcp{color:var(--bl)}.jl-rout .rv.both{color:var(--am)}
+.jl-rout p{margin:0;font-size:15px;color:var(--tx2)}
+
+/* ══ jl-seq : sequence + gap + recovery ══ */
+.jl-seq{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0;background:#fff}
+.jl-seq-h{padding:18px 22px;background:linear-gradient(180deg,var(--t2),var(--t1));border-bottom:1px solid var(--ln)}
+.jl-seq-h .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;font-family:"IBM Plex Mono",monospace;display:inline-block;letter-spacing:.04em}
+.jl-seq-h h3{font-size:18px;margin:11px 0 5px}
+.jl-seq-h p{margin:0;font-size:14.5px;color:var(--tx2)}
+.jl-seq-b{padding:20px 22px}
+.jl-lane{margin-bottom:16px}
+.jl-lane-k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--mu);letter-spacing:.05em;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.jl-lane-k::after{content:"";flex:1;height:1px;background:var(--ln)}
+.jl-pkts{display:flex;gap:7px;flex-wrap:wrap;min-height:44px;align-items:center}
+.jl-pkt{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;border-radius:9px;padding:9px 12px;border:1px solid var(--ln2);background:#fff;color:var(--ink);
+ opacity:0;transform:translateY(5px);transition:opacity .25s,transform .25s,background .2s,border-color .2s}
+.jl-pkt.in{opacity:1;transform:none}
+.jl-pkt.ok{border-color:var(--gnl);background:var(--gnb);color:var(--gn)}
+.jl-pkt.lost{border-color:var(--rdl);background:var(--rdb);color:var(--rd);border-style:dashed}
+.jl-pkt.rec{border-color:var(--aml);background:var(--amb);color:var(--am)}
+.jl-state-bar{border-radius:12px;padding:14px 18px;margin:6px 0 16px;border:1px solid var(--ln);background:var(--t1);transition:.25s}
+.jl-state-bar.gap{border-color:var(--rdl);background:var(--rdb)}
+.jl-state-bar.recov{border-color:var(--aml);background:var(--amb)}
+.jl-state-bar.done{border-color:var(--gnl);background:var(--gnb)}
+.jl-sb-k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:700;letter-spacing:.06em;margin-bottom:6px;color:var(--mu)}
+.jl-state-bar.gap .jl-sb-k{color:var(--rd)}
+.jl-state-bar.recov .jl-sb-k{color:var(--am)}
+.jl-state-bar.done .jl-sb-k{color:var(--gn)}
+.jl-sb-v{font-size:15.5px;color:var(--tx);margin:0}
+.jl-sb-nums{display:flex;gap:22px;flex-wrap:wrap;margin-top:9px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--mu)}
+.jl-sb-nums b{color:var(--ink)}
+.jl-ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--ln)}
+.jl-btn{font-family:"DM Sans",sans-serif;font-size:13.5px;font-weight:600;border:0;border-radius:10px;padding:10px 20px;background:var(--ink);color:#fff;cursor:pointer;transition:.15s}
+.jl-btn:hover:not(:disabled){background:var(--bl)}
+.jl-btn:disabled{opacity:.35;cursor:not-allowed}
+.jl-btn.sec{background:#fff;color:var(--tx2);border:1px solid var(--ln)}
+.jl-btn.sec:hover:not(:disabled){border-color:var(--bl);color:var(--bl);background:#fff}
+.jl-btn.warn{background:var(--am)}
+.jl-btn.warn:hover:not(:disabled){background:#9a6209}
+
+/* ══ jl-ab : A/B feed arbitration ══ */
+.jl-ab{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:32px 0;background:#fff}
+.jl-ab-h{padding:16px 22px;background:var(--t1);border-bottom:1px solid var(--ln)}
+.jl-ab-h .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;font-family:"IBM Plex Mono",monospace;display:inline-block;letter-spacing:.04em}
+.jl-ab-h h3{font-size:16.5px;margin:10px 0 0}
+.jl-ab-b{padding:20px 22px}
+
+/* ══ jl-sess : session state machine ══ */
+.jl-sess{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:32px 0;background:#fff}
+.jl-sess-h{padding:16px 22px;background:var(--t1);border-bottom:1px solid var(--ln)}
+.jl-sess-h .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;font-family:"IBM Plex Mono",monospace;display:inline-block;letter-spacing:.04em}
+.jl-sess-h h3{font-size:16.5px;margin:10px 0 0}
+.jl-sess-b{padding:6px 10px 0;background:
+ linear-gradient(90deg,rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,
+ linear-gradient(rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,#fff}
+.jl-sess-b svg{width:100%;height:auto;display:block}
+.jl-sess-b g.ss{cursor:pointer}
+.jl-sess-b g.ss rect{transition:.15s}
+.jl-sess-b g.ss:hover rect{stroke:#0B5CD5;stroke-width:2.5}
+.jl-ssd{padding:18px 22px;border-top:1px solid var(--ln);background:#FCFDFE;min-height:92px}
+.jl-ssd .sk{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:7px}
+.jl-ssd p{margin:0;font-size:15.5px;color:var(--tx2)}
+
+/* ══ lab ══ */
+.lab{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0;background:#fff}
+.labh{padding:18px 22px;border-bottom:1px solid var(--ln);background:linear-gradient(180deg,var(--t2),var(--t1))}
+.labh .t{font-size:11px;font-weight:700;color:#fff;background:var(--gn);padding:4px 11px;border-radius:999px;letter-spacing:.04em;font-family:"IBM Plex Mono",monospace;display:inline-block}
+.labh h3{font-size:19px;margin:11px 0 6px}
+.labh p{margin:0;font-size:15px;color:var(--tx2)}
+.labb{padding:22px}
+.scn{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;margin-bottom:14px;background:#fff;transition:opacity .25s}
+.scn.off{opacity:.4;pointer-events:none}
+.scn .sk{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:9px}
+.scn .ev{background:var(--t1);border-left:3px solid var(--mu2);border-radius:0 9px 9px 0;padding:12px 15px;margin-bottom:14px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--tx);line-height:1.7;white-space:pre-wrap}
+.scn .qt{font-size:15.5px;color:var(--tx);margin-bottom:13px;font-weight:500}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{border:1px solid var(--ln);border-radius:10px;padding:11px 15px;cursor:pointer;font-size:15px;color:var(--tx2);display:flex;gap:11px;align-items:flex-start;transition:.14s;background:#fff}
+.opt:hover{border-color:var(--bl);color:var(--ink)}
+.opt .ol{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mu);flex:none;padding-top:2px;font-weight:600}
+.opt.ok{border-color:var(--gn);background:var(--gnb);color:var(--gn);pointer-events:none}
+.opt.ok .ol{color:var(--gn)}
+.opt.no{border-color:var(--rd);background:var(--rdb);color:var(--rd)}
+.opt.no .ol{color:var(--rd)}
+.opt.dead{pointer-events:none;opacity:.5}
+.scn .fb{margin-top:13px;padding:13px 16px;border-radius:10px;font-size:14.5px;line-height:1.6;display:none}
+.scn .fb.on{display:block}
+.scn .fb.ok{background:var(--gnb);border:1px solid var(--gnl);color:var(--tx)}
+.scn .fb.no{background:var(--rdb);border:1px solid var(--rdl);color:var(--tx)}
+.labdone{border:1px solid var(--gnl);background:var(--gnb);border-radius:14px;padding:20px;margin-top:6px;display:none}
+.labdone.on{display:block}
+.labdone .t{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--gn);letter-spacing:.05em;margin-bottom:10px}
+.labdone p{margin:0;font-size:15.5px;color:var(--tx)}
+
+/* next / sig */
+.nxt{border:1px solid var(--ln);border-radius:18px;padding:24px;background:var(--t1);margin:40px 0 0;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.nxt .i{flex:1;min-width:230px}
+.nxt .k{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mu);letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.nxt h3{font-size:20px;margin:0 0 6px}
+.nxt p{margin:0;font-size:15px}
+.nxt a{font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:var(--ink);color:#fff;text-decoration:none;padding:11px 22px;border-radius:10px;white-space:nowrap}
+.nxt a:hover{background:var(--bl)}
+.sig{margin:46px 0 0;padding:26px;border:1px solid var(--ln);border-radius:18px;background:var(--t1)}
+.sig .nm{font-size:19px;font-weight:700;color:var(--ink);margin:0 0 4px}
+.sig .rl{font-size:14.5px;color:var(--tx2);margin:0}
+.sig .oep{margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--cy2);font-weight:600}
+
+footer{background:var(--ink);color:#BCD0E7;margin-top:60px}
+footer .r{max-width:var(--mw);margin:0 auto;padding:50px 24px}
+footer h3{color:#fff;font-size:23px;margin:0 0 10px}
+footer .cr{font-size:14.5px;color:#92A9C9;line-height:2}
+footer .cr b{color:#E4EEFA}
+footer .lk{margin-top:18px;display:flex;gap:20px;flex-wrap:wrap}
+footer .lk a{color:var(--cy);font-family:"IBM Plex Mono",monospace;font-size:13.5px;text-decoration:none}
+footer .lk a:hover{text-decoration:underline}
+footer .oep{margin-top:20px;font-size:14px;color:var(--cy);font-weight:700}
+footer .mt{margin-top:22px;padding-top:18px;border-top:1px solid #1B3F6C;font-size:12.5px;color:#7590B4;line-height:1.75}
+
+@media(max-width:820px){.jl-stack-b{grid-template-columns:1fr}.jl-layers{border-right:0;border-bottom:1px solid var(--ln)}}
+@media(max-width:720px){.c2,.cmp{grid-template-columns:1fr}body{font-size:17px}
+ .tbl{font-size:13.5px}.tbl th,.tbl td{padding:9px 11px}}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--bl);outline-offset:2px;border-radius:6px}
+</style>
+</head>
+<body data-lang="en">
+<div id="jc-header"
+     data-title="Academy"
+     data-sub-en="— Trading Network Journal"
+     data-sub-es="— Diario de Redes de Trading"
+     data-sub-pt="— Diário de Redes de Trading"></div>
+<script src="/_shared/site-header.js"></script>
+
+<header class="hero"><div class="r">
+ <p class="eb" data-i18n="h.kicker">Trading Network Journal · 03</p>
+ <h1 data-i18n="h.title">Trading Protocols &amp; Connectivity</h1>
+ <p class="ld" data-i18n="h.lead">How systems that have never met agree on what a message means, how it travels, how loss is detected, and how a stream is rebuilt after something goes missing.</p>
+ <div class="hm"><div class="av" aria-hidden="true">JC</div><div>
+  <div class="n">Josimar Caitano</div>
+  <div class="rr" data-i18n="h.role">Principal Solutions Architect · NTT DATA · Capital Markets Infrastructure</div></div></div>
+ <div class="meta">
+  <span><i></i><span data-i18n="h.date">September 2026</span></span>
+  <span><i></i><span data-i18n="h.read">35 min · with lab</span></span>
+  <span><i></i><span data-i18n="h.cat">Protocols · Connectivity</span></span>
+ </div>
+ <a class="prv" href="../02-order-lifecycle/"><b data-i18n="h.prvb">Journal 02</b> <span data-i18n="h.prvt">— The Order Lifecycle</span></a>
+</div></header>
+
+<main class="in"><article class="rd-w">
+
+<section>
+ <p class="lead" data-i18n="p.1">In the previous entry we followed one order from a human decision to a confirmation on a screen. We treated the message as if it simply arrived. This chapter is about why it arrives at all — and what happens when it does not.</p>
+ <p data-i18n="p.2">A protocol is not a message format. That is the part everyone learns and the part that matters least. A protocol is the complete set of rules for how two systems that have never met establish a relationship, identify themselves, agree on what a field means, confirm receipt, notice that something is missing, and repair the stream without stopping it.</p>
+
+ <div class="note">
+  <p class="t" data-i18n="nv.t">WHERE YOUR DISCIPLINE STOPS BEING NETWORKING</p>
+  <p data-i18n="nv.b">Up to this point a network engineer could stay inside familiar territory: addresses, ports, paths, loss, latency. From here the work sits at an intersection — application engineering, network engineering, market infrastructure and reliability engineering, all at once. An engineer who can only reason about one of those four will diagnose confidently and be wrong.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s1.k">I</p>
+ <h2 data-i18n="s1.h">Protocol is not transport</h2>
+ <p data-i18n="s1.p1">Before FIX, before TCP, before multicast, separate the layers. Each one answers a different question, and mixing them produces the kind of sentence that ends a technical conversation: "the FIX is slow". FIX has no speed. It is a grammar.</p>
+ <p data-i18n="s1.p2">Click through the stack. Notice that every layer has both a question it answers and a place where you can observe it.</p>
+
+ <div class="jl-stack">
+  <div class="jl-stack-h">
+   <span class="t" data-i18n="st.tag">LAYER STACK</span>
+   <h3 data-i18n="st.h">One order, five different problems</h3>
+  </div>
+  <div class="jl-stack-b">
+   <div class="jl-layers">
+    <div class="jl-ly on" data-l="app"><div class="lk" data-i18n="st.k1">APPLICATION</div><div class="lv">BUY 100 XYZ @ 100.50</div></div>
+    <div class="jl-ly" data-l="proto"><div class="lk" data-i18n="st.k2">APPLICATION PROTOCOL</div><div class="lv">FIX · binary · proprietary</div></div>
+    <div class="jl-ly" data-l="trans"><div class="lk" data-i18n="st.k3">TRANSPORT</div><div class="lv">TCP segment · UDP datagram</div></div>
+    <div class="jl-ly" data-l="net"><div class="lk" data-i18n="st.k4">NETWORK</div><div class="lv">IP packet</div></div>
+    <div class="jl-ly" data-l="link"><div class="lk" data-i18n="st.k5">LINK · PHYSICAL</div><div class="lv">Ethernet frame · bits</div></div>
+   </div>
+   <div class="jl-sd">
+    <div>
+     <div class="dq" id="st-q">WHAT DOES THIS MESSAGE MEAN?</div>
+     <p id="st-d" data-i18n="st.app">The business event itself. A human intention that has been turned into something a machine can act on. At this layer there is no protocol, no port and no packet — only a decision with a price on it.</p>
+     <div class="dsee" id="st-s" data-i18n="st.apps">observed in: application logs · order management screens</div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <p class="pull" data-i18n="s1.pull">FIX does not replace TCP. FIX rides on TCP. One decides what a field means; the other decides whether the bytes arrive.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s2.k">II</p>
+ <h2 data-i18n="s2.h">Message is not segment is not packet is not frame</h2>
+ <p data-i18n="s2.p1">This distinction is the reason packet capture is a skill and not a button. Open a capture of a trading session and you will not find the string "BUY 100 XYZ". You will find headers, ports, flags, sequence numbers and a payload — and the work is rebuilding the business event from them.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig1.tag">ENCAPSULATION</span>
+   <h3 data-i18n="fig1.h">The same order, seen from five heights</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 300" role="img" aria-label="Encapsulation of a trading message">
+    <g font-family="DM Sans, sans-serif">
+     <rect x="70" y="18" width="760" height="44" rx="10" fill="#E5F1FA" stroke="#00BCEB" stroke-width="2"/>
+     <text x="92" y="46" font-size="13.5" font-weight="700" fill="#08213E" data-i18n="en.1">ORDER MESSAGE</text>
+     <text x="330" y="46" font-size="12.5" fill="#63768E" font-family="IBM Plex Mono, monospace">BUY 100 XYZ @ 100.50</text>
+
+     <rect x="110" y="72" width="720" height="44" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <rect x="110" y="72" width="128" height="44" rx="10" fill="#F4F9FD" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="174" y="100" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0B5CD5" font-family="IBM Plex Mono, monospace" data-i18n="en.h2">TCP HDR</text>
+     <text x="260" y="100" font-size="12.5" fill="#2A3B52" data-i18n="en.2">payload · ports · sequence · ack</text>
+
+     <rect x="150" y="126" width="680" height="44" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <rect x="150" y="126" width="118" height="44" rx="10" fill="#F4F9FD" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="209" y="154" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0B5CD5" font-family="IBM Plex Mono, monospace" data-i18n="en.h3">IP HDR</text>
+     <text x="290" y="154" font-size="12.5" fill="#2A3B52" data-i18n="en.3">source · destination · TTL</text>
+
+     <rect x="190" y="180" width="640" height="44" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <rect x="190" y="180" width="126" height="44" rx="10" fill="#F4F9FD" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="253" y="208" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0B5CD5" font-family="IBM Plex Mono, monospace" data-i18n="en.h4">ETH HDR</text>
+     <text x="338" y="208" font-size="12.5" fill="#2A3B52" data-i18n="en.4">MAC · VLAN · frame check</text>
+
+     <rect x="230" y="234" width="600" height="40" rx="10" fill="#08213E"/>
+     <text x="530" y="259" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" data-i18n="en.5">BITS ON FIBRE</text>
+
+     <text x="70" y="294" font-size="11.5" fill="#93A6BB" data-i18n="en.note">each layer wraps the one above it · the order is inside all of them</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig1.cap">The trading message is the innermost object. Every layer below adds the information its own problem requires, and nothing more.</div>
+ </div>
+
+ <h3 data-i18n="s2.h3">The reasoning chain you need in an incident</h3>
+ <p data-i18n="s2.p2">A trading network engineer must be able to walk this chain in both directions, under pressure, with a trader waiting:</p>
+
+ <div class="cmp">
+  <div class="p a">
+   <p class="h" data-i18n="ch.a">FROM THE WIRE UP</p>
+   <pre data-i18n="ch.ap">packet 84721
+   ↓
+UDP datagram
+   ↓
+market data payload
+   ↓
+sequence <b>1059382</b>
+   ↓
+gap? → no
+   ↓
+book update applied</pre>
+  </div>
+  <div class="p b">
+   <p class="h" data-i18n="ch.b">FROM THE BUSINESS DOWN</p>
+   <pre data-i18n="ch.bp">"my order vanished"
+   ↓
+ClOrdID <b>84721</b>
+   ↓
+app log · sent 09:31:04.118
+   ↓
+capture · 1 packet out
+   ↓
+gateway · nothing received
+   ↓
+<b>network</b></pre>
+  </div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s3.k">III</p>
+ <h2 data-i18n="s3.h">A protocol solves a language problem</h2>
+ <p data-i18n="s3.p1">Two institutions that have never spoken need to agree, in advance and in writing, on what every field means. FIX — the Financial Information eXchange — is the best known of these agreements, and it carries orders, executions, cancellations, amendments and session events.</p>
+ <p data-i18n="s3.p2">But be careful with the trap that follows: knowing FIX is not knowing the market. Venues run binary protocols, proprietary protocols, APIs and mechanisms specific to each house. When microseconds matter, the encoding itself becomes an engineering decision.</p>
+
+ <div class="cmp">
+  <div class="p a">
+   <p class="h" data-i18n="enc.a">TEXT ENCODING</p>
+   <pre>35=D|55=XYZ|54=1|
+38=100|44=100.50|
+40=2|11=ORD0001</pre>
+   <p class="ft" data-i18n="enc.af">Human-readable, self-describing, easy to debug with your eyes. Costs more bytes and a parse step that is variable in length — and variable length means variable time.</p>
+  </div>
+  <div class="p b">
+   <p class="h" data-i18n="enc.b">BINARY ENCODING</p>
+   <pre>[msg type   ] 1B
+[instrument ] 4B
+[side       ] 1B
+[quantity   ] 4B
+[price      ] 8B
+[sequence   ] 4B</pre>
+   <p class="ft" data-i18n="enc.bf">Fixed offsets, fixed size, no parsing ambiguity. Reading field four is arithmetic, not searching. The gain is not bytes saved — it is predictability.</p>
+  </div>
+ </div>
+
+ <div class="note g">
+  <p class="t" data-i18n="s3.nt">WHY PREDICTABILITY BEATS SIZE</p>
+  <p data-i18n="s3.nb">People justify binary protocols with bandwidth. That is the weakest argument. The real reason is that a fixed-layout message parses in constant time, with no branching on content and no allocation — which means the p99.9 of your parse step looks like the median. In a system judged on its tail, an encoding that removes variance is worth more than one that removes bytes.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s4.k">IV</p>
+ <h2 data-i18n="s4.h">TCP or UDP is the wrong question</h2>
+ <p data-i18n="s4.p1">"UDP is fast, TCP is slow" is the sentence that identifies someone who has not built either. Both move bits at the same speed. What differs is which guarantees the transport provides and which ones your application must build itself.</p>
+ <p data-i18n="s4.p2">The correct question is never which protocol is better. It is: <strong>which property does this system actually need?</strong> Pick a requirement below.</p>
+
+ <div class="jl-req">
+  <div class="rh" data-i18n="rq.h">WHICH PROPERTY DOES THE SYSTEM NEED?</div>
+  <div class="jl-chips" id="chips">
+   <button class="jl-chip on" data-r="loss" data-i18n="rq.c1">No message may be silently lost</button>
+   <button class="jl-chip" data-r="fanout" data-i18n="rq.c2">One publisher, thousands of subscribers</button>
+   <button class="jl-chip" data-r="order" data-i18n="rq.c3">Transport must guarantee ordering</button>
+   <button class="jl-chip" data-r="own" data-i18n="rq.c4">Application controls its own recovery</button>
+   <button class="jl-chip" data-r="over" data-i18n="rq.c5">Lowest possible per-message overhead</button>
+   <button class="jl-chip" data-r="state" data-i18n="rq.c6">Per-participant session state is required</button>
+  </div>
+  <div class="jl-rout">
+   <div class="rv tcp" id="rq-v">TCP</div>
+   <p id="rq-d" data-i18n="rq.loss">Silent loss of an order is unacceptable, so the transport must acknowledge and retransmit. You pay for that with connection state and with a retransmission delay you do not control. For order flow, that trade is correct — a late order is bad, a lost order is catastrophic.</p>
+  </div>
+ </div>
+
+ <table class="tbl">
+  <caption data-i18n="tb.cap">What each transport gives you, and what it leaves for your application</caption>
+  <thead><tr>
+   <th data-i18n="tb.h1">Property</th><th data-i18n="tb.h2">TCP</th><th data-i18n="tb.h3">UDP</th>
+  </tr></thead>
+  <tbody>
+   <tr><td data-i18n="tb.r1">Connection-oriented</td><td class="y" data-i18n="tb.yes">yes</td><td class="n" data-i18n="tb.no">no</td></tr>
+   <tr><td data-i18n="tb.r2">Delivery guarantee</td><td class="y" data-i18n="tb.yes2">yes</td><td class="n" data-i18n="tb.no2">no</td></tr>
+   <tr><td data-i18n="tb.r3">Ordering</td><td class="y" data-i18n="tb.yes3">yes</td><td class="n" data-i18n="tb.no3">no</td></tr>
+   <tr><td data-i18n="tb.r4">Retransmission</td><td class="y" data-i18n="tb.yes4">yes</td><td class="n" data-i18n="tb.no4">no</td></tr>
+   <tr><td data-i18n="tb.r5">Congestion control</td><td class="y" data-i18n="tb.yes5">yes</td><td data-i18n="tb.no5">not equivalently</td></tr>
+   <tr><td data-i18n="tb.r6">One-to-many distribution</td><td class="n" data-i18n="tb.no6">connection per receiver</td><td class="y" data-i18n="tb.yes6">multicast</td></tr>
+   <tr><td data-i18n="tb.r7">Reliability owner</td><td data-i18n="tb.r7a">the transport</td><td data-i18n="tb.r7b">your application</td></tr>
+  </tbody>
+ </table>
+
+ <p class="pull" data-i18n="s4.pull">Reliability does not have to live in the transport protocol. It has to live somewhere.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s5.k">V</p>
+ <h2 data-i18n="s5.h">Multicast turns distribution into publish and subscribe</h2>
+ <p data-i18n="s5.p1">Now the market data side. The matching engine produces book changes, trades, quote updates — and thousands of participants need all of them, at the same instant, with no participant advantaged by the order in which the exchange happens to send.</p>
+ <p data-i18n="s5.p2">Sending one copy per participant is not only expensive; it is unfair. The last subscriber on the list receives later than the first. Multicast removes that problem by removing the list.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig2.tag">DISTRIBUTION</span>
+   <h3 data-i18n="fig2.h">Unicast replication versus multicast publication</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 290" role="img" aria-label="Unicast versus multicast distribution">
+    <defs><marker id="am" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,1 L7,4.5 L0,8 Z" fill="#93A6BB"/></marker></defs>
+    <g font-family="DM Sans, sans-serif">
+     <text x="60" y="28" font-size="12" font-weight="700" fill="#C93327" font-family="IBM Plex Mono, monospace" data-i18n="mc.u">UNICAST · one copy per receiver</text>
+     <rect x="60" y="44" width="130" height="38" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="125" y="68" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="mc.src">SOURCE</text>
+     <path d="M190,55 L300,40" stroke="#C93327" stroke-width="1.5" marker-end="url(#am)"/>
+     <path d="M190,60 L300,72" stroke="#C93327" stroke-width="1.5" marker-end="url(#am)"/>
+     <path d="M190,66 L300,104" stroke="#C93327" stroke-width="1.5" marker-end="url(#am)"/>
+     <path d="M190,72 L300,136" stroke="#C93327" stroke-width="1.5" marker-end="url(#am)"/>
+     <rect x="308" y="24" width="78" height="30" rx="7" fill="#FCEDEB" stroke="#F0C6C0"/><text x="347" y="44" text-anchor="middle" font-size="12" fill="#C93327">A</text>
+     <rect x="308" y="58" width="78" height="30" rx="7" fill="#FCEDEB" stroke="#F0C6C0"/><text x="347" y="78" text-anchor="middle" font-size="12" fill="#C93327">B</text>
+     <rect x="308" y="92" width="78" height="30" rx="7" fill="#FCEDEB" stroke="#F0C6C0"/><text x="347" y="112" text-anchor="middle" font-size="12" fill="#C93327">C</text>
+     <rect x="308" y="126" width="78" height="30" rx="7" fill="#FCEDEB" stroke="#F0C6C0"/><text x="347" y="146" text-anchor="middle" font-size="12" fill="#C93327">D</text>
+     <text x="60" y="186" font-size="11.5" fill="#63768E" data-i18n="mc.un">4 receivers · 4 copies · 4 different send times</text>
+
+     <text x="520" y="28" font-size="12" font-weight="700" fill="#0F8B4C" font-family="IBM Plex Mono, monospace" data-i18n="mc.m">MULTICAST · one publication</text>
+     <rect x="520" y="44" width="130" height="38" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="585" y="68" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="mc.src2">SOURCE</text>
+     <path d="M650,63 L700,63" stroke="#0F8B4C" stroke-width="2.5" marker-end="url(#am)"/>
+     <rect x="706" y="44" width="70" height="38" rx="9" fill="#E7F6EE" stroke="#0F8B4C" stroke-width="2"/>
+     <text x="741" y="68" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0F8B4C" data-i18n="mc.grp">GROUP</text>
+     <path d="M776,58 L830,40" stroke="#0F8B4C" stroke-width="1.5" marker-end="url(#am)"/>
+     <path d="M776,63 L830,72" stroke="#0F8B4C" stroke-width="1.5" marker-end="url(#am)"/>
+     <path d="M776,68 L830,104" stroke="#0F8B4C" stroke-width="1.5" marker-end="url(#am)"/>
+     <path d="M776,73 L830,136" stroke="#0F8B4C" stroke-width="1.5" marker-end="url(#am)"/>
+     <rect x="836" y="24" width="44" height="30" rx="7" fill="#E7F6EE" stroke="#B6E2CA"/><text x="858" y="44" text-anchor="middle" font-size="12" fill="#0F8B4C">A</text>
+     <rect x="836" y="58" width="44" height="30" rx="7" fill="#E7F6EE" stroke="#B6E2CA"/><text x="858" y="78" text-anchor="middle" font-size="12" fill="#0F8B4C">B</text>
+     <rect x="836" y="92" width="44" height="30" rx="7" fill="#E7F6EE" stroke="#B6E2CA"/><text x="858" y="112" text-anchor="middle" font-size="12" fill="#0F8B4C">C</text>
+     <rect x="836" y="126" width="44" height="30" rx="7" fill="#E7F6EE" stroke="#B6E2CA"/><text x="858" y="146" text-anchor="middle" font-size="12" fill="#0F8B4C">D</text>
+     <text x="520" y="186" font-size="11.5" fill="#63768E" data-i18n="mc.mn">N receivers · 1 publication · the network replicates</text>
+
+     <rect x="60" y="212" width="780" height="58" rx="12" fill="#F4F9FD" stroke="#BFD5E8" stroke-width="1.5"/>
+     <text x="84" y="236" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="mc.k">THE ARCHITECTURAL SHIFT</text>
+     <text x="84" y="258" font-size="12.5" fill="#4A5E78" data-i18n="mc.kv">the publisher stops knowing who its subscribers are — joining the group becomes the receiver's problem</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig2.cap">Fairness is the reason, not efficiency. With multicast the exchange publishes once and the network delivers in parallel — no participant is structurally last.</div>
+ </div>
+
+ <div class="note rd">
+  <p class="t" data-i18n="s5.nt">WHAT YOU JUST GAVE UP</p>
+  <p data-i18n="s5.nb">Multicast is UDP, and UDP will drop. The exchange publishes once and never asks whether you received it. You have solved fairness and fan-out, and in exchange you now own a problem that TCP used to own for you: knowing that something is missing. That problem is the rest of this chapter.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s6.k">VI</p>
+ <h2 data-i18n="s6.h">The sequence number, the gap, and the repair</h2>
+ <p data-i18n="s6.p1">Here is the mechanism that makes an unreliable transport carry a market. Every message on the feed carries a sequence number. The receiver holds one piece of state — the number it expects next — and compares. That is the whole idea, and it is enough.</p>
+ <p data-i18n="s6.p2">Run the feed below. Then break it, and watch the receiver notice.</p>
+
+ <div class="jl-seq">
+  <div class="jl-seq-h">
+   <span class="t" data-i18n="sq.tag">MARKET DATA FEED</span>
+   <h3 data-i18n="sq.h">Sequence · gap detection · recovery · rebuild</h3>
+   <p data-i18n="sq.s">A live stream with one piece of receiver state: the next sequence expected.</p>
+  </div>
+  <div class="jl-seq-b">
+   <div class="jl-lane">
+    <div class="jl-lane-k" data-i18n="sq.l1">LIVE FEED · received</div>
+    <div class="jl-pkts" id="seq-live"></div>
+   </div>
+
+   <div class="jl-state-bar" id="seq-bar">
+    <div class="jl-sb-k" id="seq-k" data-i18n="sq.st0">IDLE</div>
+    <p class="jl-sb-v" id="seq-v" data-i18n="sq.sv0">The receiver is waiting for the first message. Start the feed.</p>
+    <div class="jl-sb-nums">
+     <span data-i18n="sq.exp">expected</span>&nbsp;<b id="seq-exp">—</b>
+     <span data-i18n="sq.rcv">received</span>&nbsp;<b id="seq-rcv">—</b>
+     <span data-i18n="sq.miss">missing</span>&nbsp;<b id="seq-miss">—</b>
+    </div>
+   </div>
+
+   <div class="jl-lane" id="seq-rec-lane" style="display:none">
+    <div class="jl-lane-k" data-i18n="sq.l2">RECOVERY CHANNEL</div>
+    <div class="jl-pkts" id="seq-rec"></div>
+   </div>
+
+   <div class="jl-lane" id="seq-out-lane" style="display:none">
+    <div class="jl-lane-k" data-i18n="sq.l3">REBUILT STREAM · delivered to the application</div>
+    <div class="jl-pkts" id="seq-out"></div>
+   </div>
+
+   <div class="jl-ctl">
+    <button class="jl-btn" id="sq-run" data-i18n="sq.run">Start the feed</button>
+    <button class="jl-btn warn" id="sq-rec" disabled data-i18n="sq.recover">Request recovery</button>
+    <button class="jl-btn sec" id="sq-rst" data-i18n="sq.reset">Reset</button>
+   </div>
+  </div>
+ </div>
+
+ <div class="note gn">
+  <p class="t" data-i18n="s6.nt">THE PATTERN THAT REPEATS EVERYWHERE</p>
+  <p data-i18n="s6.nb">Sequence, then detection, then recovery, then consistency. You will meet this pattern again in session protocols, in replication, in event sourcing and in every distributed system that must not lose an event. Learn it here, on a market data feed, where it is at its most visible — and where the cost of getting it wrong is a book that silently disagrees with the exchange.</p>
+ </div>
+
+ <p data-i18n="s6.p3">Notice what the recovery channel is not: it is not the live feed. Mixing repair traffic into the real-time path is how a small loss becomes a large outage, because the burst of retransmission arrives exactly when the network is already struggling. Recovery belongs on its own path, with its own capacity.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s7.k">VII</p>
+ <h2 data-i18n="s7.h">Two feeds, because one path is a single point of failure</h2>
+ <p data-i18n="s7.p1">Detection and recovery handle occasional loss. They do not handle a degraded path, because a path that is dropping steadily will keep you permanently in repair — always behind, always requesting, never current.</p>
+ <p data-i18n="s7.p2">So exchanges publish the same stream twice, over independent paths, and the receiver arbitrates: take whichever copy of each sequence arrives first, discard the duplicate. Run it.</p>
+
+ <div class="jl-ab">
+  <div class="jl-ab-h">
+   <span class="t" data-i18n="ab.tag">A/B ARBITRATION</span>
+   <h3 data-i18n="ab.h">Two lossy feeds, one clean stream</h3>
+  </div>
+  <div class="jl-ab-b">
+   <div class="jl-lane">
+    <div class="jl-lane-k" data-i18n="ab.la">FEED A · path 1</div>
+    <div class="jl-pkts" id="ab-a"></div>
+   </div>
+   <div class="jl-lane">
+    <div class="jl-lane-k" data-i18n="ab.lb">FEED B · path 2</div>
+    <div class="jl-pkts" id="ab-b"></div>
+   </div>
+   <div class="jl-lane">
+    <div class="jl-lane-k" data-i18n="ab.lo">ARBITRATED OUTPUT · first copy wins</div>
+    <div class="jl-pkts" id="ab-o"></div>
+   </div>
+   <div class="jl-state-bar" id="ab-bar">
+    <div class="jl-sb-k" id="ab-k" data-i18n="ab.st0">IDLE</div>
+    <p class="jl-sb-v" id="ab-v" data-i18n="ab.sv0">Both feeds carry the same sequence. Each will lose different messages.</p>
+   </div>
+   <div class="jl-ctl">
+    <button class="jl-btn" id="ab-run" data-i18n="ab.run">Run both feeds</button>
+    <button class="jl-btn sec" id="ab-rst" data-i18n="ab.reset">Reset</button>
+   </div>
+  </div>
+ </div>
+
+ <div class="note">
+  <p class="t" data-i18n="s7.nt">THE MONITORING CONSEQUENCE</p>
+  <p data-i18n="s7.nb">A/B arbitration is dangerous precisely because it works. A feed can degrade for weeks without anyone noticing, because the other feed is quietly covering for it — until the day the healthy one has a problem too and both fail at once. Monitor each feed's loss rate independently, before arbitration. The arbitrated output is the wrong place to measure health; it is designed to look healthy.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s8.k">VIII</p>
+ <h2 data-i18n="s8.h">Order flow needs a relationship, not just a connection</h2>
+ <p data-i18n="s8.p1">Market data is anonymous broadcast. Order flow is the opposite: the venue must know who you are, which messages it has already accepted from you, and whether you are still there. That is a session.</p>
+ <p data-i18n="s8.p2">Click through the states. Pay attention to the one in the middle — the heartbeat is not a formality.</p>
+
+ <div class="jl-sess">
+  <div class="jl-sess-h">
+   <span class="t" data-i18n="se.tag">SESSION</span>
+   <h3 data-i18n="se.h">From connection to logout, and the failure branch</h3>
+  </div>
+  <div class="jl-sess-b">
+   <svg viewBox="0 0 900 300" role="img" aria-label="Session state machine">
+    <defs><marker id="as" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,1 L7,4.5 L0,8 Z" fill="#93A6BB"/></marker></defs>
+    <g font-family="DM Sans, sans-serif">
+     <g class="ss" data-s="disc">
+      <rect x="40" y="120" width="140" height="42" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+      <text x="110" y="146" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E">DISCONNECTED</text></g>
+     <path d="M180,141 L226,141" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#as)"/>
+
+     <g class="ss" data-s="conn">
+      <rect x="234" y="120" width="128" height="42" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+      <text x="298" y="146" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E">CONNECTED</text></g>
+     <path d="M362,141 L408,141" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#as)"/>
+
+     <g class="ss" data-s="logon">
+      <rect x="416" y="120" width="120" height="42" rx="9" fill="#E5F1FA" stroke="#00BCEB" stroke-width="2"/>
+      <text x="476" y="146" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E">LOGON</text></g>
+     <path d="M536,141 L582,141" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#as)"/>
+
+     <g class="ss" data-s="active">
+      <rect x="590" y="112" width="160" height="58" rx="10" fill="#E7F6EE" stroke="#0F8B4C" stroke-width="2"/>
+      <text x="670" y="136" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0F8B4C">ACTIVE</text>
+      <text x="670" y="156" text-anchor="middle" font-size="11" fill="#0F8B4C" font-family="IBM Plex Mono, monospace">heartbeat · business</text></g>
+
+     <path d="M670,112 C670,74 590,74 590,104" stroke="#0F8B4C" stroke-width="1.5" fill="none" stroke-dasharray="4 4" marker-end="url(#as)"/>
+     <text x="560" y="72" font-size="11.5" fill="#0F8B4C" font-family="IBM Plex Mono, monospace" data-i18n="se.hb">heartbeat loop</text>
+
+     <path d="M670,170 L670,204" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#as)"/>
+     <g class="ss" data-s="logout">
+      <rect x="596" y="206" width="148" height="42" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+      <text x="670" y="232" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E">LOGOUT</text></g>
+
+     <path d="M590,141 L420,232" stroke="#C93327" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#as)"/>
+     <g class="ss" data-s="fail">
+      <rect x="252" y="206" width="160" height="42" rx="9" fill="#FCEDEB" stroke="#C93327" stroke-width="1.5"/>
+      <text x="332" y="232" text-anchor="middle" font-size="12.5" font-weight="700" fill="#C93327">HEARTBEAT LOST</text></g>
+     <path d="M252,227 L184,227" stroke="#93A6BB" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#as)"/>
+     <g class="ss" data-s="recov">
+      <rect x="40" y="206" width="138" height="42" rx="9" fill="#FDF5E7" stroke="#B87610" stroke-width="1.5"/>
+      <text x="109" y="232" text-anchor="middle" font-size="12" font-weight="700" fill="#B87610">RESEND / RESET</text></g>
+    </g>
+   </svg>
+  </div>
+  <div class="jl-ssd">
+   <div class="sk" id="se-k">LOGON</div>
+   <p id="se-d" data-i18n="se.logon">The participant identifies itself and both sides agree on where the message sequence stands. This is also where a mismatch surfaces: if your side thinks it sent 4,812 messages and the venue counted 4,809, the disagreement appears here, before any business message flows.</p>
+  </div>
+ </div>
+
+ <p data-i18n="s8.p3">The heartbeat exists because silence is ambiguous. A quiet session might mean a calm market or a dead link, and those require opposite responses. Without a heartbeat you discover the link is gone at the worst possible moment: when you finally have an order to send.</p>
+
+ <p class="pull" data-i18n="s8.pull">In a critical environment, how fast you detect a failure is part of the engineering — not an operational detail to be tuned later.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="lab.k">LAB 03</p>
+ <h2 data-i18n="lab.h">You are the protocol engineer</h2>
+ <p data-i18n="lab.p">An incident is open. The trading application is running, but the desk reports that market data updates are disappearing. You have a sequence discontinuity and four phases to work through. "The network lost a packet" is not a conclusion — it is a hypothesis that has to be proven or discarded.</p>
+
+ <div class="lab">
+  <div class="labh">
+   <span class="t" data-i18n="lab.tag">LAB 03</span>
+   <h3 data-i18n="lab.th">Incident · sequence discontinuity on the feed</h3>
+   <p data-i18n="lab.ts">Expected 501200 · Received 501202 · four phases, one proof</p>
+  </div>
+  <div class="labb">
+
+   <div class="scn" id="sc1">
+    <div class="sk" data-i18n="lab.s1k">PHASE 1 · WHAT DO YOU ACTUALLY KNOW?</div>
+    <div class="ev" data-i18n="lab.s1e">Feed handler log
+
+  10:14:22.007  seq 501199  applied
+  10:14:22.009  seq 501202  OUT OF SEQUENCE
+                expected 501200
+
+Desk report: "we are missing book updates"</div>
+    <div class="qt" data-i18n="lab.s1q">From this evidence alone, what has been established?</div>
+    <div class="opts">
+     <div class="opt" data-ok="0"><span class="ol">A</span><span data-i18n="lab.s1a">The network dropped two packets</span></div>
+     <div class="opt" data-ok="1"><span class="ol">B</span><span data-i18n="lab.s1b">Two sequence numbers did not reach the feed handler — where they were lost is still unknown</span></div>
+     <div class="opt" data-ok="0"><span class="ol">C</span><span data-i18n="lab.s1c">The exchange skipped two sequence numbers</span></div>
+     <div class="opt" data-ok="0"><span class="ol">D</span><span data-i18n="lab.s1d">The feed handler crashed and restarted</span></div>
+    </div>
+    <div class="fb" id="fb1"></div>
+   </div>
+
+   <div class="scn off" id="sc2">
+    <div class="sk" data-i18n="lab.s2k">PHASE 2 · WHERE COULD IT HAVE BEEN LOST?</div>
+    <div class="ev" data-i18n="lab.s2e">Candidate layers, upstream to downstream
+
+  exchange publisher
+  exchange-side network
+  cross-connect / switch fabric
+  your NIC              (rx ring, driver counters)
+  kernel socket buffer  (receive queue)
+  feed handler process  (parse, apply)</div>
+    <div class="qt" data-i18n="lab.s2q">Which single piece of evidence separates "lost before my server" from "lost inside my server"?</div>
+    <div class="opts">
+     <div class="opt" data-ok="0"><span class="ol">A</span><span data-i18n="lab.s2a">CPU utilisation on the feed handler host</span></div>
+     <div class="opt" data-ok="0"><span class="ol">B</span><span data-i18n="lab.s2b">The exchange's published latency figures for that session</span></div>
+     <div class="opt" data-ok="1"><span class="ol">C</span><span data-i18n="lab.s2c">A capture taken on the wire before the NIC — if 501200 is on the wire, the loss is yours</span></div>
+     <div class="opt" data-ok="0"><span class="ol">D</span><span data-i18n="lab.s2d">The application log of the trading strategy consuming the book</span></div>
+    </div>
+    <div class="fb" id="fb2"></div>
+   </div>
+
+   <div class="scn off" id="sc3">
+    <div class="sk" data-i18n="lab.s3k">PHASE 3 · THE EVIDENCE ARRIVES</div>
+    <div class="ev" data-i18n="lab.s3e">Wire capture, packet broker, hardware timestamps
+
+  10:14:22.0071  seq 501199   present
+  10:14:22.0078  seq 501200   present
+  10:14:22.0085  seq 501201   present
+  10:14:22.0092  seq 501202   present
+
+NIC counters              rx_dropped: 0
+Kernel socket statistics  receive buffer errors: 1,284</div>
+    <div class="qt" data-i18n="lab.s3q">Where was the loss?</div>
+    <div class="opts">
+     <div class="opt" data-ok="0"><span class="ol">A</span><span data-i18n="lab.s3a">Network — the packets never reached the server</span></div>
+     <div class="opt" data-ok="0"><span class="ol">B</span><span data-i18n="lab.s3b">NIC — the adapter dropped them on receive</span></div>
+     <div class="opt" data-ok="1"><span class="ol">C</span><span data-i18n="lab.s3c">Inside the server — packets arrived and were discarded at the socket buffer, because the application did not read fast enough</span></div>
+     <div class="opt" data-ok="0"><span class="ol">D</span><span data-i18n="lab.s3d">Exchange — it published a corrupted sequence</span></div>
+    </div>
+    <div class="fb" id="fb3"></div>
+   </div>
+
+   <div class="scn off" id="sc4">
+    <div class="sk" data-i18n="lab.s4k">PHASE 4 · WHAT DO YOU REPORT?</div>
+    <div class="ev" data-i18n="lab.s4e">The desk wants an answer. Your manager wants a root cause.
+The network team wants to know whether this is theirs.</div>
+    <div class="qt" data-i18n="lab.s4q">Which statement is both true and actionable?</div>
+    <div class="opts">
+     <div class="opt" data-ok="0"><span class="ol">A</span><span data-i18n="lab.s4a">"We had packet loss on the market data feed and are investigating with the network team."</span></div>
+     <div class="opt" data-ok="1"><span class="ol">B</span><span data-i18n="lab.s4b">"All sequences arrived on the wire. Loss occurred at the receive buffer because the consumer fell behind — this is a capacity and consumption problem on our host, not a network fault."</span></div>
+     <div class="opt" data-ok="0"><span class="ol">C</span><span data-i18n="lab.s4c">"The exchange feed was unstable during the window."</span></div>
+     <div class="opt" data-ok="0"><span class="ol">D</span><span data-i18n="lab.s4d">"Recovery did not work, so we lost the updates permanently."</span></div>
+    </div>
+    <div class="fb" id="fb4"></div>
+   </div>
+
+   <div class="labdone" id="labdone">
+    <div class="t" data-i18n="lab.dt">INCIDENT CLOSED</div>
+    <p data-i18n="lab.db">The symptom was a gap and the instinct was to blame the network — and the network was clean. What this lab really tested is whether you stop at the first plausible cause. Every layer between the wire and the application can drop a message, and only one of them belongs to the network team. An engineer who can prove where loss occurred, with timestamps, is worth more in an incident than one who can only report that it did.</p>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s9.k">IX</p>
+ <h2 data-i18n="s9.h">The map to keep</h2>
+ <p data-i18n="s9.p1">Two flows, two transports, two architectures, one system. If you carry one diagram out of this chapter, carry this one.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig3.tag">CONNECTIVITY MAP</span>
+   <h3 data-i18n="fig3.h">Order flow and market data, side by side</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 420" role="img" aria-label="Complete connectivity architecture">
+    <defs><marker id="ac" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,1 L7,4.5 L0,8 Z" fill="#93A6BB"/></marker></defs>
+    <g font-family="DM Sans, sans-serif">
+     <rect x="330" y="12" width="240" height="40" rx="9" fill="#12395F"/>
+     <text x="450" y="37" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" data-i18n="cm.top">TRADING SYSTEM</text>
+     <path d="M450,52 L450,66" stroke="#93A6BB" stroke-width="1.5"/>
+     <path d="M250,66 L650,66" stroke="#93A6BB" stroke-width="1.5"/>
+     <path d="M250,66 L250,82" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+     <path d="M650,66 L650,82" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+
+     <text x="250" y="102" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0B5CD5" font-family="IBM Plex Mono, monospace" data-i18n="cm.of">ORDER FLOW</text>
+     <text x="650" y="102" text-anchor="middle" font-size="11.5" font-weight="700" fill="#B87610" font-family="IBM Plex Mono, monospace" data-i18n="cm.md">MARKET DATA</text>
+
+     <rect x="140" y="114" width="220" height="38" rx="9" fill="#E5F1FA" stroke="#00BCEB" stroke-width="1.5"/>
+     <text x="250" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#08213E" data-i18n="cm.p1">FIX · BINARY · PROPRIETARY</text>
+     <rect x="540" y="114" width="220" height="38" rx="9" fill="#FDF5E7" stroke="#B87610" stroke-width="1.5"/>
+     <text x="650" y="138" text-anchor="middle" font-size="12" font-weight="700" fill="#08213E" data-i18n="cm.p2">BINARY FEED PROTOCOL</text>
+
+     <path d="M250,152 L250,168" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+     <path d="M650,152 L650,168" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+
+     <rect x="175" y="170" width="150" height="36" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="250" y="193" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0B5CD5">TCP</text>
+     <rect x="560" y="170" width="180" height="36" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="650" y="193" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0F8B4C">UDP MULTICAST</text>
+
+     <path d="M250,206 L250,222" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+     <path d="M650,206 L650,222" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+
+     <rect x="175" y="224" width="150" height="34" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="250" y="246" text-anchor="middle" font-size="12" font-weight="600" fill="#2A3B52" data-i18n="cm.ip">IP · ETHERNET</text>
+     <rect x="575" y="224" width="150" height="34" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="650" y="246" text-anchor="middle" font-size="12" font-weight="600" fill="#2A3B52" data-i18n="cm.ip2">IP · ETHERNET</text>
+
+     <path d="M250,258 L250,274" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+     <path d="M650,258 L650,274" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+
+     <rect x="160" y="276" width="180" height="36" rx="9" fill="#fff" stroke="#BFD5E8" stroke-width="1.5"/>
+     <text x="250" y="299" text-anchor="middle" font-size="12" font-weight="700" fill="#08213E" data-i18n="cm.gw">ORDER GATEWAY</text>
+     <rect x="560" y="276" width="180" height="36" rx="9" fill="#fff" stroke="#BFD5E8" stroke-width="1.5"/>
+     <text x="650" y="299" text-anchor="middle" font-size="12" font-weight="700" fill="#08213E" data-i18n="cm.fh">FEED HANDLER</text>
+
+     <path d="M250,312 L250,330" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+     <rect x="160" y="332" width="180" height="38" rx="9" fill="#E5F1FA" stroke="#00BCEB" stroke-width="2"/>
+     <text x="250" y="356" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="cm.me">MATCHING ENGINE</text>
+
+     <path d="M650,312 L650,330" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ac)"/>
+     <rect x="560" y="332" width="180" height="38" rx="9" fill="#E7F6EE" stroke="#0F8B4C" stroke-width="2"/>
+     <text x="650" y="356" text-anchor="middle" font-size="12" font-weight="700" fill="#0F8B4C" data-i18n="cm.book">BOOK STATE</text>
+
+     <path d="M340,351 C420,351 420,351 555,351" stroke="#B87610" stroke-width="1.5" stroke-dasharray="4 4"/>
+     <text x="450" y="344" text-anchor="middle" font-size="11" fill="#B87610" font-family="IBM Plex Mono, monospace" data-i18n="cm.pub">publishes</text>
+
+     <path d="M650,370 C650,398 450,398 450,398 L250,398 L250,376" stroke="#93A6BB" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#ac)"/>
+     <text x="450" y="414" text-anchor="middle" font-size="11.5" fill="#63768E" data-i18n="cm.loop">the book feeds the decision that produces the next order</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig3.cap">Left column is a conversation with one counterparty. Right column is a broadcast to everyone. Same building, opposite engineering.</div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s10.k">X</p>
+ <h2 data-i18n="s10.h">What changes after this chapter</h2>
+ <p data-i18n="s10.p1">You now have the vocabulary to say precisely where something happened. Not "the feed had a problem" — but "sequence 501200 was on the wire at 10:14:22.0078 and was discarded at the socket buffer". That sentence is worth a career.</p>
+ <p data-i18n="s10.p2">The next descent is the one that makes this chapter actionable. We have been saying "the application did not read fast enough" as if it were a single event. It is not. Between the bits on fibre and the line of code that sees the message there is an entire machine: NIC, PCIe, kernel, socket, interrupt or poll, CPU, cache. That path has its own latency, its own variance and its own failure modes — and it is where low-latency engineering actually lives.</p>
+
+ <p class="pull" data-i18n="s10.pull">Reliability did not disappear when we chose UDP. It moved — into sequence numbers, into recovery channels, into a second feed, and into the engineer who knows how to prove where a message died.</p>
+
+ <div class="nxt">
+  <div class="i">
+   <div class="k" data-i18n="nxt.k">NEXT — JOURNAL 04</div>
+   <h3 data-i18n="nxt.h">From Wire to Application</h3>
+   <p data-i18n="nxt.p">NIC, PCIe, kernel, socket, interrupt versus polling, CPU and cache. The path a packet takes after it arrives — and why the last few microseconds are the hardest ones to remove.</p>
+  </div>
+  <a href="#" data-i18n="nxt.b">Coming soon</a>
+ </div>
+
+ <div class="sig">
+  <p class="nm">Josimar Caitano</p>
+  <p class="rl" data-i18n="sig.r">Principal Solutions Architect · Capital Markets · Double CCIE (Enterprise + Service Provider) · CCDE</p>
+  <p class="oep">O.E.P. — <span data-i18n="sig.oep">Order · Strategy · Patience</span></p>
+ </div>
+</section>
+
+</article></main>
+
+<footer><div class="r">
+ <h3>Josimar Caitano</h3>
+ <p class="cr"><b>Josimar Caitano</b> — Principal Solutions Architect | Capital Markets<br>
+  <span data-i18n="ft.1">Cisco Networking Academy instructor since 2006</span><br>
+  <span data-i18n="ft.2">High-performance network engineering for capital markets</span></p>
+ <div class="lk">
+  <a href="https://www.linkedin.com/in/josimar-caitano/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+  <a href="https://www.youtube.com/@Josinfo" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+  <a href="mailto:josimaru@gmail.com">josimaru@gmail.com</a>
+ </div>
+ <p class="oep">O.E.P. — <span data-i18n="ft.oep">Order · Strategy · Patience</span></p>
+ <p class="mt" data-i18n="ft.legal">Academy · Trading Network Journal · entry 03 · v1.0 — Original didactic material. Sequence numbers, counters and incident logs are illustrative, intended to teach architectural reasoning. They are not investment advice nor a project specification. MIT licence.</p>
+</div></footer>
+
+<script>
+/* ══════════ i18n dictionary ══════════ */
+var T={
+es:{
+"h.kicker":"Diario de Redes de Trading · 03","h.title":"Protocolos de Trading y Conectividad",
+"h.lead":"Cómo sistemas que nunca se conocieron acuerdan qué significa un mensaje, cómo viaja, cómo se detecta la pérdida y cómo se reconstruye un flujo después de que algo desaparece.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestructura de Mercados de Capitales",
+"h.date":"Septiembre 2026","h.read":"35 min · con laboratorio","h.cat":"Protocolos · Conectividad",
+"h.prvb":"Diario 02","h.prvt":"— El Ciclo de Vida de la Orden",
+"p.1":"En la entrada anterior seguimos una orden desde una decisión humana hasta una confirmación en pantalla. Tratamos el mensaje como si simplemente llegara. Este capítulo trata de por qué llega — y de qué pasa cuando no llega.",
+"p.2":"Un protocolo no es un formato de mensaje. Esa es la parte que todos aprenden y la que menos importa. Un protocolo es el conjunto completo de reglas mediante las cuales dos sistemas que nunca se conocieron establecen una relación, se identifican, acuerdan qué significa un campo, confirman recepción, notan que falta algo y reparan el flujo sin detenerlo.",
+"nv.t":"DONDE SU DISCIPLINA DEJA DE SER NETWORKING",
+"nv.b":"Hasta aquí un ingeniero de redes podía permanecer en territorio familiar: direcciones, puertos, rutas, pérdida, latencia. De aquí en adelante el trabajo vive en una intersección — ingeniería de aplicaciones, ingeniería de redes, infraestructura de mercado e ingeniería de confiabilidad, todo a la vez. Un ingeniero que solo razona sobre una de esas cuatro diagnosticará con confianza y se equivocará.",
+"s1.k":"I","s1.h":"El protocolo no es el transporte",
+"s1.p1":"Antes de FIX, antes de TCP, antes de multicast, separe las capas. Cada una responde una pregunta distinta, y mezclarlas produce el tipo de frase que termina una conversación técnica: “el FIX está lento”. FIX no tiene velocidad. Es una gramática.",
+"s1.p2":"Recorra la pila. Note que cada capa tiene una pregunta que responde y un lugar donde puede observarse.",
+"s1.pull":"FIX no reemplaza a TCP. FIX viaja sobre TCP. Uno decide qué significa un campo; el otro decide si los bytes llegan.",
+"st.tag":"PILA DE CAPAS","st.h":"Una orden, cinco problemas distintos",
+"st.k1":"APLICACIÓN","st.k2":"PROTOCOLO DE APLICACIÓN","st.k3":"TRANSPORTE","st.k4":"RED","st.k5":"ENLACE · FÍSICO",
+"st.app":"El evento de negocio en sí. Una intención humana convertida en algo sobre lo que una máquina puede actuar. En esta capa no hay protocolo, ni puerto, ni paquete — solo una decisión con un precio.",
+"st.apps":"se observa en: logs de aplicación · pantallas de gestión de órdenes",
+"st.proto":"El acuerdo sobre qué significa cada campo. Define tipos de mensaje, obligatoriedad, codificación y semántica. Aquí vive FIX — y también los protocolos binarios de cada venue. Es lo que permite que dos instituciones que nunca hablaron se entiendan sin ambigüedad.",
+"st.protos":"se observa en: logs FIX · decodificadores binarios · especificación del venue",
+"st.trans":"Cómo los datos llegan de un proceso a otro. Aquí se decide si el transporte garantiza entrega y orden, o si esa responsabilidad sube a la aplicación. Es la decisión arquitectónica con mayor consecuencia de todo el capítulo.",
+"st.transs":"se observa en: puertos · números de secuencia TCP · flags · tamaño de ventana",
+"st.net":"A qué destino debe ir el paquete y por qué ruta. Direccionamiento, encaminamiento y, en market data, pertenencia a grupos multicast. La capa que la mayoría de los ingenieros de redes domina — y la única que domina.",
+"st.nets":"se observa en: IP origen/destino · TTL · tabla de rutas · estado PIM/IGMP",
+"st.link":"Cómo el frame llega al siguiente dispositivo y, finalmente, cómo los bits se ponen sobre la fibra. Es donde el tiempo deja de ser lógico y se vuelve físico: la distancia cobra su peaje aquí y ninguna capa superior puede devolverlo.",
+"st.links":"se observa en: MAC · VLAN · contadores de la NIC · timestamp en hardware",
+"s2.k":"II","s2.h":"Mensaje no es segmento no es paquete no es frame",
+"s2.p1":"Esta distinción es la razón por la que la captura de paquetes es una habilidad y no un botón. Abra una captura de una sesión de trading y no encontrará la cadena “BUY 100 XYZ”. Encontrará headers, puertos, flags, números de secuencia y un payload — y el trabajo es reconstruir el evento de negocio a partir de ellos.",
+"s2.h3":"La cadena de razonamiento que necesita en un incidente",
+"s2.p2":"Un ingeniero de redes de trading debe poder recorrer esta cadena en ambas direcciones, bajo presión, con un trader esperando:",
+"fig1.tag":"ENCAPSULAMIENTO","fig1.h":"La misma orden, vista desde cinco alturas",
+"en.1":"MENSAJE DE ORDEN","en.h2":"HDR TCP","en.2":"payload · puertos · secuencia · ack",
+"en.h3":"HDR IP","en.3":"origen · destino · TTL",
+"en.h4":"HDR ETH","en.4":"MAC · VLAN · verificación de frame",
+"en.5":"BITS EN LA FIBRA","en.note":"cada capa envuelve a la anterior · la orden está dentro de todas ellas",
+"fig1.cap":"El mensaje de trading es el objeto más interno. Cada capa inferior agrega la información que su propio problema requiere, y nada más.",
+"ch.a":"DESDE EL CABLE HACIA ARRIBA","ch.b":"DESDE EL NEGOCIO HACIA ABAJO",
+"ch.ap":"paquete 84721\n   ↓\ndatagrama UDP\n   ↓\npayload de market data\n   ↓\nsecuencia <b>1059382</b>\n   ↓\n¿gap? → no\n   ↓\nactualización de libro aplicada",
+"ch.bp":"“mi orden desapareció”\n   ↓\nClOrdID <b>84721</b>\n   ↓\nlog app · enviada 09:31:04.118\n   ↓\ncaptura · 1 paquete de salida\n   ↓\ngateway · nada recibido\n   ↓\n<b>red</b>",
+"s3.k":"III","s3.h":"Un protocolo resuelve un problema de lenguaje",
+"s3.p1":"Dos instituciones que nunca hablaron necesitan acordar, por anticipado y por escrito, qué significa cada campo. FIX — Financial Information eXchange — es el más conocido de esos acuerdos, y transporta órdenes, ejecuciones, cancelaciones, modificaciones y eventos de sesión.",
+"s3.p2":"Pero cuidado con la trampa que sigue: saber FIX no es conocer el mercado. Los venues operan protocolos binarios, protocolos propietarios, APIs y mecanismos específicos de cada casa. Cuando los microsegundos importan, la codificación misma se vuelve una decisión de ingeniería.",
+"enc.a":"CODIFICACIÓN EN TEXTO","enc.b":"CODIFICACIÓN BINARIA",
+"enc.af":"Legible por humanos, autodescriptiva, fácil de depurar a ojo. Cuesta más bytes y un paso de parsing de longitud variable — y longitud variable significa tiempo variable.",
+"enc.bf":"Offsets fijos, tamaño fijo, sin ambigüedad de parsing. Leer el cuarto campo es aritmética, no búsqueda. La ganancia no son los bytes ahorrados — es la previsibilidad.",
+"s3.nt":"POR QUÉ LA PREVISIBILIDAD GANA AL TAMAÑO",
+"s3.nb":"Se justifican los protocolos binarios con el ancho de banda. Ese es el argumento más débil. La razón real es que un mensaje de layout fijo se parsea en tiempo constante, sin ramificación por contenido y sin asignación de memoria — lo que hace que el p99,9 del parsing se parezca a la mediana. En un sistema juzgado por su cola, una codificación que elimina varianza vale más que una que elimina bytes.",
+"s4.k":"IV","s4.h":"TCP o UDP es la pregunta equivocada",
+"s4.p1":"“UDP es rápido, TCP es lento” es la frase que identifica a quien no ha construido ninguno de los dos. Ambos mueven bits a la misma velocidad. Lo que difiere es qué garantías provee el transporte y cuáles debe construir su aplicación.",
+"s4.p2":"La pregunta correcta nunca es cuál protocolo es mejor. Es: <strong>¿qué propiedad necesita realmente este sistema?</strong> Elija un requisito abajo.",
+"s4.pull":"La confiabilidad no tiene que vivir en el protocolo de transporte. Tiene que vivir en algún lugar.",
+"rq.h":"¿QUÉ PROPIEDAD NECESITA EL SISTEMA?",
+"rq.c1":"Ningún mensaje puede perderse en silencio","rq.c2":"Un publicador, miles de suscriptores",
+"rq.c3":"El transporte debe garantizar el orden","rq.c4":"La aplicación controla su propia recuperación",
+"rq.c5":"El menor overhead posible por mensaje","rq.c6":"Se requiere estado de sesión por participante",
+"rq.loss":"La pérdida silenciosa de una orden es inaceptable, así que el transporte debe confirmar y retransmitir. Eso se paga con estado de conexión y con un retardo de retransmisión que usted no controla. Para el order flow ese intercambio es correcto — una orden tardía es mala, una orden perdida es catastrófica.",
+"rq.fanout":"Con miles de suscriptores, una conexión por receptor no solo es cara: es injusta. El último de la lista recibe después del primero. Multicast sobre UDP publica una vez y deja que la red replique, de modo que ningún participante sea estructuralmente el último.",
+"rq.order":"Si el orden debe garantizarlo el transporte, TCP ya lo resuelve con números de secuencia y reensamblaje. La pregunta que debe hacerse después es si acepta el costo: un mensaje retenido mientras se retransmite el anterior es un mensaje que llega tarde por decisión del transporte.",
+"rq.own":"Cuando la aplicación quiere decidir qué recuperar, cuándo y por qué canal, TCP se vuelve un obstáculo: retransmite todo, siempre, en el orden original. UDP con secuencia propia le devuelve esa decisión — y con ella la responsabilidad.",
+"rq.over":"UDP tiene menos overhead de protocolo y ningún estado de conexión que mantener. Pero cuidado: el ahorro real no está en los bytes del header, está en no pagar la maquinaria de confiabilidad cuando su arquitectura ya la resuelve en otra capa.",
+"rq.state":"Si el venue debe saber quién es usted, qué mensajes ya aceptó y si sigue vivo, necesita una sesión — y la sesión necesita una conexión. Es el caso de order flow, y es la razón por la que TCP está ahí.",
+"tb.cap":"Qué le da cada transporte y qué le deja a su aplicación",
+"tb.h1":"Propiedad","tb.h2":"TCP","tb.h3":"UDP",
+"tb.r1":"Orientado a conexión","tb.yes":"sí","tb.no":"no",
+"tb.r2":"Garantía de entrega","tb.yes2":"sí","tb.no2":"no",
+"tb.r3":"Ordenamiento","tb.yes3":"sí","tb.no3":"no",
+"tb.r4":"Retransmisión","tb.yes4":"sí","tb.no4":"no",
+"tb.r5":"Control de congestión","tb.yes5":"sí","tb.no5":"no de forma equivalente",
+"tb.r6":"Distribución uno a muchos","tb.no6":"una conexión por receptor","tb.yes6":"multicast",
+"tb.r7":"Dueño de la confiabilidad","tb.r7a":"el transporte","tb.r7b":"su aplicación",
+"s5.k":"V","s5.h":"Multicast convierte la distribución en publicación y suscripción",
+"s5.p1":"Ahora el lado de market data. El matching engine produce cambios de libro, operaciones y actualizaciones de cotización — y miles de participantes necesitan todos, en el mismo instante, sin que nadie quede favorecido por el orden en que la bolsa decida enviar.",
+"s5.p2":"Enviar una copia por participante no solo es caro; es injusto. El último suscriptor de la lista recibe después del primero. Multicast elimina ese problema eliminando la lista.",
+"fig2.tag":"DISTRIBUCIÓN","fig2.h":"Replicación unicast versus publicación multicast",
+"mc.u":"UNICAST · una copia por receptor","mc.src":"FUENTE","mc.un":"4 receptores · 4 copias · 4 tiempos de envío distintos",
+"mc.m":"MULTICAST · una publicación","mc.src2":"FUENTE","mc.grp":"GRUPO","mc.mn":"N receptores · 1 publicación · la red replica",
+"mc.k":"EL CAMBIO ARQUITECTÓNICO","mc.kv":"el publicador deja de saber quiénes son sus suscriptores — unirse al grupo pasa a ser problema del receptor",
+"fig2.cap":"La razón es la equidad, no la eficiencia. Con multicast la bolsa publica una vez y la red entrega en paralelo — ningún participante queda estructuralmente último.",
+"s5.nt":"LO QUE ACABA DE RESIGNAR",
+"s5.nb":"Multicast es UDP, y UDP descarta. La bolsa publica una vez y nunca pregunta si usted recibió. Resolvió la equidad y el fan-out, y a cambio ahora es dueño de un problema que TCP resolvía por usted: saber que algo falta. Ese problema es el resto de este capítulo.",
+"s6.k":"VI","s6.h":"El número de secuencia, el gap y la reparación",
+"s6.p1":"Aquí está el mecanismo que permite que un transporte no confiable transporte un mercado. Cada mensaje del feed lleva un número de secuencia. El receptor mantiene un único dato de estado — el número que espera a continuación — y compara. Esa es toda la idea, y es suficiente.",
+"s6.p2":"Ejecute el feed de abajo. Después rómpalo, y observe al receptor darse cuenta.",
+"s6.p3":"Note lo que el canal de recuperación no es: no es el feed en vivo. Mezclar tráfico de reparación en la ruta de tiempo real es cómo una pérdida pequeña se convierte en una caída grande, porque la ráfaga de retransmisión llega justo cuando la red ya está sufriendo. La recuperación pertenece a su propia ruta, con su propia capacidad.",
+"sq.tag":"FEED DE MARKET DATA","sq.h":"Secuencia · detección de gap · recuperación · reconstrucción",
+"sq.s":"Un flujo en vivo con un único dato de estado en el receptor: la próxima secuencia esperada.",
+"sq.l1":"FEED EN VIVO · recibido","sq.l2":"CANAL DE RECUPERACIÓN","sq.l3":"FLUJO RECONSTRUIDO · entregado a la aplicación",
+"sq.st0":"INACTIVO","sq.sv0":"El receptor espera el primer mensaje. Inicie el feed.",
+"sq.exp":"esperado","sq.rcv":"recibido","sq.miss":"faltante",
+"sq.run":"Iniciar el feed","sq.recover":"Solicitar recuperación","sq.reset":"Reiniciar",
+"sq.st1":"EN SECUENCIA","sq.sv1":"Cada mensaje llega con el número que el receptor esperaba. No se requiere ninguna acción — este es el estado que debería ver el 99,99% del tiempo.",
+"sq.st2":"GAP DETECTADO","sq.sv2":"El receptor esperaba una secuencia y recibió otra. No sabe dónde se perdió el mensaje ni por qué — solo sabe que falta. Eso basta para actuar, y actuar rápido importa: cada milisegundo que pasa sin reparar es un libro que diverge del de la bolsa.",
+"sq.st3":"RECUPERANDO","sq.sv3":"Se solicitó el mensaje faltante por un canal separado. El feed en vivo sigue corriendo — la recuperación nunca debe detener el flujo en tiempo real.",
+"sq.st4":"FLUJO RECONSTRUIDO","sq.sv4":"El mensaje faltante llegó por el canal de recuperación y fue reinsertado en su posición. La aplicación recibe una secuencia completa y ordenada, y nunca supo que hubo una pérdida. Eso es confiabilidad construida por encima de un transporte que no la ofrece.",
+"s6.nt":"EL PATRÓN QUE SE REPITE EN TODAS PARTES",
+"s6.nb":"Secuencia, luego detección, luego recuperación, luego consistencia. Volverá a encontrar este patrón en protocolos de sesión, en replicación, en event sourcing y en todo sistema distribuido que no puede perder un evento. Apréndalo aquí, en un feed de market data, donde es más visible — y donde el costo de equivocarse es un libro que discrepa en silencio con el de la bolsa.",
+"s7.k":"VII","s7.h":"Dos feeds, porque una ruta es un punto único de falla",
+"s7.p1":"La detección y la recuperación manejan pérdidas ocasionales. No manejan una ruta degradada, porque una ruta que descarta de forma sostenida lo mantendrá permanentemente en reparación — siempre atrasado, siempre solicitando, nunca al día.",
+"s7.p2":"Por eso las bolsas publican el mismo flujo dos veces, por rutas independientes, y el receptor arbitra: se queda con la copia de cada secuencia que llegue primero y descarta la duplicada. Ejecútelo.",
+"ab.tag":"ARBITRAJE A/B","ab.h":"Dos feeds con pérdida, un flujo limpio",
+"ab.la":"FEED A · ruta 1","ab.lb":"FEED B · ruta 2","ab.lo":"SALIDA ARBITRADA · gana la primera copia",
+"ab.st0":"INACTIVO","ab.sv0":"Ambos feeds llevan la misma secuencia. Cada uno perderá mensajes distintos.",
+"ab.st1":"ARBITRANDO","ab.sv1":"El feed A perdió 5003. El feed B perdió 5005. Ninguno de los dos está completo por sí solo — y la salida arbitrada no perdió nada. Ese es exactamente el objetivo del diseño.",
+"ab.run":"Ejecutar ambos feeds","ab.reset":"Reiniciar",
+"s7.nt":"LA CONSECUENCIA PARA EL MONITOREO",
+"s7.nb":"El arbitraje A/B es peligroso precisamente porque funciona. Un feed puede degradarse durante semanas sin que nadie lo note, porque el otro lo está cubriendo en silencio — hasta el día en que el sano también tiene un problema y ambos fallan a la vez. Monitoree la tasa de pérdida de cada feed por separado, antes del arbitraje. La salida arbitrada es el peor lugar para medir salud; está diseñada para verse sana.",
+"s8.k":"VIII","s8.h":"El order flow necesita una relación, no solo una conexión",
+"s8.p1":"El market data es difusión anónima. El order flow es lo opuesto: el venue debe saber quién es usted, qué mensajes ya le aceptó y si sigue ahí. Eso es una sesión.",
+"s8.p2":"Recorra los estados. Preste atención al del medio — el heartbeat no es una formalidad.",
+"s8.p3":"El heartbeat existe porque el silencio es ambiguo. Una sesión callada puede significar un mercado tranquilo o un enlace muerto, y eso exige respuestas opuestas. Sin heartbeat usted descubre que el enlace cayó en el peor momento posible: cuando por fin tiene una orden que enviar.",
+"s8.pull":"En un entorno crítico, qué tan rápido detecta una falla es parte de la ingeniería — no un detalle operativo a ajustar después.",
+"se.tag":"SESIÓN","se.h":"De la conexión al logout, y la rama de falla","se.hb":"bucle de heartbeat",
+"se.disc":"No hay sesión. Es el estado normal fuera del horario de negociación y también el estado al que se vuelve tras cualquier falla. Lo importante es que volver aquí no es un error — quedarse aquí sin darse cuenta sí lo es.",
+"se.conn":"Existe conectividad de transporte, pero el venue todavía no sabe quién es usted. Una conexión establecida no autoriza a enviar nada. Confundir estos dos estados produce el clásico “el puerto está abierto, entonces está funcionando”.",
+"se.logon":"El participante se identifica y ambos lados acuerdan en qué punto está la secuencia de mensajes. Aquí también aflora un desajuste: si su lado cree haber enviado 4.812 mensajes y el venue contó 4.809, la discrepancia aparece aquí, antes de que fluya cualquier mensaje de negocio.",
+"se.active":"La sesión está viva y puede transportar órdenes. En paralelo corre el heartbeat, que es lo único que distingue “mercado tranquilo” de “enlace muerto”. Un participante sin heartbeat no sabe cuál de las dos cosas está viviendo.",
+"se.logout":"Cierre ordenado. Ambos lados saben en qué secuencia terminó la sesión, y por eso la próxima puede retomar desde el punto correcto. Un cierre ordenado es lo que hace posible una reapertura limpia.",
+"se.fail":"No llegaron heartbeats dentro del intervalo acordado. El venue asume que usted no está; usted debe asumir que sus órdenes en vuelo tienen un destino incierto. Aquí es donde el intervalo de heartbeat deja de ser un parámetro de configuración y se vuelve una decisión de riesgo.",
+"se.recov":"Al reconectar, ambos lados comparan números de secuencia y deciden qué reenviar. Este es el mismo patrón de secuencia-detección-recuperación del market data, aplicado a la sesión — y es la razón por la que vale la pena aprenderlo una sola vez.",
+"lab.k":"LAB 03","lab.h":"Usted es el ingeniero de protocolos",
+"lab.p":"Hay un incidente abierto. La aplicación de trading está corriendo, pero la mesa reporta que desaparecen actualizaciones de market data. Tiene una discontinuidad de secuencia y cuatro fases por recorrer. “La red perdió un paquete” no es una conclusión — es una hipótesis que hay que probar o descartar.",
+"lab.tag":"LAB 03","lab.th":"Incidente · discontinuidad de secuencia en el feed",
+"lab.ts":"Esperado 501200 · Recibido 501202 · cuatro fases, una prueba",
+"lab.s1k":"FASE 1 · ¿QUÉ SABE REALMENTE?",
+"lab.s1e":"Log del feed handler\n\n  10:14:22.007  seq 501199  aplicado\n  10:14:22.009  seq 501202  FUERA DE SECUENCIA\n                esperado 501200\n\nReporte de la mesa: “nos faltan actualizaciones de libro”",
+"lab.s1q":"Solo con esta evidencia, ¿qué quedó establecido?",
+"lab.s1a":"La red descartó dos paquetes",
+"lab.s1b":"Dos números de secuencia no llegaron al feed handler — dónde se perdieron sigue siendo desconocido",
+"lab.s1c":"La bolsa saltó dos números de secuencia",
+"lab.s1d":"El feed handler se cayó y reinició",
+"lab.s2k":"FASE 2 · ¿DÓNDE PUDO HABERSE PERDIDO?",
+"lab.s2e":"Capas candidatas, de aguas arriba a aguas abajo\n\n  publicador de la bolsa\n  red del lado de la bolsa\n  cross-connect / fabric de switching\n  su NIC                (rx ring, contadores del driver)\n  buffer de socket del kernel  (cola de recepción)\n  proceso feed handler  (parseo, aplicación)",
+"lab.s2q":"¿Qué evidencia única separa “perdido antes de mi servidor” de “perdido dentro de mi servidor”?",
+"lab.s2a":"La utilización de CPU en el host del feed handler",
+"lab.s2b":"Las cifras de latencia publicadas por la bolsa para esa sesión",
+"lab.s2c":"Una captura tomada en el cable antes de la NIC — si 501200 está en el cable, la pérdida es suya",
+"lab.s2d":"El log de aplicación de la estrategia que consume el libro",
+"lab.s3k":"FASE 3 · LLEGA LA EVIDENCIA",
+"lab.s3e":"Captura en el cable, packet broker, timestamps en hardware\n\n  10:14:22.0071  seq 501199   presente\n  10:14:22.0078  seq 501200   presente\n  10:14:22.0085  seq 501201   presente\n  10:14:22.0092  seq 501202   presente\n\nContadores NIC             rx_dropped: 0\nEstadísticas de socket     errores de buffer de recepción: 1.284",
+"lab.s3q":"¿Dónde ocurrió la pérdida?",
+"lab.s3a":"Red — los paquetes nunca llegaron al servidor",
+"lab.s3b":"NIC — el adaptador los descartó en recepción",
+"lab.s3c":"Dentro del servidor — los paquetes llegaron y fueron descartados en el buffer de socket, porque la aplicación no leyó con suficiente rapidez",
+"lab.s3d":"Bolsa — publicó una secuencia corrupta",
+"lab.s4k":"FASE 4 · ¿QUÉ REPORTA?",
+"lab.s4e":"La mesa quiere una respuesta. Su gerente quiere una causa raíz.\nEl equipo de redes quiere saber si esto es de ellos.",
+"lab.s4q":"¿Qué afirmación es a la vez verdadera y accionable?",
+"lab.s4a":"“Tuvimos pérdida de paquetes en el feed de market data y estamos investigando con el equipo de redes.”",
+"lab.s4b":"“Todas las secuencias llegaron al cable. La pérdida ocurrió en el buffer de recepción porque el consumidor se atrasó — es un problema de capacidad y consumo en nuestro host, no una falla de red.”",
+"lab.s4c":"“El feed de la bolsa estuvo inestable durante la ventana.”",
+"lab.s4d":"“La recuperación no funcionó, así que perdimos las actualizaciones de forma permanente.”",
+"lab.dt":"INCIDENTE CERRADO",
+"lab.db":"El síntoma fue un gap y el instinto fue culpar a la red — y la red estaba limpia. Lo que este laboratorio realmente evaluó es si usted se detiene en la primera causa plausible. Cada capa entre el cable y la aplicación puede descartar un mensaje, y solo una de ellas pertenece al equipo de redes. Un ingeniero capaz de probar dónde ocurrió la pérdida, con timestamps, vale más en un incidente que uno que solo puede reportar que ocurrió.",
+"s9.k":"IX","s9.h":"El mapa para guardar",
+"s9.p1":"Dos flujos, dos transportes, dos arquitecturas, un sistema. Si se lleva un diagrama de este capítulo, llévese este.",
+"fig3.tag":"MAPA DE CONECTIVIDAD","fig3.h":"Order flow y market data, lado a lado",
+"cm.top":"SISTEMA DE TRADING","cm.of":"ORDER FLOW","cm.md":"MARKET DATA",
+"cm.p1":"FIX · BINARIO · PROPIETARIO","cm.p2":"PROTOCOLO BINARIO DE FEED",
+"cm.ip":"IP · ETHERNET","cm.ip2":"IP · ETHERNET",
+"cm.gw":"ORDER GATEWAY","cm.fh":"FEED HANDLER",
+"cm.me":"MATCHING ENGINE","cm.book":"ESTADO DEL LIBRO",
+"cm.pub":"publica","cm.loop":"el libro alimenta la decisión que produce la próxima orden",
+"fig3.cap":"La columna izquierda es una conversación con una contraparte. La derecha es una difusión hacia todos. Mismo edificio, ingeniería opuesta.",
+"s10.k":"X","s10.h":"Qué cambia después de este capítulo",
+"s10.p1":"Ahora tiene el vocabulario para decir con precisión dónde ocurrió algo. No “el feed tuvo un problema” — sino “la secuencia 501200 estaba en el cable a las 10:14:22,0078 y fue descartada en el buffer de socket”. Esa frase vale una carrera.",
+"s10.p2":"El próximo descenso es el que vuelve accionable este capítulo. Venimos diciendo “la aplicación no leyó con suficiente rapidez” como si fuera un evento único. No lo es. Entre los bits en la fibra y la línea de código que ve el mensaje hay una máquina entera: NIC, PCIe, kernel, socket, interrupción o polling, CPU, caché. Ese camino tiene su propia latencia, su propia varianza y sus propios modos de falla — y es donde la ingeniería de baja latencia realmente vive.",
+"s10.pull":"La confiabilidad no desapareció cuando elegimos UDP. Se mudó — a los números de secuencia, al canal de recuperación, a un segundo feed, y al ingeniero que sabe probar dónde murió un mensaje.",
+"nxt.k":"SIGUIENTE — DIARIO 04","nxt.h":"Del Cable a la Aplicación",
+"nxt.p":"NIC, PCIe, kernel, socket, interrupción versus polling, CPU y caché. El camino que recorre un paquete después de llegar — y por qué los últimos microsegundos son los más difíciles de eliminar.",
+"nxt.b":"Próximamente",
+"sig.r":"Principal Solutions Architect · Mercados de Capitales · Double CCIE (Enterprise + Service Provider) · CCDE",
+"sig.oep":"Orden · Estrategia · Paciencia",
+"ft.1":"Instructor Cisco Networking Academy desde 2006",
+"ft.2":"Ingeniería de redes de alto rendimiento para mercados de capitales",
+"ft.oep":"Orden · Estrategia · Paciencia",
+"ft.legal":"Academia · Diario de Redes de Trading · entrada 03 · v1.0 — Material didáctico original. Los números de secuencia, contadores y logs de incidentes son ilustrativos, destinados a enseñar el razonamiento de arquitectura. No constituyen recomendación de inversión ni especificación de proyecto. Licencia MIT."
+},
+pt:{
+"h.kicker":"Diário de Redes de Trading · 03","h.title":"Protocolos de Trading e Conectividade",
+"h.lead":"Como sistemas que nunca se conheceram combinam o que uma mensagem significa, como ela viaja, como a perda é detectada e como um fluxo é reconstruído depois que algo some.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestrutura de Mercado de Capitais",
+"h.date":"Setembro de 2026","h.read":"35 min · com laboratório","h.cat":"Protocolos · Conectividade",
+"h.prvb":"Diário 02","h.prvt":"— O Ciclo de Vida da Ordem",
+"p.1":"Na entrada anterior seguimos uma ordem de uma decisão humana até uma confirmação numa tela. Tratamos a mensagem como se ela simplesmente chegasse. Este capítulo é sobre por que ela chega — e o que acontece quando não chega.",
+"p.2":"Protocolo não é formato de mensagem. Essa é a parte que todo mundo aprende e a que menos importa. Protocolo é o conjunto completo de regras pelas quais dois sistemas que nunca se conheceram estabelecem uma relação, se identificam, combinam o que um campo significa, confirmam recebimento, percebem que algo está faltando e reparam o fluxo sem parar.",
+"nv.t":"ONDE A SUA DISCIPLINA DEIXA DE SER NETWORKING",
+"nv.b":"Até aqui um engenheiro de redes podia ficar em território familiar: endereços, portas, rotas, perda, latência. Daqui em diante o trabalho mora numa interseção — engenharia de aplicação, engenharia de redes, infraestrutura de mercado e engenharia de confiabilidade, tudo ao mesmo tempo. Um engenheiro que só raciocina sobre uma dessas quatro vai diagnosticar com confiança e errar.",
+"s1.k":"I","s1.h":"Protocolo não é transporte",
+"s1.p1":"Antes de FIX, antes de TCP, antes de multicast, separe as camadas. Cada uma responde a uma pergunta diferente, e misturá-las produz aquele tipo de frase que encerra uma conversa técnica: “o FIX está lento”. FIX não tem velocidade. Ele é uma gramática.",
+"s1.p2":"Percorra a pilha. Repare que cada camada tem uma pergunta que responde e um lugar onde pode ser observada.",
+"s1.pull":"FIX não substitui TCP. FIX anda sobre TCP. Um decide o que um campo significa; o outro decide se os bytes chegam.",
+"st.tag":"PILHA DE CAMADAS","st.h":"Uma ordem, cinco problemas diferentes",
+"st.k1":"APLICAÇÃO","st.k2":"PROTOCOLO DE APLICAÇÃO","st.k3":"TRANSPORTE","st.k4":"REDE","st.k5":"ENLACE · FÍSICO",
+"st.app":"O evento de negócio em si. Uma intenção humana transformada em algo sobre o qual uma máquina consegue agir. Nessa camada não existe protocolo, nem porta, nem pacote — só uma decisão com preço.",
+"st.apps":"observado em: logs de aplicação · telas de gestão de ordens",
+"st.proto":"O acordo sobre o que cada campo significa. Define tipos de mensagem, obrigatoriedade, codificação e semântica. É aqui que mora o FIX — e também os protocolos binários de cada venue. É o que permite que duas instituições que nunca conversaram se entendam sem ambiguidade.",
+"st.protos":"observado em: logs FIX · decodificadores binários · especificação do venue",
+"st.trans":"Como os dados chegam de um processo a outro. É aqui que se decide se o transporte garante entrega e ordem, ou se essa responsabilidade sobe para a aplicação. É a decisão arquitetural de maior consequência do capítulo inteiro.",
+"st.transs":"observado em: portas · números de sequência TCP · flags · tamanho de janela",
+"st.net":"Para qual destino o pacote deve ir e por qual rota. Endereçamento, encaminhamento e, em market data, pertencimento a grupos multicast. A camada que a maioria dos engenheiros de redes domina — e a única que domina.",
+"st.nets":"observado em: IP origem/destino · TTL · tabela de rotas · estado PIM/IGMP",
+"st.link":"Como o quadro chega ao próximo dispositivo e, por fim, como os bits são colocados na fibra. É onde o tempo deixa de ser lógico e vira físico: a distância cobra o pedágio dela aqui, e nenhuma camada acima devolve isso.",
+"st.links":"observado em: MAC · VLAN · contadores da NIC · timestamp em hardware",
+"s2.k":"II","s2.h":"Mensagem não é segmento não é pacote não é quadro",
+"s2.p1":"Essa distinção é a razão pela qual captura de pacote é habilidade e não botão. Abra uma captura de uma sessão de trading e você não vai encontrar a string “BUY 100 XYZ”. Vai encontrar headers, portas, flags, números de sequência e um payload — e o trabalho é reconstruir o evento de negócio a partir deles.",
+"s2.h3":"A cadeia de raciocínio que você precisa num incidente",
+"s2.p2":"Um engenheiro de redes de trading precisa percorrer essa cadeia nos dois sentidos, sob pressão, com um trader esperando:",
+"fig1.tag":"ENCAPSULAMENTO","fig1.h":"A mesma ordem, vista de cinco alturas",
+"en.1":"MENSAGEM DE ORDEM","en.h2":"HDR TCP","en.2":"payload · portas · sequência · ack",
+"en.h3":"HDR IP","en.3":"origem · destino · TTL",
+"en.h4":"HDR ETH","en.4":"MAC · VLAN · verificação de quadro",
+"en.5":"BITS NA FIBRA","en.note":"cada camada envolve a anterior · a ordem está dentro de todas elas",
+"fig1.cap":"A mensagem de trading é o objeto mais interno. Cada camada abaixo acrescenta a informação que o próprio problema dela exige, e nada além disso.",
+"ch.a":"DO FIO PARA CIMA","ch.b":"DO NEGÓCIO PARA BAIXO",
+"ch.ap":"pacote 84721\n   ↓\ndatagrama UDP\n   ↓\npayload de market data\n   ↓\nsequência <b>1059382</b>\n   ↓\ngap? → não\n   ↓\natualização de livro aplicada",
+"ch.bp":"“minha ordem sumiu”\n   ↓\nClOrdID <b>84721</b>\n   ↓\nlog app · enviada 09:31:04.118\n   ↓\ncaptura · 1 pacote de saída\n   ↓\ngateway · nada recebido\n   ↓\n<b>rede</b>",
+"s3.k":"III","s3.h":"Protocolo resolve um problema de linguagem",
+"s3.p1":"Duas instituições que nunca conversaram precisam combinar, antecipadamente e por escrito, o que cada campo significa. O FIX — Financial Information eXchange — é o mais conhecido desses acordos, e carrega ordens, execuções, cancelamentos, alterações e eventos de sessão.",
+"s3.p2":"Mas cuidado com a armadilha que vem em seguida: saber FIX não é conhecer o mercado. Os venues rodam protocolos binários, protocolos proprietários, APIs e mecanismos específicos de cada casa. Quando microssegundos importam, a própria codificação vira decisão de engenharia.",
+"enc.a":"CODIFICAÇÃO EM TEXTO","enc.b":"CODIFICAÇÃO BINÁRIA",
+"enc.af":"Legível por humano, autodescritiva, fácil de depurar no olho. Custa mais bytes e um passo de parsing de tamanho variável — e tamanho variável significa tempo variável.",
+"enc.bf":"Offsets fixos, tamanho fixo, sem ambiguidade de parsing. Ler o quarto campo é aritmética, não busca. O ganho não são os bytes economizados — é a previsibilidade.",
+"s3.nt":"POR QUE PREVISIBILIDADE GANHA DE TAMANHO",
+"s3.nb":"As pessoas justificam protocolo binário com banda. Esse é o argumento mais fraco. A razão real é que uma mensagem de layout fixo faz parsing em tempo constante, sem desvio condicional por conteúdo e sem alocação — o que faz o p99,9 do parsing parecer com a mediana. Num sistema julgado pela cauda, uma codificação que remove variância vale mais que uma que remove bytes.",
+"s4.k":"IV","s4.h":"TCP ou UDP é a pergunta errada",
+"s4.p1":"“UDP é rápido, TCP é lento” é a frase que identifica quem não construiu nenhum dos dois. Os dois movem bits na mesma velocidade. O que muda é quais garantias o transporte entrega e quais a sua aplicação precisa construir.",
+"s4.p2":"A pergunta correta nunca é qual protocolo é melhor. É: <strong>de qual propriedade este sistema realmente precisa?</strong> Escolha um requisito abaixo.",
+"s4.pull":"Confiabilidade não precisa morar no protocolo de transporte. Ela precisa morar em algum lugar.",
+"rq.h":"DE QUAL PROPRIEDADE O SISTEMA PRECISA?",
+"rq.c1":"Nenhuma mensagem pode se perder em silêncio","rq.c2":"Um publicador, milhares de assinantes",
+"rq.c3":"O transporte precisa garantir a ordem","rq.c4":"A aplicação controla a própria recuperação",
+"rq.c5":"O menor overhead possível por mensagem","rq.c6":"Exige estado de sessão por participante",
+"rq.loss":"Perda silenciosa de ordem é inaceitável, então o transporte precisa confirmar e retransmitir. Isso se paga com estado de conexão e com um atraso de retransmissão que você não controla. Para order flow essa troca é correta — ordem atrasada é ruim, ordem perdida é catastrófica.",
+"rq.fanout":"Com milhares de assinantes, uma conexão por receptor não é só cara: é injusta. O último da lista recebe depois do primeiro. Multicast sobre UDP publica uma vez e deixa a rede replicar, de modo que nenhum participante seja estruturalmente o último.",
+"rq.order":"Se a ordem precisa ser garantida pelo transporte, o TCP já resolve isso com números de sequência e remontagem. A pergunta que vem depois é se você aceita o custo: uma mensagem segurada enquanto a anterior é retransmitida é uma mensagem que chega atrasada por decisão do transporte.",
+"rq.own":"Quando a aplicação quer decidir o que recuperar, quando e por qual canal, o TCP vira obstáculo: ele retransmite tudo, sempre, na ordem original. UDP com sequência própria devolve essa decisão a você — e junto com ela a responsabilidade.",
+"rq.over":"UDP tem menos overhead de protocolo e nenhum estado de conexão a manter. Mas cuidado: a economia real não está nos bytes de header, está em não pagar a maquinaria de confiabilidade quando a sua arquitetura já resolve isso em outra camada.",
+"rq.state":"Se o venue precisa saber quem você é, quais mensagens já aceitou de você e se você ainda está vivo, você precisa de sessão — e sessão precisa de conexão. É o caso do order flow, e é por isso que o TCP está lá.",
+"tb.cap":"O que cada transporte entrega e o que ele deixa para a sua aplicação",
+"tb.h1":"Propriedade","tb.h2":"TCP","tb.h3":"UDP",
+"tb.r1":"Orientado a conexão","tb.yes":"sim","tb.no":"não",
+"tb.r2":"Garantia de entrega","tb.yes2":"sim","tb.no2":"não",
+"tb.r3":"Ordenação","tb.yes3":"sim","tb.no3":"não",
+"tb.r4":"Retransmissão","tb.yes4":"sim","tb.no4":"não",
+"tb.r5":"Controle de congestionamento","tb.yes5":"sim","tb.no5":"não de forma equivalente",
+"tb.r6":"Distribuição um-para-muitos","tb.no6":"uma conexão por receptor","tb.yes6":"multicast",
+"tb.r7":"Dono da confiabilidade","tb.r7a":"o transporte","tb.r7b":"a sua aplicação",
+"s5.k":"V","s5.h":"Multicast transforma distribuição em publicação e assinatura",
+"s5.p1":"Agora o lado do market data. O matching engine produz mudanças de livro, negócios e atualizações de cotação — e milhares de participantes precisam de todas elas, no mesmo instante, sem que ninguém seja favorecido pela ordem em que a bolsa resolveu enviar.",
+"s5.p2":"Mandar uma cópia por participante não é só caro; é injusto. O último assinante da lista recebe depois do primeiro. Multicast elimina esse problema eliminando a lista.",
+"fig2.tag":"DISTRIBUIÇÃO","fig2.h":"Replicação unicast versus publicação multicast",
+"mc.u":"UNICAST · uma cópia por receptor","mc.src":"ORIGEM","mc.un":"4 receptores · 4 cópias · 4 instantes de envio diferentes",
+"mc.m":"MULTICAST · uma publicação","mc.src2":"ORIGEM","mc.grp":"GRUPO","mc.mn":"N receptores · 1 publicação · a rede replica",
+"mc.k":"A MUDANÇA ARQUITETURAL","mc.kv":"o publicador deixa de saber quem são os assinantes — entrar no grupo passa a ser problema do receptor",
+"fig2.cap":"A razão é equidade, não eficiência. Com multicast a bolsa publica uma vez e a rede entrega em paralelo — nenhum participante é estruturalmente o último.",
+"s5.nt":"O QUE VOCÊ ACABOU DE ABRIR MÃO",
+"s5.nb":"Multicast é UDP, e UDP descarta. A bolsa publica uma vez e nunca pergunta se você recebeu. Você resolveu equidade e fan-out, e em troca agora é dono de um problema que o TCP resolvia por você: saber que está faltando alguma coisa. Esse problema é o resto deste capítulo.",
+"s6.k":"VI","s6.h":"O número de sequência, o gap e o reparo",
+"s6.p1":"Aqui está o mecanismo que faz um transporte não confiável carregar um mercado. Toda mensagem do feed leva um número de sequência. O receptor guarda um único dado de estado — o número que espera em seguida — e compara. É essa a ideia inteira, e ela basta.",
+"s6.p2":"Rode o feed abaixo. Depois quebre, e observe o receptor perceber.",
+"s6.p3":"Repare no que o canal de recuperação não é: ele não é o feed ao vivo. Misturar tráfego de reparo no caminho de tempo real é como uma perda pequena vira uma queda grande, porque a rajada de retransmissão chega exatamente quando a rede já está sofrendo. Recuperação pertence a um caminho próprio, com capacidade própria.",
+"sq.tag":"FEED DE MARKET DATA","sq.h":"Sequência · detecção de gap · recuperação · reconstrução",
+"sq.s":"Um fluxo ao vivo com um único dado de estado no receptor: a próxima sequência esperada.",
+"sq.l1":"FEED AO VIVO · recebido","sq.l2":"CANAL DE RECUPERAÇÃO","sq.l3":"FLUXO RECONSTRUÍDO · entregue à aplicação",
+"sq.st0":"OCIOSO","sq.sv0":"O receptor está esperando a primeira mensagem. Inicie o feed.",
+"sq.exp":"esperado","sq.rcv":"recebido","sq.miss":"faltando",
+"sq.run":"Iniciar o feed","sq.recover":"Solicitar recuperação","sq.reset":"Reiniciar",
+"sq.st1":"EM SEQUÊNCIA","sq.sv1":"Cada mensagem chega com o número que o receptor esperava. Nenhuma ação necessária — este é o estado que você deveria ver 99,99% do tempo.",
+"sq.st2":"GAP DETECTADO","sq.sv2":"O receptor esperava uma sequência e recebeu outra. Ele não sabe onde a mensagem se perdeu nem por quê — sabe apenas que ela falta. Isso basta para agir, e agir rápido importa: cada milissegundo sem reparo é um livro divergindo do da bolsa.",
+"sq.st3":"RECUPERANDO","sq.sv3":"A mensagem faltante foi solicitada por um canal separado. O feed ao vivo continua correndo — recuperação nunca pode parar o fluxo em tempo real.",
+"sq.st4":"FLUXO RECONSTRUÍDO","sq.sv4":"A mensagem faltante chegou pelo canal de recuperação e foi reinserida na posição dela. A aplicação recebe uma sequência completa e ordenada, e nunca soube que houve perda. Isso é confiabilidade construída acima de um transporte que não a oferece.",
+"s6.nt":"O PADRÃO QUE SE REPETE EM TODO LUGAR",
+"s6.nb":"Sequência, depois detecção, depois recuperação, depois consistência. Você vai reencontrar esse padrão em protocolos de sessão, em replicação, em event sourcing e em todo sistema distribuído que não pode perder evento. Aprenda aqui, num feed de market data, onde ele é mais visível — e onde o custo de errar é um livro que discorda em silêncio do da bolsa.",
+"s7.k":"VII","s7.h":"Dois feeds, porque um caminho é ponto único de falha",
+"s7.p1":"Detecção e recuperação resolvem perda ocasional. Não resolvem caminho degradado, porque um caminho que descarta de forma sustentada mantém você permanentemente em reparo — sempre atrasado, sempre pedindo, nunca em dia.",
+"s7.p2":"Por isso as bolsas publicam o mesmo fluxo duas vezes, por caminhos independentes, e o receptor arbitra: fica com a cópia de cada sequência que chegar primeiro e descarta a duplicada. Rode.",
+"ab.tag":"ARBITRAGEM A/B","ab.h":"Dois feeds com perda, um fluxo limpo",
+"ab.la":"FEED A · caminho 1","ab.lb":"FEED B · caminho 2","ab.lo":"SAÍDA ARBITRADA · a primeira cópia ganha",
+"ab.st0":"OCIOSO","ab.sv0":"Os dois feeds carregam a mesma sequência. Cada um vai perder mensagens diferentes.",
+"ab.st1":"ARBITRANDO","ab.sv1":"O feed A perdeu 5003. O feed B perdeu 5005. Nenhum dos dois está completo sozinho — e a saída arbitrada não perdeu nada. É exatamente esse o objetivo do desenho.",
+"ab.run":"Rodar os dois feeds","ab.reset":"Reiniciar",
+"s7.nt":"A CONSEQUÊNCIA PARA A MONITORAÇÃO",
+"s7.nb":"A arbitragem A/B é perigosa justamente porque funciona. Um feed pode degradar por semanas sem ninguém notar, porque o outro está cobrindo em silêncio — até o dia em que o saudável também tem problema e os dois falham juntos. Monitore a taxa de perda de cada feed separadamente, antes da arbitragem. A saída arbitrada é o pior lugar para medir saúde; ela foi projetada para parecer saudável.",
+"s8.k":"VIII","s8.h":"Order flow precisa de relação, não só de conexão",
+"s8.p1":"Market data é difusão anônima. Order flow é o oposto: o venue precisa saber quem você é, quais mensagens já aceitou de você e se você ainda está lá. Isso é uma sessão.",
+"s8.p2":"Percorra os estados. Preste atenção no do meio — o heartbeat não é formalidade.",
+"s8.p3":"O heartbeat existe porque silêncio é ambíguo. Uma sessão calada pode significar mercado tranquilo ou enlace morto, e essas duas coisas exigem respostas opostas. Sem heartbeat você descobre que o enlace caiu no pior momento possível: quando finalmente tem uma ordem para mandar.",
+"s8.pull":"Em ambiente crítico, a rapidez com que você detecta a falha faz parte da engenharia — não é um detalhe operacional para ajustar depois.",
+"se.tag":"SESSÃO","se.h":"Da conexão ao logout, e o ramo de falha","se.hb":"laço de heartbeat",
+"se.disc":"Não existe sessão. É o estado normal fora do horário de negociação e também o estado para o qual se volta depois de qualquer falha. O importante é que voltar para cá não é erro — ficar aqui sem perceber é.",
+"se.conn":"Existe conectividade de transporte, mas o venue ainda não sabe quem você é. Conexão estabelecida não autoriza a mandar nada. Confundir esses dois estados produz o clássico “a porta está aberta, então está funcionando”.",
+"se.logon":"O participante se identifica e os dois lados combinam em que ponto está a sequência de mensagens. É aqui também que um descompasso aparece: se o seu lado acha que mandou 4.812 mensagens e o venue contou 4.809, a divergência surge aqui, antes de qualquer mensagem de negócio.",
+"se.active":"A sessão está viva e pode carregar ordens. Em paralelo roda o heartbeat, que é a única coisa que distingue “mercado tranquilo” de “enlace morto”. Um participante sem heartbeat não sabe qual dos dois está vivendo.",
+"se.logout":"Encerramento ordenado. Os dois lados sabem em qual sequência a sessão terminou, e por isso a próxima consegue retomar do ponto certo. Fechamento ordenado é o que torna possível uma reabertura limpa.",
+"se.fail":"Nenhum heartbeat chegou dentro do intervalo combinado. O venue assume que você não está; você precisa assumir que suas ordens em voo têm destino incerto. É aqui que o intervalo de heartbeat deixa de ser parâmetro de configuração e vira decisão de risco.",
+"se.recov":"Ao reconectar, os dois lados comparam números de sequência e decidem o que reenviar. É o mesmo padrão sequência-detecção-recuperação do market data, aplicado à sessão — e é por isso que vale aprender uma vez só.",
+"lab.k":"LAB 03","lab.h":"Você é o engenheiro de protocolos",
+"lab.p":"Há um incidente aberto. A aplicação de trading está rodando, mas a mesa reporta que atualizações de market data estão sumindo. Você tem uma descontinuidade de sequência e quatro fases para percorrer. “A rede perdeu pacote” não é conclusão — é hipótese que precisa ser provada ou descartada.",
+"lab.tag":"LAB 03","lab.th":"Incidente · descontinuidade de sequência no feed",
+"lab.ts":"Esperado 501200 · Recebido 501202 · quatro fases, uma prova",
+"lab.s1k":"FASE 1 · O QUE VOCÊ REALMENTE SABE?",
+"lab.s1e":"Log do feed handler\n\n  10:14:22.007  seq 501199  aplicada\n  10:14:22.009  seq 501202  FORA DE SEQUÊNCIA\n                esperada 501200\n\nReporte da mesa: “estão faltando atualizações de livro”",
+"lab.s1q":"Só com essa evidência, o que ficou estabelecido?",
+"lab.s1a":"A rede descartou dois pacotes",
+"lab.s1b":"Dois números de sequência não chegaram ao feed handler — onde se perderam ainda é desconhecido",
+"lab.s1c":"A bolsa pulou dois números de sequência",
+"lab.s1d":"O feed handler caiu e reiniciou",
+"lab.s2k":"FASE 2 · ONDE PODE TER SE PERDIDO?",
+"lab.s2e":"Camadas candidatas, de montante a jusante\n\n  publicador da bolsa\n  rede do lado da bolsa\n  cross-connect / fabric de switching\n  sua NIC               (rx ring, contadores do driver)\n  buffer de socket do kernel  (fila de recepção)\n  processo feed handler (parsing, aplicação)",
+"lab.s2q":"Qual evidência única separa “perdido antes do meu servidor” de “perdido dentro do meu servidor”?",
+"lab.s2a":"A utilização de CPU no host do feed handler",
+"lab.s2b":"Os números de latência publicados pela bolsa para aquela sessão",
+"lab.s2c":"Uma captura no fio antes da NIC — se 501200 está no fio, a perda é sua",
+"lab.s2d":"O log de aplicação da estratégia que consome o livro",
+"lab.s3k":"FASE 3 · A EVIDÊNCIA CHEGA",
+"lab.s3e":"Captura no fio, packet broker, timestamps em hardware\n\n  10:14:22.0071  seq 501199   presente\n  10:14:22.0078  seq 501200   presente\n  10:14:22.0085  seq 501201   presente\n  10:14:22.0092  seq 501202   presente\n\nContadores NIC            rx_dropped: 0\nEstatísticas de socket    erros de buffer de recepção: 1.284",
+"lab.s3q":"Onde ocorreu a perda?",
+"lab.s3a":"Rede — os pacotes nunca chegaram ao servidor",
+"lab.s3b":"NIC — o adaptador descartou na recepção",
+"lab.s3c":"Dentro do servidor — os pacotes chegaram e foram descartados no buffer de socket, porque a aplicação não leu rápido o suficiente",
+"lab.s3d":"Bolsa — ela publicou uma sequência corrompida",
+"lab.s4k":"FASE 4 · O QUE VOCÊ REPORTA?",
+"lab.s4e":"A mesa quer resposta. Seu gestor quer causa raiz.\nO time de redes quer saber se isso é deles.",
+"lab.s4q":"Qual afirmação é ao mesmo tempo verdadeira e acionável?",
+"lab.s4a":"“Tivemos perda de pacote no feed de market data e estamos investigando com o time de redes.”",
+"lab.s4b":"“Todas as sequências chegaram no fio. A perda ocorreu no buffer de recepção porque o consumidor ficou para trás — é problema de capacidade e consumo no nosso host, não falha de rede.”",
+"lab.s4c":"“O feed da bolsa ficou instável durante a janela.”",
+"lab.s4d":"“A recuperação não funcionou, então perdemos as atualizações em definitivo.”",
+"lab.dt":"INCIDENTE ENCERRADO",
+"lab.db":"O sintoma foi um gap e o instinto foi culpar a rede — e a rede estava limpa. O que este laboratório realmente testou é se você para na primeira causa plausível. Toda camada entre o fio e a aplicação pode descartar mensagem, e só uma delas pertence ao time de redes. Um engenheiro que consegue provar onde a perda aconteceu, com timestamps, vale mais num incidente do que um que só consegue reportar que ela aconteceu.",
+"s9.k":"IX","s9.h":"O mapa para guardar",
+"s9.p1":"Dois fluxos, dois transportes, duas arquiteturas, um sistema. Se você levar um diagrama deste capítulo, leve este.",
+"fig3.tag":"MAPA DE CONECTIVIDADE","fig3.h":"Order flow e market data, lado a lado",
+"cm.top":"SISTEMA DE TRADING","cm.of":"ORDER FLOW","cm.md":"MARKET DATA",
+"cm.p1":"FIX · BINÁRIO · PROPRIETÁRIO","cm.p2":"PROTOCOLO BINÁRIO DE FEED",
+"cm.ip":"IP · ETHERNET","cm.ip2":"IP · ETHERNET",
+"cm.gw":"ORDER GATEWAY","cm.fh":"FEED HANDLER",
+"cm.me":"MATCHING ENGINE","cm.book":"ESTADO DO LIVRO",
+"cm.pub":"publica","cm.loop":"o livro alimenta a decisão que produz a próxima ordem",
+"fig3.cap":"A coluna da esquerda é uma conversa com uma contraparte. A da direita é uma difusão para todos. Mesmo prédio, engenharia oposta.",
+"s10.k":"X","s10.h":"O que muda depois deste capítulo",
+"s10.p1":"Agora você tem o vocabulário para dizer com precisão onde algo aconteceu. Não “o feed teve problema” — e sim “a sequência 501200 estava no fio às 10:14:22,0078 e foi descartada no buffer de socket”. Essa frase vale uma carreira.",
+"s10.p2":"A próxima descida é a que torna este capítulo acionável. Viemos dizendo “a aplicação não leu rápido o suficiente” como se fosse um evento único. Não é. Entre os bits na fibra e a linha de código que vê a mensagem existe uma máquina inteira: NIC, PCIe, kernel, socket, interrupção ou polling, CPU, cache. Esse caminho tem latência própria, variância própria e modos de falha próprios — e é onde a engenharia de baixa latência de fato mora.",
+"s10.pull":"A confiabilidade não sumiu quando escolhemos UDP. Ela mudou de endereço — para os números de sequência, para o canal de recuperação, para um segundo feed, e para o engenheiro que sabe provar onde uma mensagem morreu.",
+"nxt.k":"PRÓXIMO — DIÁRIO 04","nxt.h":"Do Fio à Aplicação",
+"nxt.p":"NIC, PCIe, kernel, socket, interrupção versus polling, CPU e cache. O caminho que um pacote percorre depois de chegar — e por que os últimos microssegundos são os mais difíceis de remover.",
+"nxt.b":"Em breve",
+"sig.r":"Principal Solutions Architect · Mercado de Capitais · Double CCIE (Enterprise + Service Provider) · CCDE",
+"sig.oep":"Ordem · Estratégia · Paciência",
+"ft.1":"Instrutor Cisco Networking Academy desde 2006",
+"ft.2":"Engenharia de redes de alta performance para mercado de capitais",
+"ft.oep":"Ordem · Estratégia · Paciência",
+"ft.legal":"Academia · Diário de Redes de Trading · entrada 03 · v1.0 — Material didático original. Números de sequência, contadores e logs de incidente são ilustrativos, destinados ao ensino do raciocínio de arquitetura. Não constituem recomendação de investimento nem especificação de projeto. Licença MIT."
+}};
+
+/* ══════════ i18n engine ══════════ */
+var LANG="en";
+(function(){
+"use strict";
+var origs=null;
+function applyLang(lang){
+  document.body.dataset.lang=lang;
+  document.documentElement.lang=lang==="pt"?"pt-BR":lang;
+  var nodes=document.querySelectorAll("[data-i18n]");
+  if(!origs){origs=new Map();nodes.forEach(function(n){origs.set(n,n.innerHTML);});}
+  nodes.forEach(function(n){
+    var k=n.getAttribute("data-i18n");
+    if(lang==="en"){n.innerHTML=origs.get(n);return;}
+    var v=T[lang]&&T[lang][k];
+    if(v==null)return;
+    n.innerHTML=v;
+  });
+  LANG=lang;
+  refreshDynamic();
+}
+window.addEventListener("jc:lang",function(e){applyLang(e.detail.lang);});
+setTimeout(function(){applyLang((window.jcHeader&&window.jcHeader.lang)||"en");},0);
+})();
+
+/* ══════════ jl-stack : layer peeler ══════════ */
+var STK={
+ app:  {q:{en:"WHAT DOES THIS MESSAGE MEAN?",es:"¿QUÉ SIGNIFICA ESTE MENSAJE?",pt:"O QUE ESTA MENSAGEM SIGNIFICA?"}},
+ proto:{q:{en:"HOW IS THAT MEANING ENCODED?",es:"¿CÓMO SE CODIFICA ESE SIGNIFICADO?",pt:"COMO ESSE SIGNIFICADO É CODIFICADO?"}},
+ trans:{q:{en:"HOW DOES IT GET FROM PROCESS TO PROCESS?",es:"¿CÓMO LLEGA DE UN PROCESO A OTRO?",pt:"COMO ELA VAI DE UM PROCESSO A OUTRO?"}},
+ net:  {q:{en:"WHERE SHOULD IT GO?",es:"¿ADÓNDE DEBE IR?",pt:"PARA ONDE ELA DEVE IR?"}},
+ link: {q:{en:"HOW DOES IT REACH THE NEXT DEVICE?",es:"¿CÓMO LLEGA AL SIGUIENTE DISPOSITIVO?",pt:"COMO ELA CHEGA AO PRÓXIMO DISPOSITIVO?"}}
+};
+var EN_STK={
+ app:["The business event itself. A human intention that has been turned into something a machine can act on. At this layer there is no protocol, no port and no packet — only a decision with a price on it.",
+      "observed in: application logs · order management screens"],
+ proto:["The agreement about what each field means. It defines message types, which fields are mandatory, how they are encoded and what they signify. This is where FIX lives — and also each venue's binary protocol. It is what lets two institutions that never spoke understand each other without ambiguity.",
+      "observed in: FIX logs · binary decoders · the venue specification"],
+ trans:["How the data gets from one process to another. This is where you decide whether the transport guarantees delivery and ordering, or whether that responsibility moves up into your application. It is the highest-consequence architectural decision in this chapter.",
+      "observed in: ports · TCP sequence numbers · flags · window size"],
+ net:["Which destination the packet should reach and by which route. Addressing, forwarding, and — for market data — multicast group membership. The layer most network engineers master, and the only one they master.",
+      "observed in: source/destination IP · TTL · routing table · PIM/IGMP state"],
+ link:["How the frame reaches the next device and, finally, how the bits are placed on the fibre. This is where time stops being logical and becomes physical: distance takes its toll here, and no layer above can give it back.",
+      "observed in: MAC · VLAN · NIC counters · hardware timestamp"]
+};
+var curL="app";
+document.querySelectorAll(".jl-ly").forEach(function(l){
+  l.addEventListener("click",function(){
+    document.querySelectorAll(".jl-ly").forEach(function(x){x.classList.remove("on");});
+    l.classList.add("on"); curL=l.dataset.l; paintStack();
+  });
+});
+function paintStack(){
+  var q=STK[curL].q[LANG]||STK[curL].q.en;
+  document.getElementById("st-q").textContent=q;
+  var d=document.getElementById("st-d"), s=document.getElementById("st-s");
+  d.setAttribute("data-i18n","st."+curL);
+  s.setAttribute("data-i18n","st."+curL+"s");
+  if(LANG==="en"){d.innerHTML=EN_STK[curL][0]; s.innerHTML=EN_STK[curL][1];}
+  else{
+    d.innerHTML=(T[LANG]&&T[LANG]["st."+curL])||EN_STK[curL][0];
+    s.innerHTML=(T[LANG]&&T[LANG]["st."+curL+"s"])||EN_STK[curL][1];
+  }
+}
+
+/* ══════════ jl-req : requirement → transport ══════════ */
+var REQ={
+ loss:  {v:"TCP", c:"tcp"},
+ fanout:{v:"UDP MULTICAST", c:"udp"},
+ order: {v:"TCP", c:"tcp"},
+ own:   {v:"UDP", c:"udp"},
+ over:  {v:"UDP", c:"udp"},
+ state: {v:"TCP", c:"tcp"}
+};
+var EN_REQ={
+ loss:"Silent loss of an order is unacceptable, so the transport must acknowledge and retransmit. You pay for that with connection state and with a retransmission delay you do not control. For order flow, that trade is correct — a late order is bad, a lost order is catastrophic.",
+ fanout:"With thousands of subscribers, one connection per receiver is not only expensive: it is unfair. The last on the list receives after the first. UDP multicast publishes once and lets the network replicate, so that no participant is structurally last.",
+ order:"If ordering must be guaranteed by the transport, TCP already solves it with sequence numbers and reassembly. The question that follows is whether you accept the cost: a message held back while the previous one is retransmitted is a message delivered late by the transport's decision.",
+ own:"When the application wants to decide what to recover, when, and over which channel, TCP becomes an obstacle: it retransmits everything, always, in the original order. UDP with your own sequence gives that decision back to you — and with it the responsibility.",
+ over:"UDP carries less protocol overhead and no connection state to maintain. But be careful: the real saving is not in header bytes, it is in not paying for reliability machinery when your architecture already solves it at another layer.",
+ state:"If the venue must know who you are, which messages it has already accepted from you, and whether you are still alive, you need a session — and a session needs a connection. That is the order flow case, and it is why TCP is there."
+};
+var curR="loss";
+document.querySelectorAll(".jl-chip").forEach(function(c){
+  c.addEventListener("click",function(){
+    document.querySelectorAll(".jl-chip").forEach(function(x){x.classList.remove("on");});
+    c.classList.add("on"); curR=c.dataset.r; paintReq();
+  });
+});
+function paintReq(){
+  var r=REQ[curR];
+  var v=document.getElementById("rq-v");
+  v.textContent=r.v; v.className="rv "+r.c;
+  var d=document.getElementById("rq-d");
+  d.setAttribute("data-i18n","rq."+curR);
+  if(LANG==="en"){d.innerHTML=EN_REQ[curR];}
+  else{d.innerHTML=(T[LANG]&&T[LANG]["rq."+curR])||EN_REQ[curR];}
+}
+
+/* ══════════ jl-seq : sequence / gap / recovery ══════════ */
+var SEQ_BASE=5001, SEQ_N=8, SEQ_LOST=5004;
+var seqState=0, seqTimer=null;
+var EN_SEQ={
+ st0:["IDLE","The receiver is waiting for the first message. Start the feed."],
+ st1:["IN SEQUENCE","Every message arrives carrying the number the receiver expected. No action required — this is the state you should see 99.99% of the time."],
+ st2:["GAP DETECTED","The receiver expected one sequence and got another. It does not know where the message was lost or why — only that it is missing. That is enough to act on, and acting fast matters: every millisecond unrepaired is a book diverging from the exchange's."],
+ st3:["RECOVERING","The missing message has been requested over a separate channel. The live feed keeps running — recovery must never stop the real-time stream."],
+ st4:["STREAM REBUILT","The missing message arrived over the recovery channel and was reinserted in its position. The application receives a complete, ordered sequence and never knew there was a loss. That is reliability built above a transport that does not offer it."]
+};
+function seqText(k){
+  if(LANG==="en")return EN_SEQ[k];
+  var kk=(T[LANG]&&T[LANG]["sq."+k])||EN_SEQ[k][0];
+  var vv=(T[LANG]&&T[LANG]["sq.s"+k.slice(2)])||EN_SEQ[k][1];
+  return [kk,vv];
+}
+function setSeqBar(k,cls){
+  var t=seqText(k);
+  var bar=document.getElementById("seq-bar");
+  bar.className="jl-state-bar"+(cls?" "+cls:"");
+  var ke=document.getElementById("seq-k"), ve=document.getElementById("seq-v");
+  ke.setAttribute("data-i18n","sq."+k);
+  ve.setAttribute("data-i18n","sq.s"+k.slice(2));
+  ke.textContent=t[0]; ve.textContent=t[1];
+}
+function mkPkt(n,cls){
+  var d=document.createElement("div");
+  d.className="jl-pkt"+(cls?" "+cls:"");
+  d.textContent=n;
+  return d;
+}
+function seqReset(){
+  if(seqTimer){clearTimeout(seqTimer);seqTimer=null;}
+  seqState=0;
+  document.getElementById("seq-live").innerHTML="";
+  document.getElementById("seq-rec").innerHTML="";
+  document.getElementById("seq-out").innerHTML="";
+  document.getElementById("seq-rec-lane").style.display="none";
+  document.getElementById("seq-out-lane").style.display="none";
+  document.getElementById("seq-exp").textContent="—";
+  document.getElementById("seq-rcv").textContent="—";
+  document.getElementById("seq-miss").textContent="—";
+  document.getElementById("sq-rec").disabled=true;
+  document.getElementById("sq-run").disabled=false;
+  setSeqBar("st0","");
+}
+document.getElementById("sq-rst").addEventListener("click",seqReset);
+document.getElementById("sq-run").addEventListener("click",function(){
+  if(seqState!==0)return;
+  seqState=1;
+  document.getElementById("sq-run").disabled=true;
+  var live=document.getElementById("seq-live");
+  var i=0, expected=SEQ_BASE;
+  (function step(){
+    if(i>=SEQ_N){ return; }
+    var n=SEQ_BASE+i;
+    if(n===SEQ_LOST){
+      var ghost=mkPkt(n,"lost");
+      live.appendChild(ghost);
+      requestAnimationFrame(function(){ghost.classList.add("in");});
+      document.getElementById("seq-exp").textContent=SEQ_LOST;
+      document.getElementById("seq-rcv").textContent=SEQ_LOST+1;
+      document.getElementById("seq-miss").textContent=SEQ_LOST;
+      setSeqBar("st2","gap");
+      document.getElementById("sq-rec").disabled=false;
+      seqState=2;
+      i++; seqTimer=setTimeout(step,420); return;
+    }
+    var p=mkPkt(n,"ok");
+    live.appendChild(p);
+    requestAnimationFrame(function(){p.classList.add("in");});
+    if(seqState===1){
+      document.getElementById("seq-exp").textContent=n+1;
+      document.getElementById("seq-rcv").textContent=n;
+      document.getElementById("seq-miss").textContent="0";
+      setSeqBar("st1","");
+    }
+    i++; seqTimer=setTimeout(step,420);
+  })();
+});
+document.getElementById("sq-rec").addEventListener("click",function(){
+  if(seqState!==2)return;
+  seqState=3;
+  document.getElementById("sq-rec").disabled=true;
+  document.getElementById("seq-rec-lane").style.display="";
+  setSeqBar("st3","recov");
+  var rec=document.getElementById("seq-rec");
+  var req=mkPkt("REQ "+SEQ_LOST,"rec");
+  rec.appendChild(req);
+  requestAnimationFrame(function(){req.classList.add("in");});
+  setTimeout(function(){
+    var got=mkPkt(SEQ_LOST,"rec");
+    rec.appendChild(got);
+    requestAnimationFrame(function(){got.classList.add("in");});
+    setTimeout(function(){
+      document.getElementById("seq-out-lane").style.display="";
+      var out=document.getElementById("seq-out");
+      out.innerHTML="";
+      var j=0;
+      (function fill(){
+        if(j>=SEQ_N)  {
+          setSeqBar("st4","done");
+          document.getElementById("seq-exp").textContent=SEQ_BASE+SEQ_N;
+          document.getElementById("seq-rcv").textContent=SEQ_BASE+SEQ_N-1;
+          document.getElementById("seq-miss").textContent="0";
+          seqState=4; return;
+        }
+        var n=SEQ_BASE+j;
+        var p=mkPkt(n,n===SEQ_LOST?"rec":"ok");
+        out.appendChild(p);
+        requestAnimationFrame(function(){p.classList.add("in");});
+        j++; setTimeout(fill,180);
+      })();
+    },420);
+  },620);
+});
+seqReset();
+
+/* ══════════ jl-ab : A/B arbitration ══════════ */
+var AB_BASE=5001, AB_N=7, AB_A_LOST=5003, AB_B_LOST=5005;
+var abTimer=null;
+var EN_AB={
+ st0:["IDLE","Both feeds carry the same sequence. Each will lose different messages."],
+ st1:["ARBITRATING","Feed A lost 5003. Feed B lost 5005. Neither feed is complete on its own — and the arbitrated output lost nothing. That is exactly what the design is for."]
+};
+function setAbBar(k,cls){
+  var t;
+  if(LANG==="en")t=EN_AB[k];
+  else t=[(T[LANG]&&T[LANG]["ab."+k])||EN_AB[k][0],(T[LANG]&&T[LANG]["ab.s"+k.slice(2)])||EN_AB[k][1]];
+  var bar=document.getElementById("ab-bar");
+  bar.className="jl-state-bar"+(cls?" "+cls:"");
+  var ke=document.getElementById("ab-k"), ve=document.getElementById("ab-v");
+  ke.setAttribute("data-i18n","ab."+k);
+  ve.setAttribute("data-i18n","ab.s"+k.slice(2));
+  ke.textContent=t[0]; ve.textContent=t[1];
+}
+function abReset(){
+  if(abTimer){clearTimeout(abTimer);abTimer=null;}
+  ["ab-a","ab-b","ab-o"].forEach(function(id){document.getElementById(id).innerHTML="";});
+  document.getElementById("ab-run").disabled=false;
+  setAbBar("st0","");
+}
+document.getElementById("ab-rst").addEventListener("click",abReset);
+document.getElementById("ab-run").addEventListener("click",function(){
+  abReset();
+  document.getElementById("ab-run").disabled=true;
+  var A=document.getElementById("ab-a"),B=document.getElementById("ab-b"),O=document.getElementById("ab-o");
+  var i=0;
+  (function step(){
+    if(i>=AB_N){ setAbBar("st1","done"); return; }
+    var n=AB_BASE+i;
+    var pa=mkPkt(n,n===AB_A_LOST?"lost":"ok");
+    var pb=mkPkt(n,n===AB_B_LOST?"lost":"ok");
+    var po=mkPkt(n,"ok");
+    A.appendChild(pa);B.appendChild(pb);O.appendChild(po);
+    requestAnimationFrame(function(){pa.classList.add("in");pb.classList.add("in");po.classList.add("in");});
+    i++; abTimer=setTimeout(step,420);
+  })();
+});
+abReset();
+
+/* ══════════ jl-sess : session states ══════════ */
+var SEK={disc:"DISCONNECTED",conn:"CONNECTED",logon:"LOGON",active:"ACTIVE",logout:"LOGOUT",fail:"HEARTBEAT LOST",recov:"RESEND / RESET"};
+var EN_SE={
+ disc:"There is no session. This is the normal state outside trading hours and also the state you return to after any failure. What matters is that returning here is not an error — staying here without noticing is.",
+ conn:"Transport connectivity exists, but the venue still does not know who you are. An established connection authorises nothing. Confusing these two states produces the classic \"the port is open, so it is working\".",
+ logon:"The participant identifies itself and both sides agree on where the message sequence stands. This is also where a mismatch surfaces: if your side thinks it sent 4,812 messages and the venue counted 4,809, the disagreement appears here, before any business message flows.",
+ active:"The session is alive and can carry orders. Running alongside it is the heartbeat, which is the only thing distinguishing \"quiet market\" from \"dead link\". A participant without a heartbeat does not know which of the two it is living through.",
+ logout:"An orderly close. Both sides know which sequence the session ended on, which is why the next one can resume from the right point. An orderly close is what makes a clean reopen possible.",
+ fail:"No heartbeats arrived within the agreed interval. The venue assumes you are gone; you must assume your in-flight orders have an uncertain fate. This is where the heartbeat interval stops being a configuration parameter and becomes a risk decision.",
+ recov:"On reconnect, both sides compare sequence numbers and decide what to resend. This is the same sequence-detection-recovery pattern from market data, applied to the session — and it is why it is worth learning once."
+};
+var curSE="logon";
+document.querySelectorAll(".jl-sess-b g.ss").forEach(function(g){
+  g.addEventListener("click",function(){curSE=g.dataset.s;paintSess();});
+});
+function paintSess(){
+  document.getElementById("se-k").textContent=SEK[curSE];
+  var d=document.getElementById("se-d");
+  d.setAttribute("data-i18n","se."+curSE);
+  if(LANG==="en"){d.innerHTML=EN_SE[curSE];}
+  else{d.innerHTML=(T[LANG]&&T[LANG]["se."+curSE])||EN_SE[curSE];}
+}
+
+/* ══════════ lab 03 ══════════ */
+var LABFB={
+ en:[
+  {ok:"Correct. A sequence discontinuity proves absence, nothing more. The feed handler did not receive 501200 and 501201 — but a message can be lost at the exchange, on the path, at your NIC, in the kernel, or inside the process itself. Naming a culprit at this stage is guessing with a timestamp attached.",
+   no:"Not correct. All you have is a discontinuity at the feed handler. You do not yet know whether the messages were dropped by the network, discarded by your own host, or never published. Every other option names a cause that the evidence does not support."},
+  {ok:"Correct. A capture taken before the NIC is the boundary marker. If the missing sequences are present on the wire, everything upstream is exonerated and the problem is inside your server. If they are absent, the loss happened before you. One piece of evidence, two entire halves of the search space eliminated.",
+   no:"Not correct. CPU, vendor latency figures and downstream application logs are all consistent with several different root causes. You need an observation that cuts the search space in half — evidence at the boundary between what is outside your server and what is inside it."},
+  {ok:"Correct. Every sequence is present on the wire, the NIC dropped nothing, and the socket receive buffer is overflowing. The messages arrived and the host threw them away because the consumer could not keep up. This is a consumption and capacity problem, and no amount of network investigation will find it.",
+   no:"Not correct. Read the two counters together. The wire capture shows all four sequences arriving. rx_dropped is zero, so the NIC handed them up. And the socket receive buffer is reporting errors. The messages got into the server and were discarded after that."},
+  {ok:"Correct — and notice what makes it correct. It states what was proven, names the layer, and assigns the work to the team that can act on it. It does not blame, it does not speculate, and it does not send three teams to investigate a problem that belongs to one.",
+   no:"Not correct. That statement is either unproven, vague, or points the investigation at a team that has already been exonerated by the evidence. In an incident, a wrong direction costs more than no direction — it consumes the one resource nobody has, which is time."}
+ ],
+ es:[
+  {ok:"Correcto. Una discontinuidad de secuencia prueba una ausencia, nada más. El feed handler no recibió 501200 ni 501201 — pero un mensaje puede perderse en la bolsa, en la ruta, en su NIC, en el kernel o dentro del propio proceso. Nombrar un culpable en esta etapa es adivinar con un timestamp adjunto.",
+   no:"Incorrecto. Todo lo que tiene es una discontinuidad en el feed handler. Todavía no sabe si los mensajes fueron descartados por la red, por su propio host, o si nunca se publicaron. Todas las demás opciones nombran una causa que la evidencia no sostiene."},
+  {ok:"Correcto. Una captura tomada antes de la NIC es el marcador de frontera. Si las secuencias faltantes están en el cable, todo lo que está aguas arriba queda exonerado y el problema está dentro de su servidor. Si no están, la pérdida ocurrió antes. Una evidencia, dos mitades enteras del espacio de búsqueda eliminadas.",
+   no:"Incorrecto. La CPU, las cifras de latencia del proveedor y los logs de aplicación aguas abajo son compatibles con varias causas raíz distintas. Necesita una observación que corte el espacio de búsqueda por la mitad — evidencia en la frontera entre lo que está fuera de su servidor y lo que está dentro."},
+  {ok:"Correcto. Todas las secuencias están en el cable, la NIC no descartó nada y el buffer de recepción del socket está desbordándose. Los mensajes llegaron y el host los tiró porque el consumidor no logró seguir el ritmo. Es un problema de consumo y capacidad, y ninguna investigación de red va a encontrarlo.",
+   no:"Incorrecto. Lea los dos contadores juntos. La captura muestra las cuatro secuencias llegando. rx_dropped es cero, así que la NIC las entregó hacia arriba. Y el buffer de recepción del socket reporta errores. Los mensajes entraron al servidor y fueron descartados después."},
+  {ok:"Correcto — y note qué lo hace correcto. Declara lo que se probó, nombra la capa y asigna el trabajo al equipo que puede actuar. No culpa, no especula y no manda a tres equipos a investigar un problema que pertenece a uno.",
+   no:"Incorrecto. Esa afirmación no está probada, es vaga, o apunta la investigación a un equipo que la evidencia ya exoneró. En un incidente, una dirección equivocada cuesta más que ninguna dirección — consume el único recurso que nadie tiene, que es tiempo."}
+ ],
+ pt:[
+  {ok:"Correto. Uma descontinuidade de sequência prova ausência, nada além disso. O feed handler não recebeu 501200 e 501201 — mas uma mensagem pode se perder na bolsa, no caminho, na sua NIC, no kernel ou dentro do próprio processo. Apontar culpado neste estágio é chutar com timestamp anexado.",
+   no:"Incorreto. Tudo que você tem é uma descontinuidade no feed handler. Você ainda não sabe se as mensagens foram descartadas pela rede, pelo seu próprio host, ou se nunca foram publicadas. Todas as outras opções nomeiam uma causa que a evidência não sustenta."},
+  {ok:"Correto. Uma captura antes da NIC é o marco de fronteira. Se as sequências faltantes estão no fio, tudo que está a montante fica exonerado e o problema é dentro do seu servidor. Se não estão, a perda aconteceu antes de você. Uma evidência, duas metades inteiras do espaço de busca eliminadas.",
+   no:"Incorreto. CPU, números de latência do fornecedor e log de aplicação a jusante são compatíveis com várias causas-raiz diferentes. Você precisa de uma observação que corte o espaço de busca ao meio — evidência na fronteira entre o que está fora do seu servidor e o que está dentro."},
+  {ok:"Correto. Todas as sequências estão no fio, a NIC não descartou nada, e o buffer de recepção do socket está estourando. As mensagens chegaram e o host jogou fora porque o consumidor não deu conta. É problema de consumo e capacidade, e nenhuma investigação de rede vai encontrar isso.",
+   no:"Incorreto. Leia os dois contadores juntos. A captura mostra as quatro sequências chegando. rx_dropped é zero, então a NIC entregou para cima. E o buffer de recepção do socket está reportando erro. As mensagens entraram no servidor e foram descartadas depois disso."},
+  {ok:"Correto — e repare no que torna isso correto. A frase declara o que foi provado, nomeia a camada e atribui o trabalho ao time que consegue agir. Não culpa, não especula e não manda três times investigarem um problema que é de um só.",
+   no:"Incorreto. Essa afirmação é não provada, vaga, ou aponta a investigação para um time que a evidência já exonerou. Num incidente, direção errada custa mais que nenhuma direção — ela consome o único recurso que ninguém tem, que é tempo."}
+ ]
+};
+var labDone=[false,false,false,false];
+document.querySelectorAll(".scn").forEach(function(scn,idx){
+  scn.querySelectorAll(".opt").forEach(function(opt){
+    opt.addEventListener("click",function(){
+      if(labDone[idx])return;
+      var ok=opt.dataset.ok==="1";
+      var fb=document.getElementById("fb"+(idx+1));
+      var set=(LABFB[LANG]||LABFB.en)[idx];
+      fb.textContent=(ok?"✓ ":"✕ ")+set[ok?"ok":"no"];
+      fb.className="fb on "+(ok?"ok":"no");
+      if(ok){
+        labDone[idx]=true;
+        opt.classList.add("ok");
+        scn.querySelectorAll(".opt").forEach(function(o){if(o!==opt)o.classList.add("dead");});
+        var nx=document.getElementById("sc"+(idx+2));
+        if(nx)nx.classList.remove("off");
+        if(labDone.every(Boolean))setTimeout(function(){document.getElementById("labdone").classList.add("on");},400);
+      }else{
+        opt.classList.add("no");
+        setTimeout(function(){opt.classList.remove("no");},1800);
+      }
+    });
+  });
+});
+
+/* ══════════ refresh dynamic text on language change ══════════ */
+function refreshDynamic(){
+  if(document.getElementById("st-d"))paintStack();
+  if(document.getElementById("rq-d"))paintReq();
+  if(document.getElementById("se-d"))paintSess();
+}
+paintStack();paintReq();paintSess();
+</script>
+</body>
+</html>
