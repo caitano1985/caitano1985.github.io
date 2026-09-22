@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Market Structure — Trading Network Journal 01 | Josimar Caitano</title>
+<meta name="description" content="What really happens between 'I want to buy' and 'the trade happened'. The market mechanism that every piece of trading infrastructure exists to execute.">
+<meta property="og:title" content="Market Structure — Trading Network Journal 01">
+<meta property="og:description" content="The market mechanism that every piece of trading infrastructure exists to execute.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#08213E;--ink2:#12395F;--tx:#2A3B52;--tx2:#4A5E78;
+ --cy:#00BCEB;--cy2:#0093B8;--bl:#0B5CD5;--bl2:#073B87;
+ --t1:#F4F9FD;--t2:#E5F1FA;--sf:#D2E7F5;
+ --ln:#DCE7F1;--ln2:#BFD5E8;
+ --gn:#0F8B4C;--gnb:#E7F6EE;--gnl:#B6E2CA;
+ --am:#B87610;--amb:#FDF5E7;--aml:#EEDCB2;
+ --rd:#C93327;--rdb:#FCEDEB;--rdl:#F0C6C0;
+ --gd:#8E7124;--mu:#63768E;--mu2:#93A6BB;
+ --s1:0 1px 2px rgba(8,33,62,.05);
+ --s2:0 1px 2px rgba(8,33,62,.05),0 16px 40px -26px rgba(8,33,62,.4);
+ --mw:1220px;--rw:78ch}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:#fff;color:var(--tx);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ font-size:18px;line-height:1.68;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);letter-spacing:-.02em;font-weight:700;margin:0}
+a{color:var(--bl)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.in{max-width:var(--mw);margin:0 auto;padding:0 24px}
+.rd-w{max-width:var(--rw);margin:0 auto}
+p{margin:0 0 20px;color:var(--tx2)}
+strong{color:var(--ink);font-weight:700}
+
+/* hero */
+.hero{background:radial-gradient(85% 105% at 90% -12%,#D9EEFA 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#FAFDFF,#fff);border-bottom:1px solid var(--ln)}
+.hero .r{max-width:var(--mw);margin:0 auto;padding:62px 24px 44px}
+.eb{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:700;color:var(--bl);margin:0 0 18px}
+.eb::before{content:"";width:28px;height:3px;border-radius:3px;background:var(--cy)}
+.hero h1{font-size:clamp(32px,5vw,56px);line-height:1.04;max-width:20ch;margin:0 0 20px;letter-spacing:-.032em}
+.hero .ld{font-size:clamp(18px,2vw,22px);color:var(--tx2);max-width:64ch;margin:0 0 28px}
+.hm{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.av{width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,var(--bl),var(--cy));display:grid;place-items:center;
+ color:#fff;font-weight:700;font-size:18px;flex:none;box-shadow:var(--s2)}
+.hm .n{font-weight:700;color:var(--ink);font-size:15px;line-height:1.25}
+.hm .rr{font-size:13px;color:var(--mu)}
+.meta{margin-top:22px;display:flex;gap:18px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--mu)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.meta i{width:6px;height:6px;border-radius:50%;background:var(--cy);display:block}
+
+/* article */
+main{padding:10px 0 0}
+article section{padding:44px 0 4px;border-top:1px solid var(--ln)}
+article section:first-child{border-top:0;padding-top:52px}
+.ln{font-size:12.5px;font-weight:700;color:var(--bl);margin:0 0 10px;display:flex;align-items:center;gap:10px;font-family:"IBM Plex Mono",monospace}
+.ln::before{content:"";width:20px;height:3px;border-radius:3px;background:var(--cy)}
+article h2{font-size:clamp(25px,3.3vw,36px);line-height:1.12;margin:0 0 20px;max-width:24ch}
+article h3{font-size:19px;margin:30px 0 12px}
+.lead{font-size:20px;color:var(--tx);margin-bottom:22px}
+.pull{font-weight:700;font-size:clamp(20px,2.7vw,27px);line-height:1.3;color:var(--ink);border-left:4px solid var(--cy);
+ padding:10px 0 10px 24px;margin:32px 0;letter-spacing:-.02em}
+.note{border-left:3px solid var(--cy);background:var(--t1);border-radius:0 14px 14px 0;padding:18px 22px;margin:26px 0}
+.note .t{font-size:11.5px;font-weight:700;color:var(--bl);margin:0 0 7px;letter-spacing:.04em;font-family:"IBM Plex Mono",monospace}
+.note p{margin:0;font-size:16.5px;color:var(--tx)}
+.note.g{border-left-color:var(--gd);background:#FCFAF3}.note.g .t{color:var(--gd)}
+.note.gn{border-left-color:var(--gn);background:var(--gnb)}.note.gn .t{color:var(--gn)}
+ul.cl{margin:20px 0 26px;padding:0;list-style:none}
+ul.cl li{position:relative;padding-left:28px;margin:11px 0;color:var(--tx2)}
+ul.cl li::before{content:"";position:absolute;left:5px;top:.72em;width:8px;height:8px;background:var(--cy);border-radius:2px}
+ul.cl li strong{color:var(--ink)}
+
+/* figura */
+.fig{background:#fff;border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0}
+.figh{padding:16px 22px;border-bottom:1px solid var(--ln);background:var(--t1)}
+.figh .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace}
+.figh .t::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cy)}
+.figh h3{font-size:16.5px;margin:10px 0 0}
+.figb{padding:8px 10px 0;background:
+ linear-gradient(90deg,rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,
+ linear-gradient(rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,#fff}
+.figb svg{width:100%;height:auto;display:block}
+.figf{padding:14px 22px 18px;border-top:1px solid var(--ln);background:#FCFDFE;font-size:14px;color:var(--mu)}
+
+/* cards */
+.cards{display:grid;gap:14px;margin:24px 0}
+.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid var(--ln);border-top:3px solid var(--cy);border-radius:14px;padding:20px;box-shadow:var(--s2)}
+.card .k{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--bl);margin:0 0 8px}
+.card h4{font-size:16px;margin:0 0 8px}
+.card p{margin:0;font-size:15.5px;color:var(--tx2)}
+.card ul{margin:8px 0 0;padding:0;list-style:none}
+.card ul li{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--tx2);padding:2px 0}
+.card ul li::before{content:"· ";color:var(--mu2)}
+
+/* split compare */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.cmp .p{background:#fff;border:1px solid var(--ln);border-radius:16px;padding:20px;box-shadow:var(--s1)}
+.cmp .p .h{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:700;letter-spacing:.04em;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.cmp .p.a .h{color:var(--bl)}.cmp .p.b .h{color:var(--gn)}
+.cmp .p .h::before{content:"";width:8px;height:8px;border-radius:2px}
+.cmp .p.a .h::before{background:var(--cy)}.cmp .p.b .h::before{background:var(--gn)}
+.cmp pre{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.7;color:var(--tx2);margin:0;white-space:pre;overflow-x:auto}
+.cmp pre b{color:var(--ink)}
+.cmp .ft{margin-top:14px;font-size:14.5px;color:var(--tx2)}
+
+/* order book */
+.obk{border:1px solid var(--ln);border-radius:16px;background:#fff;box-shadow:var(--s1);padding:18px 20px;font-family:"IBM Plex Mono",monospace;font-size:14px;min-width:240px}
+.obk .lbl{font-size:10.5px;color:var(--mu);letter-spacing:.06em;text-align:center;margin-bottom:12px;font-weight:600}
+.obk .row{display:grid;grid-template-columns:82px 62px;gap:14px;justify-content:center;padding:3px 0}
+.obk .row .p{font-weight:600} .obk .row .q{color:var(--mu);text-align:right}
+.obk .sell .p{color:var(--rd)} .obk .buy .p{color:var(--gn)}
+.obk hr{border:0;border-top:1px solid var(--ln);margin:9px 0}
+.obk .sp{text-align:center;font-size:10.5px;color:var(--mu2);letter-spacing:.05em;padding:3px 0}
+.obk .lg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px;font-size:10.5px;font-weight:600}
+.obk .lg .a{background:var(--rdb);color:var(--rd);padding:6px;text-align:center;border-radius:6px}
+.obk .lg .b{background:var(--gnb);color:var(--gn);padding:6px;text-align:center;border-radius:6px}
+
+/* lab */
+.lab{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0;background:#fff}
+.labh{padding:18px 22px;border-bottom:1px solid var(--ln);background:linear-gradient(180deg,var(--t2),var(--t1))}
+.labh .t{font-size:11px;font-weight:700;color:#fff;background:var(--gn);padding:4px 11px;border-radius:999px;letter-spacing:.04em;display:inline-block;font-family:"IBM Plex Mono",monospace}
+.labh h3{font-size:19px;margin:11px 0 6px}
+.labh p{margin:0;font-size:15px;color:var(--tx2)}
+.labb{padding:22px}
+.lab-grid{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start}
+.ords{display:flex;flex-direction:column;gap:10px;margin-bottom:22px}
+.ord{border:1px solid var(--ln);border-radius:12px;padding:11px 15px;font-family:"IBM Plex Mono",monospace;font-size:14px;background:var(--t1)}
+.ord .k{font-size:10.5px;color:var(--mu);letter-spacing:.05em;margin-bottom:3px;font-weight:600}
+.ord .v{color:var(--ink);font-weight:600}
+.ord.b{border-left:3px solid var(--gn)} .ord.s{border-left:3px solid var(--rd)}
+.q{border:1px solid var(--ln);border-radius:12px;padding:16px 18px;margin-bottom:12px;background:#fff;transition:opacity .25s}
+.q.off{opacity:.4;pointer-events:none}
+.q .qk{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:7px}
+.q .qt{font-size:15.5px;color:var(--tx);margin-bottom:13px}
+.q .qr{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.q input{font-family:"IBM Plex Mono",monospace;font-size:14px;border:1px solid var(--ln2);border-radius:9px;padding:9px 13px;width:145px;color:var(--ink);outline:none;background:#fff}
+.q input:focus{border-color:var(--bl);box-shadow:0 0 0 3px rgba(11,92,213,.1)}
+.q input.ok{border-color:var(--gn);background:var(--gnb)}
+.q input.no{border-color:var(--rd);background:var(--rdb)}
+.q button{font-family:"DM Sans",sans-serif;font-size:13.5px;font-weight:600;border:0;border-radius:9px;padding:10px 18px;background:var(--ink);color:#fff;cursor:pointer;transition:.15s}
+.q button:hover{background:var(--bl)}
+.q .fb{margin-top:11px;font-size:14.5px;line-height:1.55;display:none}
+.q .fb.on{display:block}
+.q .fb.ok{color:var(--gn)} .q .fb.no{color:var(--rd)}
+.res{border:1px solid var(--gnl);background:var(--gnb);border-radius:14px;padding:20px;margin-top:20px;display:none}
+.res.on{display:block}
+.res .t{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--gn);letter-spacing:.05em;margin-bottom:13px}
+.res pre{font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.75;color:var(--tx);margin:0;white-space:pre;overflow-x:auto}
+.res pre .s{color:var(--rd)} .res pre .b{color:var(--gn)} .res pre .d{color:var(--mu2)}
+.res .sm{margin-top:14px;font-size:14.5px;color:var(--tx2)}
+
+/* next */
+.nxt{border:1px solid var(--ln);border-radius:18px;padding:24px;background:var(--t1);margin:40px 0 0;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.nxt .i{flex:1;min-width:230px}
+.nxt .k{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mu);letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.nxt h3{font-size:20px;margin:0 0 6px}
+.nxt p{margin:0;font-size:15px}
+.nxt a{font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:var(--ink);color:#fff;text-decoration:none;padding:11px 22px;border-radius:10px;white-space:nowrap}
+.nxt a:hover{background:var(--bl)}
+
+/* sig */
+.sig{margin:46px 0 0;padding:26px;border:1px solid var(--ln);border-radius:18px;background:var(--t1)}
+.sig .nm{font-size:19px;font-weight:700;color:var(--ink);margin:0 0 4px}
+.sig .rl{font-size:14.5px;color:var(--tx2);margin:0}
+.sig .oep{margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--cy2);font-weight:600}
+
+footer{background:var(--ink);color:#BCD0E7;margin-top:60px}
+footer .r{max-width:var(--mw);margin:0 auto;padding:50px 24px}
+footer h3{color:#fff;font-size:23px;margin:0 0 10px}
+footer .cr{font-size:14.5px;color:#92A9C9;line-height:2}
+footer .cr b{color:#E4EEFA}
+footer .lk{margin-top:18px;display:flex;gap:20px;flex-wrap:wrap}
+footer .lk a{color:var(--cy);font-family:"IBM Plex Mono",monospace;font-size:13.5px;text-decoration:none}
+footer .lk a:hover{text-decoration:underline}
+footer .oep{margin-top:20px;font-size:14px;color:var(--cy);font-weight:700}
+footer .mt{margin-top:22px;padding-top:18px;border-top:1px solid #1B3F6C;font-size:12.5px;color:#7590B4;line-height:1.75}
+
+@media(max-width:860px){.lab-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.c2,.cmp{grid-template-columns:1fr}body{font-size:17px}}
+button:focus-visible,a:focus-visible{outline:2px solid var(--bl);outline-offset:2px;border-radius:6px}
+</style>
+</head>
+<body data-lang="en">
+<div id="jc-header"
+     data-title="Academy"
+     data-sub-en="— Trading Network Journal"
+     data-sub-es="— Diario de Redes de Trading"
+     data-sub-pt="— Diário de Redes de Trading"></div>
+<script src="/_shared/site-header.js"></script>
+
+<header class="hero"><div class="r">
+ <p class="eb" data-i18n="h.kicker">Trading Network Journal · 01</p>
+ <h1 data-i18n="h.title">Market Structure</h1>
+ <p class="ld" data-i18n="h.lead">Before a single packet is engineered, we need to agree on what that packet is carrying. This is the market mechanism that every piece of trading infrastructure exists to execute.</p>
+ <div class="hm"><div class="av" aria-hidden="true">JC</div><div>
+  <div class="n">Josimar Caitano</div>
+  <div class="rr" data-i18n="h.role">Principal Solutions Architect · NTT DATA · Capital Markets Infrastructure</div></div></div>
+ <div class="meta">
+  <span><i></i><span data-i18n="h.date">September 2026</span></span>
+  <span><i></i><span data-i18n="h.read">25 min · with lab</span></span>
+  <span><i></i><span data-i18n="h.cat">Market Structure · Foundation</span></span>
+ </div>
+</div></header>
+
+<main class="in"><article class="rd-w">
+
+<section>
+ <p class="lead" data-i18n="p.1">I spent years designing networks for financial institutions before I could answer a simple question properly: what is actually inside the packet I am optimizing? Not because the question is difficult. Because nobody asks it. The engineer is handed a latency budget and a topology, and the business logic above the wire remains someone else's problem.</p>
+ <p data-i18n="p.2">That gap is where careers stall. An engineer who does not know what a matching engine does cannot write a meaningful SLO for it. An architect who does not distinguish order flow from market data will design both with the same tools and fail at both. So we start here, at the business mechanism, and only then descend into the infrastructure.</p>
+
+ <div class="note">
+  <p class="t" data-i18n="nv.t">HOW TO USE THIS JOURNAL</p>
+  <p data-i18n="nv.b">This is the first entry of a sequence. Each entry descends one layer: from market mechanism, to order lifecycle, to protocols, to timestamps, to observability. Every entry closes with a lab you are expected to solve before moving on. If you skip the lab, you have read the chapter — you have not learned it.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s1.k">I</p>
+ <h2 data-i18n="s1.h">The chain nobody draws</h2>
+ <p data-i18n="s1.p1">The mental model most engineers carry is two nodes: trader sends order, exchange executes. That model is not simplified — it is wrong, and architecture built on it inherits the error. There is an ordered chain, and each link imposes a different constraint on the infrastructure beneath it.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig1.tag">PARTICIPANT CHAIN</span>
+   <h3 data-i18n="fig1.h">From intention to settled trade</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 430" role="img" aria-label="Participant chain from investor to post-trade">
+    <defs>
+     <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,1 L7,4.5 L0,8 Z" fill="#93A6BB"/>
+     </marker>
+    </defs>
+    <g font-family="DM Sans, sans-serif">
+     <!-- investor -->
+     <rect x="330" y="14" width="240" height="44" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="41" text-anchor="middle" font-size="14.5" font-weight="700" fill="#08213E" data-i18n="fig1.n1">INVESTOR</text>
+     <line x1="450" y1="58" x2="450" y2="76" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ar)"/>
+
+     <!-- broker -->
+     <rect x="330" y="78" width="240" height="44" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="105" text-anchor="middle" font-size="14.5" font-weight="700" fill="#08213E" data-i18n="fig1.n2">BROKER / BANK</text>
+     <line x1="450" y1="122" x2="450" y2="140" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ar)"/>
+
+     <!-- exchange band -->
+     <rect x="120" y="142" width="660" height="128" rx="14" fill="#F4F9FD" stroke="#00BCEB" stroke-width="2"/>
+     <text x="140" y="164" font-size="11.5" font-weight="700" fill="#0093B8" font-family="IBM Plex Mono, monospace" data-i18n="fig1.band">EXCHANGE — B3</text>
+
+     <rect x="146" y="178" width="190" height="72" rx="10" fill="#fff" stroke="#BFD5E8" stroke-width="1.5"/>
+     <text x="241" y="203" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E" data-i18n="fig1.n3">Order Gateway</text>
+     <text x="241" y="224" text-anchor="middle" font-size="11.5" fill="#63768E" data-i18n="fig1.n3s">entry · validation</text>
+     <text x="241" y="241" text-anchor="middle" font-size="11" fill="#0B5CD5" font-family="IBM Plex Mono, monospace">TCP</text>
+
+     <rect x="355" y="178" width="190" height="72" rx="10" fill="#fff" stroke="#00BCEB" stroke-width="2"/>
+     <text x="450" y="203" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E" data-i18n="fig1.n4">Matching Engine</text>
+     <text x="450" y="224" text-anchor="middle" font-size="11.5" fill="#63768E" data-i18n="fig1.n4s">price-time priority</text>
+     <text x="450" y="241" text-anchor="middle" font-size="11" fill="#0F8B4C" font-family="IBM Plex Mono, monospace">PUMA</text>
+
+     <rect x="564" y="178" width="190" height="72" rx="10" fill="#fff" stroke="#BFD5E8" stroke-width="1.5"/>
+     <text x="659" y="203" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E" data-i18n="fig1.n5">Market Data</text>
+     <text x="659" y="224" text-anchor="middle" font-size="11.5" fill="#63768E" data-i18n="fig1.n5s">broadcast to all</text>
+     <text x="659" y="241" text-anchor="middle" font-size="11" fill="#B87610" font-family="IBM Plex Mono, monospace">UDP mcast</text>
+
+     <line x1="450" y1="270" x2="450" y2="292" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ar)"/>
+
+     <!-- post trade -->
+     <rect x="290" y="294" width="320" height="42" rx="10" fill="#12395F" stroke="#12395F"/>
+     <text x="450" y="320" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" data-i18n="fig1.n6">POST-TRADE</text>
+
+     <line x1="450" y1="336" x2="450" y2="350" stroke="#93A6BB" stroke-width="1.5"/>
+     <line x1="220" y1="350" x2="680" y2="350" stroke="#93A6BB" stroke-width="1.5"/>
+     <line x1="220" y1="350" x2="220" y2="366" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ar)"/>
+     <line x1="450" y1="350" x2="450" y2="366" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ar)"/>
+     <line x1="680" y1="350" x2="680" y2="366" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#ar)"/>
+
+     <rect x="140" y="368" width="160" height="40" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="220" y="393" text-anchor="middle" font-size="13" font-weight="600" fill="#2A3B52" data-i18n="fig1.n7">Clearing</text>
+     <rect x="370" y="368" width="160" height="40" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="393" text-anchor="middle" font-size="13" font-weight="600" fill="#2A3B52" data-i18n="fig1.n8">Settlement</text>
+     <rect x="600" y="368" width="160" height="40" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="680" y="393" text-anchor="middle" font-size="13" font-weight="600" fill="#2A3B52" data-i18n="fig1.n9">Custody</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig1.cap">Five links, three protocols, two time domains. The exchange band operates in microseconds; the post-trade band operates in hours. Same chain, different physics.</div>
+ </div>
+
+ <p data-i18n="s1.p2">In Brazil, B3 occupies the exchange band for equities, derivatives and fixed income. The Listados segment — the one I care about most in this journal — covers exactly two of these links simultaneously: Negociação and Pós-Negociação. Trading and post-trade. One system, two sets of physics.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s2.k">II</p>
+ <h2 data-i18n="s2.h">Trading and post-trade are not the same system</h2>
+ <p data-i18n="s2.p1">This is the boundary I want you to internalize before anything else. Merging these two into a single "trading infrastructure project" is the most common structural mistake I have seen inside financial institutions — and it produces mispriced risk in both directions.</p>
+
+ <div class="cmp">
+  <div class="p a">
+   <p class="h" data-i18n="cmp.a">TRADING</p>
+   <pre data-i18n="cmp.ap"><b>BUY 100 WIN</b>
+     ↓
+   ORDER
+     ↓
+  MATCHING
+     ↓
+   <b>TRADE</b></pre>
+   <p class="ft" data-i18n="cmp.af">Microseconds. Determinism. Zero tolerance for jitter on the order path. Latency is not a performance metric here — it decides who wins the trade.</p>
+  </div>
+  <div class="p b">
+   <p class="h" data-i18n="cmp.b">POST-TRADE</p>
+   <pre data-i18n="cmp.bp"><b>TRADE</b>
+   ↓
+CLEARING
+   ↓
+  RISK
+   ↓
+SETTLEMENT
+   ↓
+ CUSTODY</pre>
+   <p class="ft" data-i18n="cmp.bf">Hours to days. Reliability over speed. Reconciliation, auditability, recovery. This is where SRE and resilience become the dominant discipline.</p>
+  </div>
+ </div>
+
+ <div class="note">
+  <p class="t" data-i18n="s2.nt">WHY THIS MATTERS FOR SLO DESIGN</p>
+  <p data-i18n="s2.nb">A 99.99% availability target means something entirely different on each side. On the trading side, four nines with a 200 ms tail is a failed system — the tail is where the money is lost. On the post-trade side, a brief outage that recovers with complete reconciliation may be operationally acceptable. Same number, opposite meaning. An SLO written without that distinction is decoration.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s3.k">III</p>
+ <h2 data-i18n="s3.h">Four worlds, four sets of constraints</h2>
+ <p data-i18n="s3.p1">The ecosystem divides cleanly into four domains. Know which one you are designing for before you open a terminal — the same technology decision is correct in one and catastrophic in another.</p>
+
+ <div class="cards c2">
+  <div class="card">
+   <p class="k">01 · BUY SIDE</p>
+   <h4 data-i18n="w1.h">Who invests</h4>
+   <p data-i18n="w1.p">Asset managers, hedge funds, proprietary trading firms, pension funds. Their infrastructure exists to generate and capture alpha. Execution quality is the metric.</p>
+  </div>
+  <div class="card">
+   <p class="k">02 · SELL SIDE</p>
+   <h4 data-i18n="w2.h">Who provides access</h4>
+   <p data-i18n="w2.p">Investment banks, brokers, dealers, market makers. They own order routing, pre-trade risk and DMA. Their constraint is throughput under regulatory obligation.</p>
+  </div>
+  <div class="card" style="border-top-color:var(--am)">
+   <p class="k" style="color:var(--am)">03 · EXCHANGE</p>
+   <h4 data-i18n="w3.h">Where orders meet</h4>
+   <p data-i18n="w3.p">Matching engine, order gateway, market data feed, colocation. Deterministic latency is not a goal — it is the fairness contract with the entire market.</p>
+  </div>
+  <div class="card" style="border-top-color:var(--gn)">
+   <p class="k" style="color:var(--gn)">04 · POST-TRADE</p>
+   <h4 data-i18n="w4.h">After the trade</h4>
+   <p data-i18n="w4.p">Clearing, risk, settlement, custody, reconciliation. Consistency and recoverability dominate. This is the natural home of SRE practice in capital markets.</p>
+  </div>
+ </div>
+
+ <p class="pull" data-i18n="s3.pull">Two institutions can be equally compliant with the same exchange manual and operate three orders of magnitude apart. Compliance is the floor, not the strategy.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s4.k">IV</p>
+ <h2 data-i18n="s4.h">An order is not a trade</h2>
+ <p data-i18n="s4.p1">This is the first thing I ask any engineer joining a market infrastructure team, and it filters more candidates than any protocol question. An order is an instruction. A trade is an event produced when two compatible instructions meet. They are different objects with different lifecycles, different volumes and different failure modes.</p>
+ <p data-i18n="s4.p2">An order can rest on the book indefinitely. It can be modified. It can be cancelled. It can be partially filled. Only when the matching engine finds a compatible counterparty does a trade exist.</p>
+
+ <div class="note g">
+  <p class="t" data-i18n="s4.nt">THE NUMBER THAT BREAKS CAPACITY MODELS</p>
+  <p data-i18n="s4.nb">In active markets the order-to-trade ratio routinely exceeds 100:1. Every rejected order, every cancellation, every modification still traverses the gateway, consumes bandwidth and demands processing. A capacity model built on executed trade volume underprovisions the system by two orders of magnitude — and it fails precisely on the days that matter, when volume spikes and the ratio widens.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s5.k">V</p>
+ <h2 data-i18n="s5.h">Price-time priority, and why it is an engineering requirement</h2>
+ <p data-i18n="s5.p1">The order book is the live state of supply and demand at every price level. The matching engine applies one deterministic rule to it: best price first; within the same price, earliest arrival first.</p>
+
+ <div style="display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin:28px 0">
+  <div class="obk">
+   <div class="lbl" data-i18n="ob.lbl">ORDER BOOK · SAMPLE STATE</div>
+   <div class="row sell"><span class="p">105.10</span><span class="q">500</span></div>
+   <div class="row sell"><span class="p">105.05</span><span class="q">300</span></div>
+   <div class="row sell"><span class="p">105.00</span><span class="q">200</span></div>
+   <hr>
+   <div class="sp" data-i18n="ob.sp">spread · 0.05</div>
+   <hr>
+   <div class="row buy"><span class="p">104.95</span><span class="q">150</span></div>
+   <div class="row buy"><span class="p">104.90</span><span class="q">400</span></div>
+   <div class="row buy"><span class="p">104.85</span><span class="q">800</span></div>
+   <div class="lg"><div class="a" data-i18n="ob.ask">ASK · sell</div><div class="b" data-i18n="ob.bid">BID · buy</div></div>
+  </div>
+  <div style="flex:1;min-width:260px">
+   <p data-i18n="s5.p2">Two participants send an identical buy order at the same price. The one whose packet reaches the matching engine first wins the fill. The other gets nothing, or gets a worse price on the next level.</p>
+   <p data-i18n="s5.p3">That is the entire argument for everything we will build in the following entries. Timestamp precision, deterministic switching, kernel bypass, colocation — none of it is performance tuning. It is the infrastructure consequence of a matching rule.</p>
+  </div>
+ </div>
+
+ <ul class="cl">
+  <li data-i18n="s5.l1"><strong>Hardware timestamping and PTP</strong> — you cannot prove event order without a traceable clock</li>
+  <li data-i18n="s5.l2"><strong>Sequence numbers on every message</strong> — gap detection is mandatory, not optional</li>
+  <li data-i18n="s5.l3"><strong>No jitter on the order path</strong> — an indeterminate delay violates the fairness contract</li>
+  <li data-i18n="s5.l4"><strong>Physical proximity</strong> — distance is the one component engineering cannot compensate for</li>
+ </ul>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig2.tag">LATENCY RACE</span>
+   <h3 data-i18n="fig2.h">Same order, same price, different path</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 200" role="img" aria-label="Latency comparison between two participants">
+    <g font-family="DM Sans, sans-serif">
+     <text x="60" y="44" font-size="13.5" font-weight="600" fill="#2A3B52" data-i18n="fig2.a">Participant A · remote</text>
+     <rect x="60" y="56" width="700" height="14" rx="7" fill="#E5F1FA"/>
+     <rect x="60" y="56" width="700" height="14" rx="7" fill="#93A6BB"/>
+     <text x="775" y="68" font-size="13" font-weight="700" fill="#63768E" font-family="IBM Plex Mono, monospace">20 µs</text>
+
+     <text x="60" y="118" font-size="13.5" font-weight="600" fill="#2A3B52" data-i18n="fig2.b">Participant B · colocation</text>
+     <rect x="60" y="130" width="700" height="14" rx="7" fill="#E5F1FA"/>
+     <rect x="60" y="130" width="350" height="14" rx="7" fill="#0F8B4C"/>
+     <text x="775" y="142" font-size="13" font-weight="700" fill="#0F8B4C" font-family="IBM Plex Mono, monospace">10 µs</text>
+
+     <text x="60" y="180" font-size="12.5" fill="#63768E" data-i18n="fig2.note">Identical price level · time priority decides · B fills, A does not</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig2.cap">The 10 µs difference is not a performance improvement. At the same price level it is the entire outcome.</div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s6.k">VI</p>
+ <h2 data-i18n="s6.h">The second flow, running the other way</h2>
+ <p data-i18n="s6.p1">Order flow carries intention into the market. Market data carries state out of it, to every participant simultaneously. Opposite directions, opposite protocols, opposite failure modes — and engineers who treat them as one system fail at both.</p>
+
+ <div class="cmp">
+  <div class="p a">
+   <p class="h" data-i18n="mk.a">ORDER FLOW · trader → exchange</p>
+   <pre data-i18n="mk.ap">Protocol   <b>TCP</b>
+Topology   unicast 1:1
+Volume     moderate
+Failure    session drop
+Tolerance  <b>zero loss</b></pre>
+   <p class="ft" data-i18n="mk.af">Silent loss of an order is unacceptable, so the protocol must acknowledge. The cost is connection state.</p>
+  </div>
+  <div class="p b">
+   <p class="h" data-i18n="mk.b">MARKET DATA · exchange → all</p>
+   <pre data-i18n="mk.bp">Protocol   <b>UDP multicast</b>
+Topology   1:N simultaneous
+Volume     enormous
+Failure    packet gap
+Tolerance  <b>gap + recover</b></pre>
+   <p class="ft" data-i18n="mk.bf">The exchange publishes once; every subscriber receives in parallel. TCP here would collapse under fan-out.</p>
+  </div>
+ </div>
+
+ <div class="note">
+  <p class="t" data-i18n="s6.nt">WHY TRADING SERVERS USE DUAL-PORT NICS</p>
+  <p data-i18n="s6.nb">This asymmetry has a physical consequence I built with my own hands inside a colocation cage: one NIC port dedicated to multicast receive, a separate port for TCP order transmit. Two opposing requirements on the same machine, separated at the hardware level. Sharing a single port introduces cross-traffic jitter on the order path — and the order path is the one that cannot have it.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s7.k">VII</p>
+ <h2 data-i18n="s7.h">The map we carry from here</h2>
+ <p data-i18n="s7.p1">Everything above is one half of the picture: the business mechanism. Below it sits the stack that executes it. Each layer answers a different question, and each subsequent entry in this journal descends one level.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig3.tag">STACK</span>
+   <h3 data-i18n="fig3.h">From business event down to physical medium</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 400" role="img" aria-label="Infrastructure stack layers">
+    <g font-family="DM Sans, sans-serif">
+     <rect x="150" y="16" width="600" height="42" rx="9" fill="#12395F"/>
+     <text x="450" y="43" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" data-i18n="st.1">FINANCIAL BUSINESS</text>
+     <text x="770" y="43" font-size="11.5" fill="#63768E" data-i18n="st.1q">what event?</text>
+
+     <rect x="150" y="64" width="600" height="42" rx="9" fill="#E5F1FA" stroke="#00BCEB" stroke-width="1.5"/>
+     <text x="450" y="91" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="st.2">TRADING · MARKET DATA · POST-TRADE</text>
+     <text x="770" y="91" font-size="11.5" fill="#63768E" data-i18n="st.2q">which domain?</text>
+
+     <rect x="150" y="112" width="600" height="42" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="139" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="st.3">APPLICATIONS</text>
+     <text x="770" y="139" font-size="11.5" fill="#63768E" data-i18n="st.3q">how processed?</text>
+
+     <rect x="150" y="160" width="600" height="42" rx="9" fill="#E7F6EE" stroke="#0F8B4C" stroke-width="1.5"/>
+     <text x="450" y="187" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="st.4">PLATFORM · SRE</text>
+     <text x="770" y="187" font-size="11.5" fill="#0F8B4C" data-i18n="st.4q">is it healthy?</text>
+
+     <rect x="150" y="208" width="600" height="42" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="235" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="st.5">KUBERNETES · CLOUD · LINUX</text>
+     <text x="770" y="235" font-size="11.5" fill="#63768E" data-i18n="st.5q">where does it run?</text>
+
+     <rect x="150" y="256" width="600" height="42" rx="9" fill="#F4F9FD" stroke="#00BCEB" stroke-width="2"/>
+     <text x="450" y="283" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="st.6">NETWORK — TCP · MULTICAST · PTP</text>
+     <text x="770" y="283" font-size="11.5" fill="#0093B8" data-i18n="st.6q">arrives in time?</text>
+
+     <rect x="150" y="304" width="600" height="42" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="331" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="st.7">COMPUTE · NIC</text>
+     <text x="770" y="331" font-size="11.5" fill="#63768E" data-i18n="st.7q">enough capacity?</text>
+
+     <rect x="150" y="352" width="600" height="42" rx="9" fill="#08213E"/>
+     <text x="450" y="379" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" data-i18n="st.8">PHYSICAL — FIBRE · DISTANCE</text>
+     <text x="770" y="379" font-size="11.5" fill="#63768E" data-i18n="st.8q">what does physics cost?</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig3.cap">The SRE layer sits exactly where business guarantee meets physical constraint. That position is why the discipline is different in capital markets than anywhere else.</div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="lab.k">LAB 01</p>
+ <h2 data-i18n="lab.h">You are the matching engine</h2>
+ <p data-i18n="lab.p">Three orders arrive at the book below. Apply price-time priority and answer each question. The system validates your input — solve it before you guess. If you cannot answer these four, you have not yet internalized section V.</p>
+
+ <div class="lab">
+  <div class="labh">
+   <span class="t" data-i18n="lab.tag">LAB 01</span>
+   <h3 data-i18n="lab.th">Matching engine simulation</h3>
+   <p data-i18n="lab.ts">Price-time priority · limit orders · multi-level sweep</p>
+  </div>
+  <div class="labb">
+   <div class="lab-grid">
+    <div class="obk">
+     <div class="lbl" data-i18n="lab.obl">INITIAL STATE</div>
+     <div class="row sell"><span class="p">101.00</span><span class="q">100</span></div>
+     <div class="row sell"><span class="p">100.95</span><span class="q">300</span></div>
+     <div class="row sell"><span class="p">100.90</span><span class="q">200</span></div>
+     <hr>
+     <div class="sp" data-i18n="lab.obs">spread</div>
+     <hr>
+     <div class="row buy"><span class="p">100.85</span><span class="q">150</span></div>
+     <div class="row buy"><span class="p">100.80</span><span class="q">400</span></div>
+     <div class="row buy"><span class="p">100.75</span><span class="q">200</span></div>
+    </div>
+
+    <div>
+     <div class="ords">
+      <div class="ord b"><div class="k" data-i18n="lab.oa">ORDER A · arrives first</div><div class="v">BUY 100 @ 100.90</div></div>
+      <div class="ord b"><div class="k" data-i18n="lab.ob">ORDER B · arrives second</div><div class="v">BUY 250 @ 100.95</div></div>
+      <div class="ord s"><div class="k" data-i18n="lab.oc">ORDER C · arrives third</div><div class="v">SELL 150 @ 100.80</div></div>
+     </div>
+
+     <div class="q" id="q1">
+      <div class="qk">Q1</div>
+      <div class="qt" data-i18n="lab.q1">Order A executes at what price?</div>
+      <div class="qr">
+       <input id="i1" type="text" placeholder="100.00" autocomplete="off">
+       <button onclick="chk(1)" data-i18n="lab.btn">Check</button>
+      </div>
+      <div class="fb" id="f1"></div>
+     </div>
+
+     <div class="q off" id="q2">
+      <div class="qk">Q2</div>
+      <div class="qt" data-i18n="lab.q2">How many price levels does Order B sweep?</div>
+      <div class="qr">
+       <input id="i2" type="text" placeholder="0" autocomplete="off">
+       <button onclick="chk(2)" data-i18n="lab.btn2">Check</button>
+      </div>
+      <div class="fb" id="f2"></div>
+     </div>
+
+     <div class="q off" id="q3">
+      <div class="qk">Q3</div>
+      <div class="qt" data-i18n="lab.q3">Order C executes at what price?</div>
+      <div class="qr">
+       <input id="i3" type="text" placeholder="100.00" autocomplete="off">
+       <button onclick="chk(3)" data-i18n="lab.btn3">Check</button>
+      </div>
+      <div class="fb" id="f3"></div>
+     </div>
+
+     <div class="q off" id="q4">
+      <div class="qk">Q4</div>
+      <div class="qt" data-i18n="lab.q4">After all three orders, what quantity remains at ASK 100.95?</div>
+      <div class="qr">
+       <input id="i4" type="text" placeholder="0" autocomplete="off">
+       <button onclick="chk(4)" data-i18n="lab.btn4">Check</button>
+      </div>
+      <div class="fb" id="f4"></div>
+     </div>
+    </div>
+   </div>
+
+   <div class="res" id="res">
+    <div class="t" data-i18n="lab.rt">RESULTING ORDER BOOK</div>
+    <pre><span class="s">101.00   100</span>
+<span class="s">100.95   150</span>
+<span class="d">──────────────</span>
+<span class="b">100.80   400</span>
+<span class="b">100.75   200</span></pre>
+    <p class="sm" data-i18n="lab.rs">Order A filled 100 at 100.90. Order B swept two levels: 100 at 100.90, then 150 at 100.95. Order C crossed the spread and filled 150 at 100.85, consuming that level entirely. One order produced two trade events — your capacity model must account for that fan-out at every layer.</p>
+   </div>
+  </div>
+ </div>
+
+ <div class="note gn">
+  <p class="t" data-i18n="lab.nt">WHAT THIS LAB ACTUALLY TESTED</p>
+  <p data-i18n="lab.nb">Not arithmetic. It tested whether you understand that a limit price is a boundary, not an instruction — a sell at 100.80 executes at 100.85 because 100.85 is better for the seller. Engineers who miss this build validation logic that rejects valid orders. It also tested whether you noticed that one incoming order can produce multiple trade events, which is the single most underestimated variable in market data capacity planning.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s8.k">VIII</p>
+ <h2 data-i18n="s8.h">What changes after this chapter</h2>
+ <p data-i18n="s8.p1">You now have the mechanism. From here, every technical decision in this journal traces back to something in this chapter, and I will make that link explicit every time.</p>
+ <p data-i18n="s8.p2">Multicast exists because the exchange must publish once to N subscribers. Sequence numbers exist because UDP will drop and you must prove nothing was lost. PTP exists because price-time priority requires provable event order. Colocation exists because distance is the one cost engineering cannot remove. None of these are technology choices. They are consequences of a market rule.</p>
+
+ <p class="pull" data-i18n="s8.pull">The packet matters because of what sits above it. Engineer the wire without knowing the rule, and you will optimize the wrong layer with great precision.</p>
+
+ <div class="nxt">
+  <div class="i">
+   <div class="k" data-i18n="nxt.k">NEXT — JOURNAL 02</div>
+   <h3 data-i18n="nxt.h">The Order Lifecycle</h3>
+   <p data-i18n="nxt.p">One single order, followed end to end: application, NIC, network, gateway, matching engine, market data, and back. Messages become packets, packets acquire timestamps, timestamps become observability.</p>
+  </div>
+  <a href="#" data-i18n="nxt.b">Coming soon</a>
+ </div>
+
+ <div class="sig">
+  <p class="nm">Josimar Caitano</p>
+  <p class="rl" data-i18n="sig.r">Principal Solutions Architect · Capital Markets · Double CCIE (Enterprise + Service Provider) · CCDE</p>
+  <p class="oep">O.E.P. — <span data-i18n="sig.oep">Order · Strategy · Patience</span></p>
+ </div>
+</section>
+
+</article></main>
+
+<footer><div class="r">
+ <h3>Josimar Caitano</h3>
+ <p class="cr"><b>Josimar Caitano</b> — Principal Solutions Architect | Capital Markets<br>
+  <span data-i18n="ft.1">Cisco Networking Academy instructor since 2006</span><br>
+  <span data-i18n="ft.2">High-performance network engineering for capital markets</span></p>
+ <div class="lk">
+  <a href="https://www.linkedin.com/in/josimar-caitano/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+  <a href="https://www.youtube.com/@Josinfo" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+  <a href="mailto:josimaru@gmail.com">josimaru@gmail.com</a>
+ </div>
+ <p class="oep">O.E.P. — <span data-i18n="ft.oep">Order · Strategy · Patience</span></p>
+ <p class="mt" data-i18n="ft.legal">Academy · Trading Network Journal · entry 01 · v1.0 — Original didactic material. Latency figures and book states are public orders of magnitude and illustrative assumptions, intended to teach architectural reasoning. They are not investment advice nor a project specification. MIT licence.</p>
+</div></footer>
+
+<script>
+var T={
+es:{
+"h.kicker":"Diario de Redes de Trading · 01",
+"h.title":"Estructura de Mercado",
+"h.lead":"Antes de diseñar un solo paquete, necesitamos acordar qué transporta ese paquete. Este es el mecanismo de mercado que toda infraestructura de trading existe para ejecutar.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestructura de Mercados de Capitales",
+"h.date":"Septiembre 2026","h.read":"25 min · con laboratorio","h.cat":"Estructura de Mercado · Fundamento",
+"p.1":"Pasé años diseñando redes para instituciones financieras antes de poder responder correctamente una pregunta simple: ¿qué hay realmente dentro del paquete que estoy optimizando? No porque la pregunta sea difícil. Porque nadie la hace. Al ingeniero se le entrega un presupuesto de latencia y una topología, y la lógica de negocio por encima del cable sigue siendo problema de otro.",
+"p.2":"Esa brecha es donde las carreras se estancan. Un ingeniero que no sabe qué hace un matching engine no puede escribir un SLO significativo para él. Un arquitecto que no distingue order flow de market data diseñará ambos con las mismas herramientas y fallará en los dos. Por eso empezamos aquí, en el mecanismo de negocio, y solo después descendemos a la infraestructura.",
+"nv.t":"CÓMO USAR ESTE DIARIO",
+"nv.b":"Esta es la primera entrada de una secuencia. Cada entrada desciende un nivel: del mecanismo de mercado al ciclo de vida de la orden, a los protocolos, a los timestamps, a la observabilidad. Cada entrada cierra con un laboratorio que se espera que resuelvas antes de avanzar. Si saltas el laboratorio, leíste el capítulo — no lo aprendiste.",
+"s1.k":"I","s1.h":"La cadena que nadie dibuja",
+"s1.p1":"El modelo mental que carga la mayoría de los ingenieros tiene dos nodos: el trader envía la orden, la bolsa ejecuta. Ese modelo no está simplificado — está equivocado, y la arquitectura construida sobre él hereda el error. Existe una cadena ordenada, y cada eslabón impone una restricción distinta a la infraestructura que lo sostiene.",
+"s1.p2":"En Brasil, B3 ocupa la banda de bolsa para renta variable, derivados y renta fija. El segmento Listados — el que más me importa en este diario — cubre exactamente dos de estos eslabones simultáneamente: Negociación y Post-Negociación. Trading y post-trade. Un sistema, dos conjuntos de físicas.",
+"fig1.tag":"CADENA DE PARTICIPANTES","fig1.h":"De la intención a la liquidación",
+"fig1.n1":"INVERSOR","fig1.n2":"CORREDORA / BANCO","fig1.band":"BOLSA — B3",
+"fig1.n3":"Order Gateway","fig1.n3s":"entrada · validación",
+"fig1.n4":"Matching Engine","fig1.n4s":"prioridad precio-tiempo",
+"fig1.n5":"Market Data","fig1.n5s":"difusión a todos",
+"fig1.n6":"POST-TRADE","fig1.n7":"Clearing","fig1.n8":"Liquidación","fig1.n9":"Custodia",
+"fig1.cap":"Cinco eslabones, tres protocolos, dos dominios de tiempo. La banda de bolsa opera en microsegundos; la banda post-trade opera en horas. Misma cadena, física distinta.",
+"s2.k":"II","s2.h":"Trading y post-trade no son el mismo sistema",
+"s2.p1":"Esta es la frontera que quiero que internalices antes que nada. Fusionar ambos en un único “proyecto de infraestructura de trading” es el error estructural más común que he visto dentro de instituciones financieras — y produce riesgo mal valorado en ambas direcciones.",
+"cmp.a":"TRADING","cmp.b":"POST-TRADE",
+"cmp.ap":"<b>COMPRAR 100 WIN</b>\n     ↓\n   ORDEN\n     ↓\n CASAMIENTO\n     ↓\n  <b>OPERACIÓN</b>",
+"cmp.bp":"<b>OPERACIÓN</b>\n   ↓\nCLEARING\n   ↓\n RIESGO\n   ↓\nLIQUIDACIÓN\n   ↓\n CUSTODIA",
+"cmp.af":"Microsegundos. Determinismo. Tolerancia cero al jitter en el camino de la orden. Aquí la latencia no es una métrica de rendimiento — decide quién gana la operación.",
+"cmp.bf":"Horas o días. Confiabilidad sobre velocidad. Conciliación, auditabilidad, recuperación. Aquí SRE y resiliencia se vuelven la disciplina dominante.",
+"s2.nt":"POR QUÉ IMPORTA EN EL DISEÑO DE SLO",
+"s2.nb":"Un objetivo de 99,99% de disponibilidad significa algo completamente distinto en cada lado. En trading, cuatro nueves con una cola de 200 ms es un sistema fallido — la cola es donde se pierde el dinero. En post-trade, una caída breve que se recupera con conciliación completa puede ser operacionalmente aceptable. Mismo número, significado opuesto. Un SLO escrito sin esa distinción es decoración.",
+"s3.k":"III","s3.h":"Cuatro mundos, cuatro conjuntos de restricciones",
+"s3.p1":"El ecosistema se divide limpiamente en cuatro dominios. Sepa para cuál está diseñando antes de abrir una terminal — la misma decisión tecnológica es correcta en uno y catastrófica en otro.",
+"w1.h":"Quién invierte","w1.p":"Gestoras, hedge funds, firmas de trading propietario, fondos de pensiones. Su infraestructura existe para generar y capturar alfa. La métrica es la calidad de ejecución.",
+"w2.h":"Quién da acceso","w2.p":"Bancos de inversión, corredoras, dealers, market makers. Poseen el ruteo de órdenes, el riesgo pre-trade y el DMA. Su restricción es throughput bajo obligación regulatoria.",
+"w3.h":"Dónde se encuentran las órdenes","w3.p":"Matching engine, order gateway, feed de market data, colocation. La latencia determinista no es un objetivo — es el contrato de equidad con todo el mercado.",
+"w4.h":"Después de la operación","w4.p":"Clearing, riesgo, liquidación, custodia, conciliación. Dominan la consistencia y la recuperabilidad. Es el hogar natural de la práctica SRE en mercados de capitales.",
+"s3.pull":"Dos instituciones pueden cumplir igualmente el mismo manual de bolsa y operar con tres órdenes de magnitud de diferencia. El cumplimiento es el piso, no la estrategia.",
+"s4.k":"IV","s4.h":"Una orden no es una operación",
+"s4.p1":"Esto es lo primero que pregunto a cualquier ingeniero que se incorpora a un equipo de infraestructura de mercado, y filtra más candidatos que cualquier pregunta de protocolo. Una orden es una instrucción. Una operación es un evento producido cuando dos instrucciones compatibles se encuentran. Son objetos distintos con ciclos de vida, volúmenes y modos de falla distintos.",
+"s4.p2":"Una orden puede permanecer en el libro indefinidamente. Puede modificarse. Puede cancelarse. Puede ejecutarse parcialmente. Solo cuando el matching engine encuentra una contraparte compatible existe una operación.",
+"s4.nt":"EL NÚMERO QUE ROMPE LOS MODELOS DE CAPACIDAD",
+"s4.nb":"En mercados activos la relación órdenes/operaciones supera habitualmente 100:1. Cada orden rechazada, cada cancelación, cada modificación atraviesa igualmente el gateway, consume ancho de banda y exige procesamiento. Un modelo de capacidad basado en volumen de operaciones ejecutadas subdimensiona el sistema en dos órdenes de magnitud — y falla precisamente en los días que importan, cuando el volumen se dispara y la relación se amplía.",
+"s5.k":"V","s5.h":"Prioridad precio-tiempo, y por qué es un requisito de ingeniería",
+"s5.p1":"El libro de órdenes es el estado vivo de oferta y demanda en cada nivel de precio. El matching engine le aplica una regla determinista: mejor precio primero; dentro del mismo precio, la llegada más temprana primero.",
+"s5.p2":"Dos participantes envían una orden de compra idéntica al mismo precio. Aquel cuyo paquete llega primero al matching engine gana la ejecución. El otro no obtiene nada, o consigue un precio peor en el siguiente nivel.",
+"s5.p3":"Ese es todo el argumento de cuanto construiremos en las siguientes entradas. Precisión de timestamp, switching determinista, kernel bypass, colocation — nada de eso es ajuste de rendimiento. Es la consecuencia en infraestructura de una regla de casamiento.",
+"s5.l1":"<strong>Timestamping en hardware y PTP</strong> — no se puede probar el orden de eventos sin un reloj trazable",
+"s5.l2":"<strong>Números de secuencia en cada mensaje</strong> — la detección de gaps es obligatoria, no opcional",
+"s5.l3":"<strong>Sin jitter en el camino de la orden</strong> — un retraso indeterminado viola el contrato de equidad",
+"s5.l4":"<strong>Proximidad física</strong> — la distancia es el único componente que la ingeniería no puede compensar",
+"ob.lbl":"LIBRO DE ÓRDENES · ESTADO EJEMPLO","ob.sp":"spread · 0,05","ob.ask":"ASK · venta","ob.bid":"BID · compra",
+"fig2.tag":"CARRERA DE LATENCIA","fig2.h":"Misma orden, mismo precio, camino distinto",
+"fig2.a":"Participante A · remoto","fig2.b":"Participante B · colocation",
+"fig2.note":"Mismo nivel de precio · decide la prioridad temporal · B ejecuta, A no",
+"fig2.cap":"La diferencia de 10 µs no es una mejora de rendimiento. En el mismo nivel de precio es el resultado completo.",
+"s6.k":"VI","s6.h":"El segundo flujo, corriendo en sentido contrario",
+"s6.p1":"El order flow lleva intención al mercado. El market data lleva estado hacia afuera, a todos los participantes simultáneamente. Direcciones opuestas, protocolos opuestos, modos de falla opuestos — y los ingenieros que los tratan como un solo sistema fallan en ambos.",
+"mk.a":"ORDER FLOW · trader → bolsa","mk.b":"MARKET DATA · bolsa → todos",
+"mk.ap":"Protocolo  <b>TCP</b>\nTopología  unicast 1:1\nVolumen    moderado\nFalla      caída de sesión\nTolerancia <b>cero pérdida</b>",
+"mk.bp":"Protocolo  <b>UDP multicast</b>\nTopología  1:N simultáneo\nVolumen    enorme\nFalla      gap de paquete\nTolerancia <b>gap + recuperar</b>",
+"mk.af":"La pérdida silenciosa de una orden es inaceptable, por eso el protocolo debe confirmar. El costo es el estado de conexión.",
+"mk.bf":"La bolsa publica una vez; cada suscriptor recibe en paralelo. TCP aquí colapsaría bajo el fan-out.",
+"s6.nt":"POR QUÉ LOS SERVIDORES DE TRADING USAN NIC DE DOBLE PUERTO",
+"s6.nb":"Esta asimetría tiene una consecuencia física que construí con mis propias manos dentro de una jaula de colocation: un puerto de NIC dedicado a recepción multicast, un puerto separado para transmisión TCP de órdenes. Dos requisitos opuestos en la misma máquina, separados a nivel de hardware. Compartir un solo puerto introduce jitter de tráfico cruzado en el camino de la orden — y el camino de la orden es el que no puede tenerlo.",
+"s7.k":"VII","s7.h":"El mapa que llevamos desde aquí",
+"s7.p1":"Todo lo anterior es la mitad del cuadro: el mecanismo de negocio. Debajo se encuentra la pila que lo ejecuta. Cada capa responde una pregunta distinta, y cada entrada siguiente de este diario desciende un nivel.",
+"fig3.tag":"PILA","fig3.h":"Del evento de negocio al medio físico",
+"st.1":"NEGOCIO FINANCIERO","st.1q":"¿qué evento?",
+"st.2":"TRADING · MARKET DATA · POST-TRADE","st.2q":"¿qué dominio?",
+"st.3":"APLICACIONES","st.3q":"¿cómo se procesa?",
+"st.4":"PLATAFORMA · SRE","st.4q":"¿está sano?",
+"st.5":"KUBERNETES · CLOUD · LINUX","st.5q":"¿dónde corre?",
+"st.6":"RED — TCP · MULTICAST · PTP","st.6q":"¿llega a tiempo?",
+"st.7":"CÓMPUTO · NIC","st.7q":"¿hay capacidad?",
+"st.8":"FÍSICO — FIBRA · DISTANCIA","st.8q":"¿qué cobra la física?",
+"fig3.cap":"La capa SRE se sitúa exactamente donde la garantía de negocio se encuentra con la restricción física. Esa posición es la razón por la que la disciplina es distinta en mercados de capitales.",
+"lab.k":"LAB 01","lab.h":"Usted es el matching engine",
+"lab.p":"Tres órdenes llegan al libro de abajo. Aplique prioridad precio-tiempo y responda cada pregunta. El sistema valida su respuesta — resuélvalo antes de adivinar. Si no puede responder las cuatro, aún no ha internalizado la sección V.",
+"lab.tag":"LAB 01","lab.th":"Simulación de matching engine","lab.ts":"Prioridad precio-tiempo · órdenes limitadas · barrido multinivel",
+"lab.obl":"ESTADO INICIAL","lab.obs":"spread",
+"lab.oa":"ORDEN A · llega primero","lab.ob":"ORDEN B · llega segunda","lab.oc":"ORDEN C · llega tercera",
+"lab.q1":"¿A qué precio se ejecuta la Orden A?","lab.q2":"¿Cuántos niveles de precio barre la Orden B?",
+"lab.q3":"¿A qué precio se ejecuta la Orden C?","lab.q4":"Tras las tres órdenes, ¿qué cantidad queda en ASK 100,95?",
+"lab.btn":"Verificar","lab.btn2":"Verificar","lab.btn3":"Verificar","lab.btn4":"Verificar",
+"lab.rt":"LIBRO DE ÓRDENES RESULTANTE",
+"lab.rs":"La Orden A ejecutó 100 a 100,90. La Orden B barrió dos niveles: 100 a 100,90, luego 150 a 100,95. La Orden C cruzó el spread y ejecutó 150 a 100,85, consumiendo ese nivel por completo. Una orden produjo dos eventos de operación — su modelo de capacidad debe contemplar ese fan-out en cada capa.",
+"lab.nt":"QUÉ EVALUÓ REALMENTE ESTE LABORATORIO",
+"lab.nb":"No aritmética. Evaluó si usted entiende que un precio límite es una frontera, no una instrucción — una venta a 100,80 se ejecuta a 100,85 porque 100,85 es mejor para el vendedor. Los ingenieros que pasan esto por alto construyen lógica de validación que rechaza órdenes válidas. También evaluó si notó que una sola orden entrante puede producir múltiples eventos de operación, la variable más subestimada en el dimensionamiento de market data.",
+"s8.k":"VIII","s8.h":"Qué cambia después de este capítulo",
+"s8.p1":"Ahora tiene el mecanismo. De aquí en adelante, cada decisión técnica de este diario remite a algo de este capítulo, y haré ese vínculo explícito cada vez.",
+"s8.p2":"El multicast existe porque la bolsa debe publicar una vez para N suscriptores. Los números de secuencia existen porque UDP descartará y usted debe probar que nada se perdió. PTP existe porque la prioridad precio-tiempo exige un orden de eventos demostrable. El colocation existe porque la distancia es el único costo que la ingeniería no puede eliminar. Ninguna de estas es una elección tecnológica. Son consecuencias de una regla de mercado.",
+"s8.pull":"El paquete importa por lo que hay encima de él. Diseñe el cable sin conocer la regla y optimizará la capa equivocada con gran precisión.",
+"nxt.k":"SIGUIENTE — DIARIO 02","nxt.h":"El Ciclo de Vida de la Orden",
+"nxt.p":"Una sola orden, seguida de extremo a extremo: aplicación, NIC, red, gateway, matching engine, market data y vuelta. Los mensajes se vuelven paquetes, los paquetes adquieren timestamps, los timestamps se vuelven observabilidad.",
+"nxt.b":"Próximamente",
+"sig.r":"Principal Solutions Architect · Mercados de Capitales · Double CCIE (Enterprise + Service Provider) · CCDE",
+"sig.oep":"Orden · Estrategia · Paciencia",
+"ft.1":"Instructor Cisco Networking Academy desde 2006",
+"ft.2":"Ingeniería de redes de alto rendimiento para mercados de capitales",
+"ft.oep":"Orden · Estrategia · Paciencia",
+"ft.legal":"Academia · Diario de Redes de Trading · entrada 01 · v1.0 — Material didáctico original. Las cifras de latencia y los estados de libro son órdenes de magnitud públicas y premisas ilustrativas, destinadas a enseñar el razonamiento de arquitectura. No constituyen recomendación de inversión ni especificación de proyecto. Licencia MIT."
+},
+pt:{
+"h.kicker":"Diário de Redes de Trading · 01",
+"h.title":"Estrutura de Mercado",
+"h.lead":"Antes de projetar um único pacote, precisamos combinar o que esse pacote carrega. Este é o mecanismo de mercado que toda infraestrutura de trading existe para executar.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestrutura de Mercado de Capitais",
+"h.date":"Setembro de 2026","h.read":"25 min · com laboratório","h.cat":"Estrutura de Mercado · Fundamento",
+"p.1":"Passei anos projetando redes para instituições financeiras antes de conseguir responder direito a uma pergunta simples: o que existe de fato dentro do pacote que eu estou otimizando? Não porque a pergunta seja difícil. Porque ninguém faz. Entregam ao engenheiro um orçamento de latência e uma topologia, e a lógica de negócio acima do cabo continua sendo problema de outro.",
+"p.2":"É nessa lacuna que as carreiras travam. Um engenheiro que não sabe o que um matching engine faz não consegue escrever um SLO que signifique alguma coisa. Um arquiteto que não separa order flow de market data vai projetar os dois com as mesmas ferramentas e falhar nos dois. Por isso começamos aqui, no mecanismo de negócio, e só depois descemos para a infraestrutura.",
+"nv.t":"COMO USAR ESTE DIÁRIO",
+"nv.b":"Esta é a primeira entrada de uma sequência. Cada entrada desce uma camada: do mecanismo de mercado para o ciclo de vida da ordem, para os protocolos, para os timestamps, para a observabilidade. Toda entrada fecha com um laboratório que você deve resolver antes de seguir. Se pular o laboratório, você leu o capítulo — não aprendeu.",
+"s1.k":"I","s1.h":"A cadeia que ninguém desenha",
+"s1.p1":"O modelo mental que a maioria dos engenheiros carrega tem dois nós: o trader manda a ordem, a bolsa executa. Esse modelo não é simplificado — ele é errado, e a arquitetura construída sobre ele herda o erro. Existe uma cadeia ordenada, e cada elo impõe uma restrição diferente à infraestrutura que o sustenta.",
+"s1.p2":"No Brasil, a B3 ocupa a faixa de bolsa para renda variável, derivativos e renda fixa. O segmento Listados — o que mais me interessa neste diário — cobre exatamente dois desses elos ao mesmo tempo: Negociação e Pós-Negociação. Trading e post-trade. Um sistema, duas físicas.",
+"fig1.tag":"CADEIA DE PARTICIPANTES","fig1.h":"Da intenção à liquidação",
+"fig1.n1":"INVESTIDOR","fig1.n2":"CORRETORA / BANCO","fig1.band":"BOLSA — B3",
+"fig1.n3":"Order Gateway","fig1.n3s":"entrada · validação",
+"fig1.n4":"Matching Engine","fig1.n4s":"prioridade preço-tempo",
+"fig1.n5":"Market Data","fig1.n5s":"difusão para todos",
+"fig1.n6":"PÓS-NEGOCIAÇÃO","fig1.n7":"Clearing","fig1.n8":"Liquidação","fig1.n9":"Custódia",
+"fig1.cap":"Cinco elos, três protocolos, dois domínios de tempo. A faixa da bolsa opera em microssegundos; a faixa de pós-negociação opera em horas. Mesma cadeia, física diferente.",
+"s2.k":"II","s2.h":"Negociação e pós-negociação não são o mesmo sistema",
+"s2.p1":"Essa é a fronteira que eu quero que você internalize antes de qualquer outra coisa. Fundir as duas num único “projeto de infraestrutura de trading” é o erro estrutural mais comum que já vi dentro de instituição financeira — e produz risco mal precificado nas duas direções.",
+"cmp.a":"NEGOCIAÇÃO","cmp.b":"PÓS-NEGOCIAÇÃO",
+"cmp.ap":"<b>COMPRAR 100 WIN</b>\n     ↓\n   ORDEM\n     ↓\n CASAMENTO\n     ↓\n  <b>NEGÓCIO</b>",
+"cmp.bp":"<b>NEGÓCIO</b>\n   ↓\nCLEARING\n   ↓\n  RISCO\n   ↓\nLIQUIDAÇÃO\n   ↓\n CUSTÓDIA",
+"cmp.af":"Microssegundos. Determinismo. Tolerância zero a jitter no caminho da ordem. Aqui latência não é métrica de performance — ela decide quem ganha o negócio.",
+"cmp.bf":"Horas ou dias. Confiabilidade acima de velocidade. Conciliação, auditabilidade, recuperação. É aqui que SRE e resiliência se tornam a disciplina dominante.",
+"s2.nt":"POR QUE ISSO IMPORTA NO DESENHO DE SLO",
+"s2.nb":"Uma meta de 99,99% de disponibilidade significa coisas completamente diferentes de cada lado. Na negociação, quatro noves com uma cauda de 200 ms é um sistema falho — a cauda é onde o dinheiro se perde. Na pós-negociação, uma queda breve que se recupera com conciliação completa pode ser operacionalmente aceitável. Mesmo número, significado oposto. Um SLO escrito sem essa distinção é decoração.",
+"s3.k":"III","s3.h":"Quatro mundos, quatro conjuntos de restrições",
+"s3.p1":"O ecossistema se divide de forma limpa em quatro domínios. Saiba para qual deles você está projetando antes de abrir um terminal — a mesma decisão tecnológica é correta em um e catastrófica em outro.",
+"w1.h":"Quem investe","w1.p":"Gestoras, hedge funds, mesas proprietárias, fundos de pensão. A infraestrutura existe para gerar e capturar alfa. A métrica é qualidade de execução.",
+"w2.h":"Quem dá acesso","w2.p":"Bancos de investimento, corretoras, dealers, formadores de mercado. Detêm roteamento de ordens, risco pré-trade e DMA. A restrição é throughput sob obrigação regulatória.",
+"w3.h":"Onde as ordens se encontram","w3.p":"Matching engine, order gateway, feed de market data, colocation. Latência determinística não é meta — é o contrato de equidade com o mercado inteiro.",
+"w4.h":"Depois do negócio","w4.p":"Clearing, risco, liquidação, custódia, conciliação. Consistência e recuperabilidade dominam. É a casa natural da prática de SRE em mercado de capitais.",
+"s3.pull":"Duas instituições podem estar igualmente conformes ao mesmo manual da bolsa e operar com três ordens de grandeza de diferença. Conformidade é o piso, não a estratégia.",
+"s4.k":"IV","s4.h":"Uma ordem não é um negócio",
+"s4.p1":"Essa é a primeira coisa que pergunto a qualquer engenheiro que entra num time de infraestrutura de mercado, e filtra mais candidato do que qualquer pergunta de protocolo. Ordem é instrução. Negócio é evento — produzido quando duas instruções compatíveis se encontram. São objetos diferentes, com ciclos de vida, volumes e modos de falha diferentes.",
+"s4.p2":"Uma ordem pode ficar no livro indefinidamente. Pode ser modificada. Pode ser cancelada. Pode ser parcialmente executada. Só quando o matching engine encontra contraparte compatível é que existe negócio.",
+"s4.nt":"O NÚMERO QUE QUEBRA MODELOS DE CAPACIDADE",
+"s4.nb":"Em mercados ativos a razão ordens/negócios passa rotineiramente de 100:1. Toda ordem rejeitada, todo cancelamento, toda modificação atravessa igualmente o gateway, consome banda e exige processamento. Um modelo de capacidade construído sobre volume de negócios executados subdimensiona o sistema em duas ordens de grandeza — e falha exatamente nos dias que importam, quando o volume dispara e a razão se amplia.",
+"s5.k":"V","s5.h":"Prioridade preço-tempo, e por que ela é um requisito de engenharia",
+"s5.p1":"O livro de ofertas é o estado vivo da oferta e da demanda em cada nível de preço. O matching engine aplica a ele uma regra determinística: melhor preço primeiro; dentro do mesmo preço, quem chegou antes primeiro.",
+"s5.p2":"Dois participantes mandam uma ordem de compra idêntica no mesmo preço. Aquele cujo pacote chega primeiro ao matching engine leva a execução. O outro não leva nada, ou pega um preço pior no nível seguinte.",
+"s5.p3":"Esse é o argumento inteiro de tudo que vamos construir nas próximas entradas. Precisão de timestamp, switching determinístico, kernel bypass, colocation — nada disso é ajuste de performance. É a consequência, em infraestrutura, de uma regra de casamento.",
+"s5.l1":"<strong>Timestamping em hardware e PTP</strong> — não se prova ordem de eventos sem relógio rastreável",
+"s5.l2":"<strong>Número de sequência em toda mensagem</strong> — detecção de gap é obrigatória, não opcional",
+"s5.l3":"<strong>Sem jitter no caminho da ordem</strong> — atraso indeterminado viola o contrato de equidade",
+"s5.l4":"<strong>Proximidade física</strong> — distância é o único componente que engenharia não compensa",
+"ob.lbl":"LIVRO DE OFERTAS · ESTADO EXEMPLO","ob.sp":"spread · 0,05","ob.ask":"ASK · venda","ob.bid":"BID · compra",
+"fig2.tag":"CORRIDA DE LATÊNCIA","fig2.h":"Mesma ordem, mesmo preço, caminho diferente",
+"fig2.a":"Participante A · remoto","fig2.b":"Participante B · colocation",
+"fig2.note":"Mesmo nível de preço · prioridade temporal decide · B executa, A não",
+"fig2.cap":"A diferença de 10 µs não é uma melhoria de performance. No mesmo nível de preço, ela é o resultado inteiro.",
+"s6.k":"VI","s6.h":"O segundo fluxo, correndo no sentido contrário",
+"s6.p1":"O order flow leva intenção para dentro do mercado. O market data leva estado para fora, para todos os participantes ao mesmo tempo. Direções opostas, protocolos opostos, modos de falha opostos — e o engenheiro que trata os dois como um sistema só falha nos dois.",
+"mk.a":"ORDER FLOW · trader → bolsa","mk.b":"MARKET DATA · bolsa → todos",
+"mk.ap":"Protocolo  <b>TCP</b>\nTopologia  unicast 1:1\nVolume     moderado\nFalha      queda de sessão\nTolerância <b>perda zero</b>",
+"mk.bp":"Protocolo  <b>UDP multicast</b>\nTopologia  1:N simultâneo\nVolume     enorme\nFalha      gap de pacote\nTolerância <b>gap + recuperar</b>",
+"mk.af":"Perda silenciosa de ordem é inaceitável, então o protocolo precisa confirmar. O custo é estado de conexão.",
+"mk.bf":"A bolsa publica uma vez; cada assinante recebe em paralelo. TCP aqui colapsaria sob o fan-out.",
+"s6.nt":"POR QUE SERVIDORES DE TRADING USAM NIC DE DUAS PORTAS",
+"s6.nb":"Essa assimetria tem uma consequência física que eu construí com as próprias mãos dentro de uma gaiola de colocation: uma porta de NIC dedicada à recepção multicast, outra porta separada para o envio TCP de ordens. Dois requisitos opostos na mesma máquina, separados no nível do hardware. Compartilhar uma única porta introduz jitter de tráfego cruzado no caminho da ordem — e o caminho da ordem é justamente o que não pode ter.",
+"s7.k":"VII","s7.h":"O mapa que levamos daqui em diante",
+"s7.p1":"Tudo acima é metade do quadro: o mecanismo de negócio. Embaixo dele está a pilha que o executa. Cada camada responde a uma pergunta diferente, e cada entrada seguinte deste diário desce um nível.",
+"fig3.tag":"PILHA","fig3.h":"Do evento de negócio ao meio físico",
+"st.1":"NEGÓCIO FINANCEIRO","st.1q":"qual evento?",
+"st.2":"NEGOCIAÇÃO · MARKET DATA · PÓS-NEGOCIAÇÃO","st.2q":"qual domínio?",
+"st.3":"APLICAÇÕES","st.3q":"como é processado?",
+"st.4":"PLATAFORMA · SRE","st.4q":"está saudável?",
+"st.5":"KUBERNETES · CLOUD · LINUX","st.5q":"onde roda?",
+"st.6":"REDE — TCP · MULTICAST · PTP","st.6q":"chega a tempo?",
+"st.7":"COMPUTE · NIC","st.7q":"tem capacidade?",
+"st.8":"FÍSICO — FIBRA · DISTÂNCIA","st.8q":"quanto a física cobra?",
+"fig3.cap":"A camada de SRE fica exatamente onde a garantia de negócio encontra a restrição física. É essa posição que torna a disciplina diferente em mercado de capitais.",
+"lab.k":"LAB 01","lab.h":"Você é o matching engine",
+"lab.p":"Três ordens chegam ao livro abaixo. Aplique prioridade preço-tempo e responda cada pergunta. O sistema valida sua resposta — resolva antes de chutar. Se você não conseguir responder as quatro, ainda não internalizou a seção V.",
+"lab.tag":"LAB 01","lab.th":"Simulação de matching engine","lab.ts":"Prioridade preço-tempo · ordens limitadas · varredura multinível",
+"lab.obl":"ESTADO INICIAL","lab.obs":"spread",
+"lab.oa":"ORDEM A · chega primeiro","lab.ob":"ORDEM B · chega em segundo","lab.oc":"ORDEM C · chega em terceiro",
+"lab.q1":"A Ordem A executa a que preço?","lab.q2":"Quantos níveis de preço a Ordem B varre?",
+"lab.q3":"A Ordem C executa a que preço?","lab.q4":"Depois das três ordens, qual quantidade resta no ASK 100,95?",
+"lab.btn":"Verificar","lab.btn2":"Verificar","lab.btn3":"Verificar","lab.btn4":"Verificar",
+"lab.rt":"LIVRO DE OFERTAS RESULTANTE",
+"lab.rs":"A Ordem A executou 100 a 100,90. A Ordem B varreu dois níveis: 100 a 100,90, depois 150 a 100,95. A Ordem C cruzou o spread e executou 150 a 100,85, consumindo aquele nível inteiro. Uma ordem produziu dois eventos de negócio — seu modelo de capacidade precisa contemplar esse fan-out em todas as camadas.",
+"lab.nt":"O QUE ESTE LABORATÓRIO REALMENTE TESTOU",
+"lab.nb":"Não foi aritmética. Testou se você entende que preço limite é fronteira, não instrução — uma venda a 100,80 executa a 100,85 porque 100,85 é melhor para o vendedor. Engenheiro que erra isso constrói lógica de validação que rejeita ordem válida. Testou também se você percebeu que uma única ordem de entrada pode produzir múltiplos eventos de negócio, a variável mais subestimada no dimensionamento de market data.",
+"s8.k":"VIII","s8.h":"O que muda depois deste capítulo",
+"s8.p1":"Agora você tem o mecanismo. Daqui em diante, toda decisão técnica deste diário remete a alguma coisa deste capítulo, e eu vou tornar esse vínculo explícito toda vez.",
+"s8.p2":"Multicast existe porque a bolsa precisa publicar uma vez para N assinantes. Número de sequência existe porque UDP vai descartar e você precisa provar que nada se perdeu. PTP existe porque prioridade preço-tempo exige ordem de eventos demonstrável. Colocation existe porque distância é o único custo que engenharia não remove. Nenhuma dessas é escolha tecnológica. São consequências de uma regra de mercado.",
+"s8.pull":"O pacote importa por causa do que está acima dele. Projete o cabo sem conhecer a regra e você vai otimizar a camada errada com enorme precisão.",
+"nxt.k":"PRÓXIMO — DIÁRIO 02","nxt.h":"O Ciclo de Vida da Ordem",
+"nxt.p":"Uma única ordem, seguida de ponta a ponta: aplicação, NIC, rede, gateway, matching engine, market data e volta. Mensagens viram pacotes, pacotes ganham timestamps, timestamps viram observabilidade.",
+"nxt.b":"Em breve",
+"sig.r":"Principal Solutions Architect · Mercado de Capitais · Double CCIE (Enterprise + Service Provider) · CCDE",
+"sig.oep":"Ordem · Estratégia · Paciência",
+"ft.1":"Instrutor Cisco Networking Academy desde 2006",
+"ft.2":"Engenharia de redes de alta performance para mercado de capitais",
+"ft.oep":"Ordem · Estratégia · Paciência",
+"ft.legal":"Academia · Diário de Redes de Trading · entrada 01 · v1.0 — Material didático original. Números de latência e estados de livro são ordens de grandeza públicas e premissas ilustrativas, destinados ao ensino do raciocínio de arquitetura. Não constituem recomendação de investimento nem especificação de projeto. Licença MIT."
+}};
+
+/* ---------- i18n ---------- */
+(function(){
+"use strict";
+var origs=null;
+function applyLang(lang){
+  document.body.dataset.lang=lang;
+  document.documentElement.lang=lang==="pt"?"pt-BR":lang;
+  var nodes=document.querySelectorAll("[data-i18n]");
+  if(!origs){origs=new Map();nodes.forEach(function(n){origs.set(n,n.innerHTML);});}
+  nodes.forEach(function(n){
+    var k=n.getAttribute("data-i18n");
+    if(lang==="en"){n.innerHTML=origs.get(n);return;}
+    var v=T[lang]&&T[lang][k];
+    if(v==null)return;
+    n.innerHTML=v;
+  });
+  window.__jcLang=lang;
+}
+window.addEventListener("jc:lang",function(e){applyLang(e.detail.lang);});
+applyLang((window.jcHeader&&window.jcHeader.lang)||"en");
+})();
+
+/* ---------- lab ---------- */
+var ANS=["100.90","2","100.85","150"];
+var FB={
+en:[
+ {ok:"Correct. The best ASK is 100.90 and the order is willing to pay 100.90. It fills entirely at that level.",
+  no:"Not correct. Order A buys at up to 100.90. The best ASK available is exactly 100.90, with 200 contracts. It fills there."},
+ {ok:"Correct. After Order A consumed 100 at 100.90, only 100 remain at that level. Order B takes those 100, then continues to 100.95 for the remaining 150. Two levels.",
+  no:"Not correct. Order B needs 250 contracts and will pay up to 100.95. Level 100.90 has 100 left after Order A; level 100.95 has 300. Count the levels it must touch."},
+ {ok:"Correct. A limit sell at 100.80 accepts 100.80 or better. The best BID is 100.85 — better for the seller — so it executes there.",
+  no:"Not correct. A limit price is a boundary, not an instruction. Selling at 100.80 means 100.80 or higher is acceptable. Look at the best BID."},
+ {ok:"Correct. Level 100.95 started with 300 and Order B consumed 150 of them. 150 remain.",
+  no:"Not correct. Order B took 100 at 100.90 and the remainder at 100.95. Subtract that remainder from the 300 originally resting at 100.95."}
+],
+es:[
+ {ok:"Correcto. El mejor ASK es 100,90 y la orden acepta pagar 100,90. Se ejecuta íntegramente en ese nivel.",
+  no:"Incorrecto. La Orden A compra hasta 100,90. El mejor ASK disponible es exactamente 100,90, con 200 contratos. Se ejecuta ahí."},
+ {ok:"Correcto. Tras consumir la Orden A 100 a 100,90, solo quedan 100 en ese nivel. La Orden B toma esos 100 y continúa a 100,95 por los 150 restantes. Dos niveles.",
+  no:"Incorrecto. La Orden B necesita 250 contratos y paga hasta 100,95. El nivel 100,90 tiene 100 tras la Orden A; el nivel 100,95 tiene 300. Cuente los niveles que debe tocar."},
+ {ok:"Correcto. Una venta limitada a 100,80 acepta 100,80 o mejor. El mejor BID es 100,85 — mejor para el vendedor — así que ejecuta ahí.",
+  no:"Incorrecto. Un precio límite es una frontera, no una instrucción. Vender a 100,80 significa que 100,80 o superior es aceptable. Mire el mejor BID."},
+ {ok:"Correcto. El nivel 100,95 tenía 300 y la Orden B consumió 150. Quedan 150.",
+  no:"Incorrecto. La Orden B tomó 100 a 100,90 y el resto a 100,95. Reste ese resto de los 300 originales en 100,95."}
+],
+pt:[
+ {ok:"Correto. O melhor ASK é 100,90 e a ordem aceita pagar 100,90. Ela executa inteira nesse nível.",
+  no:"Incorreto. A Ordem A compra até 100,90. O melhor ASK disponível é exatamente 100,90, com 200 contratos. Ela executa ali."},
+ {ok:"Correto. Depois de a Ordem A consumir 100 a 100,90, restam só 100 naquele nível. A Ordem B leva esses 100 e segue para 100,95 pelos 150 restantes. Dois níveis.",
+  no:"Incorreto. A Ordem B precisa de 250 contratos e paga até 100,95. O nível 100,90 tem 100 depois da Ordem A; o nível 100,95 tem 300. Conte os níveis que ela precisa tocar."},
+ {ok:"Correto. Uma venda limitada a 100,80 aceita 100,80 ou melhor. O melhor BID é 100,85 — melhor para o vendedor — então executa ali.",
+  no:"Incorreto. Preço limite é fronteira, não instrução. Vender a 100,80 significa que 100,80 ou acima é aceitável. Olhe o melhor BID."},
+ {ok:"Correto. O nível 100,95 tinha 300 e a Ordem B consumiu 150. Restam 150.",
+  no:"Incorreto. A Ordem B levou 100 a 100,90 e o restante a 100,95. Subtraia esse restante dos 300 que estavam em 100,95."}
+]};
+
+var done=[false,false,false,false];
+
+function chk(n){
+  if(done[n-1])return;
+  var lang=(window.__jcLang)||"en";
+  var inp=document.getElementById("i"+n);
+  var fb=document.getElementById("f"+n);
+  var val=inp.value.trim().replace(",",".");
+  var ok=(val===ANS[n-1]);
+  var set=FB[lang]||FB.en;
+
+  fb.textContent=set[n-1][ok?"ok":"no"];
+  fb.className="fb on "+(ok?"ok":"no");
+  inp.classList.remove("ok","no");
+  inp.classList.add(ok?"ok":"no");
+
+  if(!ok){
+    setTimeout(function(){inp.classList.remove("no");inp.value="";},2200);
+    return;
+  }
+  done[n-1]=true;
+  if(n<4){
+    var nx=document.getElementById("q"+(n+1));
+    if(nx)nx.classList.remove("off");
+  }
+  if(done.every(Boolean)){
+    setTimeout(function(){document.getElementById("res").classList.add("on");},400);
+  }
+}
+
+[1,2,3,4].forEach(function(n){
+  var i=document.getElementById("i"+n);
+  if(i)i.addEventListener("keydown",function(e){if(e.key==="Enter")chk(n);});
+});
+</script>
+</body>
+</html>

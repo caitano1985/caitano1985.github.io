@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Order Lifecycle — Trading Network Journal 02 | Josimar Caitano</title>
+<meta name="description" content="Following one single order end to end: intent, message, packet, gateway, matching engine, execution report, market data. Where latency lives and where an order dies.">
+<meta property="og:title" content="The Order Lifecycle — Trading Network Journal 02">
+<meta property="og:description" content="One order, followed end to end. Where latency lives and where an order dies.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#08213E;--ink2:#12395F;--tx:#2A3B52;--tx2:#4A5E78;
+ --cy:#00BCEB;--cy2:#0093B8;--bl:#0B5CD5;--bl2:#073B87;
+ --t1:#F4F9FD;--t2:#E5F1FA;--sf:#D2E7F5;
+ --ln:#DCE7F1;--ln2:#BFD5E8;
+ --gn:#0F8B4C;--gnb:#E7F6EE;--gnl:#B6E2CA;
+ --am:#B87610;--amb:#FDF5E7;--aml:#EEDCB2;
+ --rd:#C93327;--rdb:#FCEDEB;--rdl:#F0C6C0;
+ --gd:#8E7124;--mu:#63768E;--mu2:#93A6BB;
+ --s1:0 1px 2px rgba(8,33,62,.05);
+ --s2:0 1px 2px rgba(8,33,62,.05),0 16px 40px -26px rgba(8,33,62,.4);
+ --mw:1220px;--rw:78ch}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:#fff;color:var(--tx);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ font-size:18px;line-height:1.68;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);letter-spacing:-.02em;font-weight:700;margin:0}
+a{color:var(--bl)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.in{max-width:var(--mw);margin:0 auto;padding:0 24px}
+.rd-w{max-width:var(--rw);margin:0 auto}
+p{margin:0 0 20px;color:var(--tx2)}
+strong{color:var(--ink);font-weight:700}
+
+/* hero */
+.hero{background:radial-gradient(85% 105% at 90% -12%,#D9EEFA 0%,rgba(255,255,255,0) 60%),linear-gradient(180deg,#FAFDFF,#fff);border-bottom:1px solid var(--ln)}
+.hero .r{max-width:var(--mw);margin:0 auto;padding:62px 24px 44px}
+.eb{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:700;color:var(--bl);margin:0 0 18px}
+.eb::before{content:"";width:28px;height:3px;border-radius:3px;background:var(--cy)}
+.hero h1{font-size:clamp(32px,5vw,56px);line-height:1.04;max-width:20ch;margin:0 0 20px;letter-spacing:-.032em}
+.hero .ld{font-size:clamp(18px,2vw,22px);color:var(--tx2);max-width:64ch;margin:0 0 28px}
+.hm{display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.av{width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,var(--bl),var(--cy));display:grid;place-items:center;
+ color:#fff;font-weight:700;font-size:18px;flex:none;box-shadow:var(--s2)}
+.hm .n{font-weight:700;color:var(--ink);font-size:15px;line-height:1.25}
+.hm .rr{font-size:13px;color:var(--mu)}
+.meta{margin-top:22px;display:flex;gap:18px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--mu)}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+.meta i{width:6px;height:6px;border-radius:50%;background:var(--cy);display:block}
+.prv{margin-top:24px;display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:var(--mu);
+ background:#fff;border:1px solid var(--ln);border-radius:999px;padding:7px 16px;text-decoration:none}
+.prv:hover{border-color:var(--bl);color:var(--bl)}
+.prv b{color:var(--ink);font-weight:600}
+
+/* article */
+main{padding:10px 0 0}
+article section{padding:44px 0 4px;border-top:1px solid var(--ln)}
+article section:first-child{border-top:0;padding-top:52px}
+.ln{font-size:12.5px;font-weight:700;color:var(--bl);margin:0 0 10px;display:flex;align-items:center;gap:10px;font-family:"IBM Plex Mono",monospace}
+.ln::before{content:"";width:20px;height:3px;border-radius:3px;background:var(--cy)}
+article h2{font-size:clamp(25px,3.3vw,36px);line-height:1.12;margin:0 0 20px;max-width:24ch}
+article h3{font-size:19px;margin:30px 0 12px}
+.lead{font-size:20px;color:var(--tx);margin-bottom:22px}
+.pull{font-weight:700;font-size:clamp(20px,2.7vw,27px);line-height:1.3;color:var(--ink);border-left:4px solid var(--cy);
+ padding:10px 0 10px 24px;margin:32px 0;letter-spacing:-.02em}
+.note{border-left:3px solid var(--cy);background:var(--t1);border-radius:0 14px 14px 0;padding:18px 22px;margin:26px 0}
+.note .t{font-size:11.5px;font-weight:700;color:var(--bl);margin:0 0 7px;letter-spacing:.04em;font-family:"IBM Plex Mono",monospace}
+.note p{margin:0;font-size:16.5px;color:var(--tx)}
+.note.g{border-left-color:var(--gd);background:#FCFAF3}.note.g .t{color:var(--gd)}
+.note.gn{border-left-color:var(--gn);background:var(--gnb)}.note.gn .t{color:var(--gn)}
+.note.rd{border-left-color:var(--rd);background:var(--rdb)}.note.rd .t{color:var(--rd)}
+ul.cl{margin:20px 0 26px;padding:0;list-style:none}
+ul.cl li{position:relative;padding-left:28px;margin:11px 0;color:var(--tx2)}
+ul.cl li::before{content:"";position:absolute;left:5px;top:.72em;width:8px;height:8px;background:var(--cy);border-radius:2px}
+ul.cl li strong{color:var(--ink)}
+
+/* fig */
+.fig{background:#fff;border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0}
+.figh{padding:16px 22px;border-bottom:1px solid var(--ln);background:var(--t1)}
+.figh .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace}
+.figh .t::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cy)}
+.figh h3{font-size:16.5px;margin:10px 0 0}
+.figb{padding:8px 10px 0;background:
+ linear-gradient(90deg,rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,
+ linear-gradient(rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,#fff}
+.figb svg{width:100%;height:auto;display:block}
+.figf{padding:14px 22px 18px;border-top:1px solid var(--ln);background:#FCFDFE;font-size:14px;color:var(--mu)}
+
+/* cards */
+.cards{display:grid;gap:14px;margin:24px 0}
+.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid var(--ln);border-top:3px solid var(--cy);border-radius:14px;padding:20px;box-shadow:var(--s2)}
+.card .k{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;color:var(--bl);margin:0 0 8px}
+.card h4{font-size:16px;margin:0 0 8px}
+.card p{margin:0;font-size:15.5px;color:var(--tx2)}
+
+/* compare */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0}
+.cmp .p{background:#fff;border:1px solid var(--ln);border-radius:16px;padding:20px;box-shadow:var(--s1)}
+.cmp .p .h{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:700;letter-spacing:.04em;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.cmp .p.a .h{color:var(--bl)}.cmp .p.b .h{color:var(--gn)}
+.cmp .p .h::before{content:"";width:8px;height:8px;border-radius:2px}
+.cmp .p.a .h::before{background:var(--cy)}.cmp .p.b .h::before{background:var(--gn)}
+.cmp pre{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.7;color:var(--tx2);margin:0;white-space:pre;overflow-x:auto}
+.cmp pre b{color:var(--ink)}
+.cmp .ft{margin-top:14px;font-size:14.5px;color:var(--tx2)}
+
+/* ══ jl-msg : order message anatomy ══ */
+.jl-msg{border:1px solid var(--ln);border-radius:16px;overflow:hidden;box-shadow:var(--s1);margin:28px 0;background:#fff}
+.jl-msg-h{padding:14px 20px;background:var(--t1);border-bottom:1px solid var(--ln);font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:700;color:var(--bl);letter-spacing:.04em}
+.jl-msg-b{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.jl-fields{padding:16px 20px;border-right:1px solid var(--ln)}
+.jl-f{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:7px 9px;border-radius:8px;cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:13.5px;transition:background .14s}
+.jl-f:hover{background:var(--t1)}
+.jl-f.on{background:var(--t2);box-shadow:inset 2px 0 0 var(--cy)}
+.jl-f .fk{color:var(--mu);font-weight:500}
+.jl-f .fv{color:var(--ink);font-weight:600}
+.jl-desc{padding:18px 20px;background:#FCFDFE;display:flex;align-items:center}
+.jl-desc p{margin:0;font-size:15px;color:var(--tx2)}
+.jl-desc .dh{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--bl);font-weight:700;letter-spacing:.04em;margin-bottom:6px}
+
+/* ══ jl-trace : animated order path ══ */
+.jl-trace{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0;background:#fff}
+.jl-trace-h{padding:18px 22px;background:linear-gradient(180deg,var(--t2),var(--t1));border-bottom:1px solid var(--ln)}
+.jl-trace-h .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;letter-spacing:.04em;font-family:"IBM Plex Mono",monospace;display:inline-block}
+.jl-trace-h h3{font-size:18px;margin:11px 0 5px}
+.jl-trace-h p{margin:0;font-size:14.5px;color:var(--tx2)}
+.jl-trace-b{padding:20px 22px}
+.jl-hops{display:flex;flex-direction:column;gap:0;margin-bottom:18px}
+.jl-hop{display:grid;grid-template-columns:46px 1fr 96px 86px;gap:12px;align-items:center;padding:9px 11px;border-radius:10px;transition:background .2s,opacity .2s;opacity:.42}
+.jl-hop.lit{opacity:1;background:var(--t1)}
+.jl-hop.cur{opacity:1;background:var(--t2);box-shadow:inset 3px 0 0 var(--cy)}
+.jl-hop .tk{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:700;color:var(--bl)}
+.jl-hop .nm{font-size:14.5px;color:var(--tx);font-weight:500}
+.jl-hop .nm small{display:block;font-size:12px;color:var(--mu);font-weight:400}
+.jl-hop .dt{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--mu);text-align:right}
+.jl-hop .cu{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink);font-weight:600;text-align:right}
+.jl-hop.lit .cu{color:var(--gn)}
+.jl-zone{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--mu2);padding:10px 11px 4px;display:flex;align-items:center;gap:9px}
+.jl-zone::after{content:"";flex:1;height:1px;background:var(--ln)}
+.jl-ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--ln)}
+.jl-btn{font-family:"DM Sans",sans-serif;font-size:13.5px;font-weight:600;border:0;border-radius:10px;padding:10px 20px;background:var(--ink);color:#fff;cursor:pointer;transition:.15s}
+.jl-btn:hover{background:var(--bl)}
+.jl-btn.sec{background:#fff;color:var(--tx2);border:1px solid var(--ln)}
+.jl-btn.sec:hover{border-color:var(--bl);color:var(--bl);background:#fff}
+.jl-tot{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--mu)}
+.jl-tot b{color:var(--ink);font-size:16px}
+
+/* ══ jl-pick : latency between what and what ══ */
+.jl-pick{border:1px solid var(--ln2);border-radius:16px;background:var(--t1);padding:20px 22px;margin:26px 0}
+.jl-pick .ph{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:14px}
+.jl-pick-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.jl-pick select{font-family:"IBM Plex Mono",monospace;font-size:13.5px;border:1px solid var(--ln2);border-radius:9px;padding:9px 12px;background:#fff;color:var(--ink);outline:none;cursor:pointer}
+.jl-pick select:focus{border-color:var(--bl);box-shadow:0 0 0 3px rgba(11,92,213,.1)}
+.jl-pick .ar{color:var(--mu2);font-size:16px}
+.jl-out{margin-top:16px;padding:16px 18px;border-radius:12px;background:#fff;border:1px solid var(--ln)}
+.jl-out .ov{font-family:"IBM Plex Mono",monospace;font-size:28px;font-weight:600;color:var(--ink);line-height:1.1}
+.jl-out .on{font-size:15px;color:var(--bl);font-weight:600;margin-top:6px}
+.jl-out .od{font-size:14.5px;color:var(--tx2);margin-top:8px}
+.jl-out.bad .ov{color:var(--rd)}
+
+/* ══ jl-state : order state machine ══ */
+.jl-state{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0;background:#fff}
+.jl-state-h{padding:16px 22px;background:var(--t1);border-bottom:1px solid var(--ln)}
+.jl-state-h .t{font-size:11px;font-weight:700;color:#fff;background:var(--ink);padding:4px 11px;border-radius:999px;font-family:"IBM Plex Mono",monospace;display:inline-block;letter-spacing:.04em}
+.jl-state-h h3{font-size:16.5px;margin:10px 0 0}
+.jl-state-b{padding:6px 10px 0;background:
+ linear-gradient(90deg,rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,
+ linear-gradient(rgba(8,33,62,.028) 1px,transparent 1px) 0 0/26px 26px,#fff}
+.jl-state-b svg{width:100%;height:auto;display:block}
+.jl-state-b g.st{cursor:pointer}
+.jl-state-b g.st rect{transition:.15s}
+.jl-state-b g.st:hover rect{stroke:#0B5CD5;stroke-width:2.5}
+.jl-sd{padding:18px 22px;border-top:1px solid var(--ln);background:#FCFDFE;min-height:96px}
+.jl-sd .sk{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:7px}
+.jl-sd p{margin:0;font-size:15.5px;color:var(--tx2)}
+
+/* ══ jl-tail : jitter / percentiles ══ */
+.jl-tail{border:1px solid var(--ln);border-radius:18px;padding:22px;margin:30px 0;background:#fff;box-shadow:var(--s1)}
+.jl-tail .th{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:16px}
+.jl-bars{display:flex;gap:6px;align-items:flex-end;height:130px;padding:0 2px;margin-bottom:8px}
+.jl-bar{flex:1;background:var(--sf);border-radius:4px 4px 0 0;position:relative;transition:background .2s,height .5s}
+.jl-bar.out{background:var(--rd)}
+.jl-bar.hi{background:var(--bl)}
+.jl-axis{display:flex;gap:6px;padding:0 2px;margin-bottom:18px}
+.jl-axis span{flex:1;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--mu2)}
+.jl-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
+.jl-st{border:1px solid var(--ln);border-radius:10px;padding:11px 13px;background:var(--t1)}
+.jl-st .k{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--mu);letter-spacing:.05em;margin-bottom:4px;font-weight:600}
+.jl-st .v{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;color:var(--ink)}
+.jl-st.alert{border-color:var(--rdl);background:var(--rdb)}
+.jl-st.alert .v{color:var(--rd)}
+.jl-st.alert .k{color:var(--rd)}
+
+/* ══ lab ══ */
+.lab{border:1px solid var(--ln);border-radius:20px;box-shadow:var(--s2);overflow:hidden;margin:34px 0;background:#fff}
+.labh{padding:18px 22px;border-bottom:1px solid var(--ln);background:linear-gradient(180deg,var(--t2),var(--t1))}
+.labh .t{font-size:11px;font-weight:700;color:#fff;background:var(--gn);padding:4px 11px;border-radius:999px;letter-spacing:.04em;font-family:"IBM Plex Mono",monospace;display:inline-block}
+.labh h3{font-size:19px;margin:11px 0 6px}
+.labh p{margin:0;font-size:15px;color:var(--tx2)}
+.labb{padding:22px}
+.scn{border:1px solid var(--ln);border-radius:14px;padding:18px 20px;margin-bottom:14px;background:#fff;transition:opacity .25s}
+.scn.off{opacity:.4;pointer-events:none}
+.scn .sk{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--bl);letter-spacing:.05em;margin-bottom:9px}
+.scn .ev{background:var(--t1);border-left:3px solid var(--mu2);border-radius:0 9px 9px 0;padding:12px 15px;margin-bottom:14px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--tx);line-height:1.7;white-space:pre-wrap}
+.scn .qt{font-size:15.5px;color:var(--tx);margin-bottom:13px;font-weight:500}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{border:1px solid var(--ln);border-radius:10px;padding:11px 15px;cursor:pointer;font-size:15px;color:var(--tx2);display:flex;gap:11px;align-items:flex-start;transition:.14s;background:#fff}
+.opt:hover{border-color:var(--bl);color:var(--ink)}
+.opt .ol{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mu);flex:none;padding-top:2px;font-weight:600}
+.opt.ok{border-color:var(--gn);background:var(--gnb);color:var(--gn);pointer-events:none}
+.opt.ok .ol{color:var(--gn)}
+.opt.no{border-color:var(--rd);background:var(--rdb);color:var(--rd)}
+.opt.no .ol{color:var(--rd)}
+.opt.dead{pointer-events:none;opacity:.5}
+.scn .fb{margin-top:13px;padding:13px 16px;border-radius:10px;font-size:14.5px;line-height:1.6;display:none}
+.scn .fb.on{display:block}
+.scn .fb.ok{background:var(--gnb);border:1px solid var(--gnl);color:var(--tx)}
+.scn .fb.no{background:var(--rdb);border:1px solid var(--rdl);color:var(--tx)}
+.labdone{border:1px solid var(--gnl);background:var(--gnb);border-radius:14px;padding:20px;margin-top:6px;display:none}
+.labdone.on{display:block}
+.labdone .t{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:700;color:var(--gn);letter-spacing:.05em;margin-bottom:10px}
+.labdone p{margin:0;font-size:15.5px;color:var(--tx)}
+
+/* next / sig */
+.nxt{border:1px solid var(--ln);border-radius:18px;padding:24px;background:var(--t1);margin:40px 0 0;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.nxt .i{flex:1;min-width:230px}
+.nxt .k{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--mu);letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+.nxt h3{font-size:20px;margin:0 0 6px}
+.nxt p{margin:0;font-size:15px}
+.nxt a{font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;background:var(--ink);color:#fff;text-decoration:none;padding:11px 22px;border-radius:10px;white-space:nowrap}
+.nxt a:hover{background:var(--bl)}
+.sig{margin:46px 0 0;padding:26px;border:1px solid var(--ln);border-radius:18px;background:var(--t1)}
+.sig .nm{font-size:19px;font-weight:700;color:var(--ink);margin:0 0 4px}
+.sig .rl{font-size:14.5px;color:var(--tx2);margin:0}
+.sig .oep{margin-top:16px;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--cy2);font-weight:600}
+
+footer{background:var(--ink);color:#BCD0E7;margin-top:60px}
+footer .r{max-width:var(--mw);margin:0 auto;padding:50px 24px}
+footer h3{color:#fff;font-size:23px;margin:0 0 10px}
+footer .cr{font-size:14.5px;color:#92A9C9;line-height:2}
+footer .cr b{color:#E4EEFA}
+footer .lk{margin-top:18px;display:flex;gap:20px;flex-wrap:wrap}
+footer .lk a{color:var(--cy);font-family:"IBM Plex Mono",monospace;font-size:13.5px;text-decoration:none}
+footer .lk a:hover{text-decoration:underline}
+footer .oep{margin-top:20px;font-size:14px;color:var(--cy);font-weight:700}
+footer .mt{margin-top:22px;padding-top:18px;border-top:1px solid #1B3F6C;font-size:12.5px;color:#7590B4;line-height:1.75}
+
+@media(max-width:820px){.jl-msg-b{grid-template-columns:1fr}.jl-fields{border-right:0;border-bottom:1px solid var(--ln)}}
+@media(max-width:720px){.c2,.cmp{grid-template-columns:1fr}body{font-size:17px}
+ .jl-hop{grid-template-columns:38px 1fr 74px;gap:8px}.jl-hop .dt{display:none}}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--bl);outline-offset:2px;border-radius:6px}
+</style>
+</head>
+<body data-lang="en">
+<div id="jc-header"
+     data-title="Academy"
+     data-sub-en="— Trading Network Journal"
+     data-sub-es="— Diario de Redes de Trading"
+     data-sub-pt="— Diário de Redes de Trading"></div>
+<script src="/_shared/site-header.js"></script>
+
+<header class="hero"><div class="r">
+ <p class="eb" data-i18n="h.kicker">Trading Network Journal · 02</p>
+ <h1 data-i18n="h.title">The Order Lifecycle</h1>
+ <p class="ld" data-i18n="h.lead">One single order, followed end to end. Where it becomes a message, where it becomes a packet, where the clock starts, and every point at which it can quietly die.</p>
+ <div class="hm"><div class="av" aria-hidden="true">JC</div><div>
+  <div class="n">Josimar Caitano</div>
+  <div class="rr" data-i18n="h.role">Principal Solutions Architect · NTT DATA · Capital Markets Infrastructure</div></div></div>
+ <div class="meta">
+  <span><i></i><span data-i18n="h.date">September 2026</span></span>
+  <span><i></i><span data-i18n="h.read">30 min · with lab</span></span>
+  <span><i></i><span data-i18n="h.cat">Order Lifecycle · Latency</span></span>
+ </div>
+ <a class="prv" href="../01-market-structure/"><b data-i18n="h.prvb">Journal 01</b> <span data-i18n="h.prvt">— Market Structure</span></a>
+</div></header>
+
+<main class="in"><article class="rd-w">
+
+<section>
+ <p class="lead" data-i18n="p.1">In the previous entry we established that an order is not a trade. That distinction is useless until you can say exactly where, along the path, an order stops being one thing and becomes another. This chapter is that path.</p>
+ <p data-i18n="p.2">I am going to take a single order and follow it from a human decision to a confirmation arriving back on a screen. Along the way it changes form four times: intention, message, packet, event. Each transformation happens in a different system, costs a different amount of time, and fails in a different way.</p>
+
+ <div class="note">
+  <p class="t" data-i18n="nv.t">WHY THIS CHAPTER DECIDES YOUR DIAGNOSTIC ABILITY</p>
+  <p data-i18n="nv.b">When a trader says "my order did not execute", that sentence has at least seven possible causes, and only one of them involves the matching engine. An engineer who has not internalized the lifecycle will start troubleshooting at the wrong layer under pressure — and in this environment, troubleshooting at the wrong layer is indistinguishable from having no answer at all.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s1.k">I</p>
+ <h2 data-i18n="s1.h">Intent is not an order</h2>
+ <p data-i18n="s1.p1">A trader decides to buy 1,000 contracts at 100.50. That decision is an intention — it exists in a human head and nowhere else. Electronic markets do not process intentions. They process structured messages with mandatory fields, and the trading application is what performs that translation.</p>
+ <p data-i18n="s1.p2">This matters more than it sounds. Every field in that message is a decision, and several of them carry latency and risk consequences. Click through them.</p>
+
+ <div class="jl-msg">
+  <div class="jl-msg-h" data-i18n="msg.h">ORDER MESSAGE — click any field</div>
+  <div class="jl-msg-b">
+   <div class="jl-fields">
+    <div class="jl-f on" data-f="inst"><span class="fk">Instrument</span><span class="fv">XYZ</span></div>
+    <div class="jl-f" data-f="side"><span class="fk">Side</span><span class="fv">BUY</span></div>
+    <div class="jl-f" data-f="qty"><span class="fk">Quantity</span><span class="fv">1000</span></div>
+    <div class="jl-f" data-f="price"><span class="fk">Price</span><span class="fv">100.50</span></div>
+    <div class="jl-f" data-f="type"><span class="fk">OrdType</span><span class="fv">LIMIT</span></div>
+    <div class="jl-f" data-f="clid"><span class="fk">ClOrdID</span><span class="fv">84721</span></div>
+    <div class="jl-f" data-f="acct"><span class="fk">Account</span><span class="fv">PROP-04</span></div>
+    <div class="jl-f" data-f="ts"><span class="fk">SendingTime</span><span class="fv">09:31:04.118</span></div>
+   </div>
+   <div class="jl-desc">
+    <div>
+     <div class="dh" id="msg-k">INSTRUMENT</div>
+     <p id="msg-d" data-i18n="msg.inst">Identifies what is being traded. Wrong or unknown symbols are rejected at the gateway before reaching the book — a very common cause of "my order vanished" that has nothing to do with the matching engine.</p>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <h3 data-i18n="s1.h3">Market or limit: the field that changes everything</h3>
+ <div class="cmp">
+  <div class="p a">
+   <p class="h" data-i18n="ot.a">MARKET ORDER</p>
+   <pre><b>BUY 1000 XYZ</b>
+MARKET</pre>
+   <p class="ft" data-i18n="ot.af">Prioritises execution over price. It will consume whatever liquidity exists, sweeping levels until filled. Certainty of fill, uncertainty of price.</p>
+  </div>
+  <div class="p b">
+   <p class="h" data-i18n="ot.b">LIMIT ORDER</p>
+   <pre><b>BUY 1000 XYZ</b>
+LIMIT 100.50</pre>
+   <p class="ft" data-i18n="ot.bf">Sets a boundary: pay up to 100.50, never above. Certainty of price, uncertainty of fill. It may rest on the book indefinitely.</p>
+  </div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s2.k">II</p>
+ <h2 data-i18n="s2.h">Message is not packet</h2>
+ <p data-i18n="s2.p1">This is the boundary where my own discipline begins. The application produces an order message. The network transports packets. They are different abstractions of the same flow, observed from different layers, and confusing them makes every latency conversation incoherent.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig1.tag">ABSTRACTION CROSSING</span>
+   <h3 data-i18n="fig1.h">Where an order message becomes wire traffic</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 250" role="img" aria-label="Message to packet layer crossing">
+    <g font-family="DM Sans, sans-serif">
+     <rect x="60" y="20" width="360" height="46" rx="10" fill="#E5F1FA" stroke="#00BCEB" stroke-width="2"/>
+     <text x="240" y="48" text-anchor="middle" font-size="14" font-weight="700" fill="#08213E" data-i18n="ly.1">APPLICATION MESSAGE</text>
+     <text x="440" y="48" font-size="12" fill="#63768E" data-i18n="ly.1n">BUY 1000 XYZ @ 100.50</text>
+
+     <rect x="60" y="74" width="360" height="40" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="240" y="99" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E" data-i18n="ly.2">TRANSPORT</text>
+     <text x="440" y="99" font-size="12" fill="#63768E" data-i18n="ly.2n">segment · sequence · ack</text>
+
+     <rect x="60" y="122" width="360" height="40" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="240" y="147" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E" data-i18n="ly.3">NETWORK</text>
+     <text x="440" y="147" font-size="12" fill="#63768E" data-i18n="ly.3n">packet · addressing · path</text>
+
+     <rect x="60" y="170" width="360" height="40" rx="10" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="240" y="195" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E" data-i18n="ly.4">LINK · PHYSICAL</text>
+     <text x="440" y="195" font-size="12" fill="#63768E" data-i18n="ly.4n">frame · bits on fibre</text>
+
+     <path d="M240,66 L240,74 M240,114 L240,122 M240,162 L240,170" stroke="#93A6BB" stroke-width="2"/>
+
+     <rect x="620" y="20" width="220" height="190" rx="12" fill="#F4F9FD" stroke="#BFD5E8" stroke-width="1.5"/>
+     <text x="730" y="48" text-anchor="middle" font-size="12" font-weight="700" fill="#0093B8" font-family="IBM Plex Mono, monospace" data-i18n="ly.tools">WHERE YOU OBSERVE</text>
+     <text x="646" y="76" font-size="12.5" fill="#2A3B52" data-i18n="ly.t1">↑ FIX / binary logs</text>
+     <text x="646" y="104" font-size="12.5" fill="#2A3B52" data-i18n="ly.t2">↓ tcpdump · Wireshark</text>
+     <text x="646" y="132" font-size="12.5" fill="#2A3B52" data-i18n="ly.t3">↓ packet broker capture</text>
+     <text x="646" y="160" font-size="12.5" fill="#2A3B52" data-i18n="ly.t4">↓ hardware timestamp</text>
+     <text x="646" y="190" font-size="11.5" fill="#63768E" data-i18n="ly.t5">same order, four vantage points</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig1.cap">An order that is "missing" in the application log may be perfectly visible in a packet capture. The two observations answer different questions.</div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s3.k">III</p>
+ <h2 data-i18n="s3.h">Follow the order, hop by hop</h2>
+ <p data-i18n="s3.p1">Now the centrepiece of this chapter. Below is the same order traversing the full path, with a timestamp taken at every transition. Run it. Watch where the time actually accumulates — it is almost never where engineers assume.</p>
+
+ <div class="jl-trace">
+  <div class="jl-trace-h">
+   <span class="t" data-i18n="tr.tag">TRACE</span>
+   <h3 data-i18n="tr.h">BUY 1000 XYZ · LIMIT 100.50</h3>
+   <p data-i18n="tr.s">Ten timestamps, four zones, one round trip. Values are illustrative orders of magnitude for a colocated participant.</p>
+  </div>
+  <div class="jl-trace-b">
+   <div class="jl-hops" id="hops">
+    <div class="jl-zone" data-i18n="tr.z1">PARTICIPANT SIDE</div>
+    <div class="jl-hop" data-i="0"><span class="tk">T1</span><span class="nm" data-i18n="tr.n1">Order created<small data-i18n="tr.d1">trading application · decision encoded</small></span><span class="dt">—</span><span class="cu">0.0 µs</span></div>
+    <div class="jl-hop" data-i="1"><span class="tk">T2</span><span class="nm" data-i18n="tr.n2">Order sent<small data-i18n="tr.d2">handed to network stack</small></span><span class="dt">+2.5</span><span class="cu">2.5 µs</span></div>
+    <div class="jl-hop" data-i="2"><span class="tk">T3</span><span class="nm" data-i18n="tr.n3">Leaves NIC<small data-i18n="tr.d3">wire · first bit on fibre</small></span><span class="dt">+1.2</span><span class="cu">3.7 µs</span></div>
+    <div class="jl-zone" data-i18n="tr.z2">NETWORK</div>
+    <div class="jl-hop" data-i="3"><span class="tk">T4</span><span class="nm" data-i18n="tr.n4">Switch fabric<small data-i18n="tr.d4">cross-connect · propagation</small></span><span class="dt">+4.0</span><span class="cu">7.7 µs</span></div>
+    <div class="jl-zone" data-i18n="tr.z3">EXCHANGE</div>
+    <div class="jl-hop" data-i="4"><span class="tk">T5</span><span class="nm" data-i18n="tr.n5">Reaches gateway<small data-i18n="tr.d5">session · format · risk checks</small></span><span class="dt">+0.8</span><span class="cu">8.5 µs</span></div>
+    <div class="jl-hop" data-i="5"><span class="tk">T6</span><span class="nm" data-i18n="tr.n6">Reaches matching engine<small data-i18n="tr.d6">enters the book</small></span><span class="dt">+3.5</span><span class="cu">12.0 µs</span></div>
+    <div class="jl-hop" data-i="6"><span class="tk">T7</span><span class="nm" data-i18n="tr.n7">Match occurs<small data-i18n="tr.d7">price-time priority applied</small></span><span class="dt">+1.1</span><span class="cu">13.1 µs</span></div>
+    <div class="jl-hop" data-i="7"><span class="tk">T8</span><span class="nm" data-i18n="tr.n8">Execution generated<small data-i18n="tr.d8">trade event created</small></span><span class="dt">+0.6</span><span class="cu">13.7 µs</span></div>
+    <div class="jl-zone" data-i18n="tr.z4">RETURN PATH</div>
+    <div class="jl-hop" data-i="8"><span class="tk">T9</span><span class="nm" data-i18n="tr.n9">Leaves exchange<small data-i18n="tr.d9">execution report on the wire</small></span><span class="dt">+2.2</span><span class="cu">15.9 µs</span></div>
+    <div class="jl-hop" data-i="9"><span class="tk">T10</span><span class="nm" data-i18n="tr.n10">Trader receives<small data-i18n="tr.d10">confirmation on screen</small></span><span class="dt">+5.0</span><span class="cu">20.9 µs</span></div>
+   </div>
+   <div class="jl-ctl">
+    <button class="jl-btn" id="run" data-i18n="tr.run">Send the order</button>
+    <button class="jl-btn sec" id="rst" data-i18n="tr.rst">Reset</button>
+    <span class="jl-tot"><span data-i18n="tr.tot">round trip</span> <b id="tot">—</b></span>
+   </div>
+  </div>
+ </div>
+
+ <p data-i18n="s3.p2">Notice the shape. The matching engine — the part everyone talks about — accounts for under a quarter of the round trip. The return leg to the trader's screen costs more than the entire exchange processing. Optimisation budgets built on intuition consistently target the wrong segment.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s4.k">IV</p>
+ <h2 data-i18n="s4.h">"Latency" is not a number</h2>
+ <p data-i18n="s4.p1">This is the question I use to separate engineers who have worked in this environment from those who have read about it. When a vendor or a colleague says "our latency is 8 microseconds", the only correct response is: <strong>between what and what?</strong></p>
+ <p data-i18n="s4.p2">Pick any two timestamps from the trace above and the answer changes completely — along with the team responsible for it.</p>
+
+ <div class="jl-pick">
+  <div class="ph" data-i18n="pk.h">LATENCY BETWEEN WHAT AND WHAT?</div>
+  <div class="jl-pick-row">
+   <select id="from"></select>
+   <span class="ar">→</span>
+   <select id="to"></select>
+  </div>
+  <div class="jl-out" id="pout">
+   <div class="ov" id="pval">2.5 µs</div>
+   <div class="on" id="pname">Application latency</div>
+   <div class="od" id="pdesc">Time inside the trading application, from decision to handing the message to the network stack. Owned by the application team, not the network team.</div>
+  </div>
+ </div>
+
+ <div class="note g">
+  <p class="t" data-i18n="s4.nt">THE ORGANISATIONAL CONSEQUENCE</p>
+  <p data-i18n="s4.nb">Each of those segments has a different owner. Application latency belongs to developers. Wire latency belongs to the network team. Exchange processing belongs to the venue and is not negotiable. When an institution reports a single end-to-end number to its board, it destroys exactly the information needed to decide where investment produces return.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s5.k">V</p>
+ <h2 data-i18n="s5.h">Accepted is not executed</h2>
+ <p data-i18n="s5.p1">An order has an observable lifecycle with discrete states. The exact names depend on protocol and venue, but the shape is universal — and the transitions are what your monitoring must expose. Click any state.</p>
+
+ <div class="jl-state">
+  <div class="jl-state-h">
+   <span class="t" data-i18n="sm.tag">STATE MACHINE</span>
+   <h3 data-i18n="sm.h">Where is my order right now?</h3>
+  </div>
+  <div class="jl-state-b">
+   <svg viewBox="0 0 900 330" role="img" aria-label="Order state machine">
+    <defs><marker id="a2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,1 L7,4.5 L0,8 Z" fill="#93A6BB"/></marker></defs>
+    <g font-family="DM Sans, sans-serif">
+     <g class="st" data-s="new">
+      <rect x="370" y="14" width="160" height="40" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+      <text x="450" y="39" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E">NEW</text></g>
+     <line x1="450" y1="54" x2="450" y2="70" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a2)"/>
+
+     <g class="st" data-s="submitted">
+      <rect x="370" y="72" width="160" height="40" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+      <text x="450" y="97" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E">SUBMITTED</text></g>
+     <line x1="450" y1="112" x2="450" y2="128" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a2)"/>
+
+     <g class="st" data-s="accepted">
+      <rect x="370" y="130" width="160" height="40" rx="9" fill="#E5F1FA" stroke="#00BCEB" stroke-width="2"/>
+      <text x="450" y="155" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E">ACCEPTED</text></g>
+
+     <path d="M530,150 L660,150" stroke="#C93327" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#a2)"/>
+     <g class="st" data-s="rejected">
+      <rect x="668" y="130" width="150" height="40" rx="9" fill="#FCEDEB" stroke="#C93327" stroke-width="1.5"/>
+      <text x="743" y="155" text-anchor="middle" font-size="13" font-weight="700" fill="#C93327">REJECTED</text></g>
+
+     <line x1="450" y1="170" x2="450" y2="186" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a2)"/>
+     <g class="st" data-s="open">
+      <rect x="370" y="188" width="160" height="40" rx="9" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+      <text x="450" y="213" text-anchor="middle" font-size="13.5" font-weight="700" fill="#08213E">OPEN / RESTING</text></g>
+
+     <path d="M370,208 L248,208" stroke="#93A6BB" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#a2)"/>
+     <g class="st" data-s="cancelled">
+      <rect x="82" y="188" width="158" height="40" rx="9" fill="#fff" stroke="#BFD5E8" stroke-width="1.5"/>
+      <text x="161" y="213" text-anchor="middle" font-size="13" font-weight="700" fill="#4A5E78">CANCELLED</text></g>
+
+     <line x1="450" y1="228" x2="450" y2="244" stroke="#93A6BB" stroke-width="1.5"/>
+     <line x1="300" y1="244" x2="600" y2="244" stroke="#93A6BB" stroke-width="1.5"/>
+     <line x1="300" y1="244" x2="300" y2="262" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a2)"/>
+     <line x1="600" y1="244" x2="600" y2="262" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a2)"/>
+
+     <g class="st" data-s="partial">
+      <rect x="205" y="264" width="190" height="42" rx="9" fill="#FDF5E7" stroke="#B87610" stroke-width="1.5"/>
+      <text x="300" y="290" text-anchor="middle" font-size="13" font-weight="700" fill="#B87610">PARTIALLY FILLED</text></g>
+     <g class="st" data-s="filled">
+      <rect x="505" y="264" width="190" height="42" rx="9" fill="#E7F6EE" stroke="#0F8B4C" stroke-width="2"/>
+      <text x="600" y="290" text-anchor="middle" font-size="13" font-weight="700" fill="#0F8B4C">FULLY FILLED</text></g>
+     <path d="M395,285 L497,285" stroke="#93A6BB" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#a2)"/>
+    </g>
+   </svg>
+  </div>
+  <div class="jl-sd">
+   <div class="sk" id="sm-k">ACCEPTED</div>
+   <p id="sm-d" data-i18n="sm.accepted">The venue confirmed the message is valid and the order now exists in its system. This is the state most often mistaken for execution. Accepted means the order is alive — it says nothing about whether a counterparty was found.</p>
+  </div>
+ </div>
+
+ <p class="pull" data-i18n="s5.pull">An order can die at six different points before the matching engine ever sees it. Only one of those is a matching engine problem.</p>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s6.k">VI</p>
+ <h2 data-i18n="s6.h">Average latency hides the thing that hurts you</h2>
+ <p data-i18n="s6.p1">Ten consecutive orders on a healthy-looking link. The average is comfortable. One of them is not. In trading infrastructure, that one is the entire story — and it tends to occur precisely when volume spikes, which is when the value of each order is highest.</p>
+
+ <div class="jl-tail">
+  <div class="th" data-i18n="tl.h">TEN CONSECUTIVE ORDERS · WIRE LATENCY</div>
+  <div class="jl-bars" id="bars"></div>
+  <div class="jl-axis" id="axis"></div>
+  <div class="jl-stats">
+   <div class="jl-st"><div class="k" data-i18n="tl.avg">AVERAGE</div><div class="v" id="s-avg">—</div></div>
+   <div class="jl-st"><div class="k" data-i18n="tl.p50">MEDIAN p50</div><div class="v" id="s-p50">—</div></div>
+   <div class="jl-st"><div class="k" data-i18n="tl.p99">p99</div><div class="v" id="s-p99">—</div></div>
+   <div class="jl-st alert"><div class="k" data-i18n="tl.max">MAX · THE TAIL</div><div class="v" id="s-max">—</div></div>
+   <div class="jl-st alert"><div class="k" data-i18n="tl.jit">JITTER</div><div class="v" id="s-jit">—</div></div>
+  </div>
+ </div>
+
+ <div class="note rd">
+  <p class="t" data-i18n="s6.nt">WHY THE TAIL IS ASYMMETRIC AGAINST YOU</p>
+  <p data-i18n="s6.nb">Tail events are not random with respect to market conditions. They cluster during volatility, message bursts and open/close windows — exactly when opportunity is largest and the cost of missing a fill is highest. Reporting average latency to a risk committee is equivalent to reporting average return with no standard deviation.</p>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="lab.k">LAB 02</p>
+ <h2 data-i18n="lab.h">Diagnose the order</h2>
+ <p data-i18n="lab.p">Three incidents. In each, a trader reports the same symptom: the order did not execute. You have the evidence available to an SRE on call. Identify where in the lifecycle the order actually stopped. Getting this wrong under pressure is how outages get escalated to the wrong team.</p>
+
+ <div class="lab">
+  <div class="labh">
+   <span class="t" data-i18n="lab.tag">LAB 02</span>
+   <h3 data-i18n="lab.th">Incident triage · lifecycle reasoning</h3>
+   <p data-i18n="lab.ts">Same symptom, three different root causes, three different owners</p>
+  </div>
+  <div class="labb">
+
+   <div class="scn" id="sc1">
+    <div class="sk" data-i18n="lab.s1k">INCIDENT 01</div>
+    <div class="ev" data-i18n="lab.s1e">Trader: "I sent it at 09:31:04, nothing happened."
+
+App log    → 09:31:04.118  ORDER SENT  ClOrdID 84721
+Capture    → 09:31:04.118  TCP out, 1 packet, seq ok
+Gateway    → 09:31:04.126  session active, no message received
+Book       → no entry for ClOrdID 84721</div>
+    <div class="qt" data-i18n="lab.s1q">Where did the order stop?</div>
+    <div class="opts">
+     <div class="opt" data-ok="0"><span class="ol">A</span><span data-i18n="lab.s1a">Matching engine — no counterparty was available at that price</span></div>
+     <div class="opt" data-ok="0"><span class="ol">B</span><span data-i18n="lab.s1b">Gateway validation — the order was rejected by a risk rule</span></div>
+     <div class="opt" data-ok="1"><span class="ol">C</span><span data-i18n="lab.s1c">Connectivity — the packet left the NIC but never arrived at the gateway</span></div>
+     <div class="opt" data-ok="0"><span class="ol">D</span><span data-i18n="lab.s1d">Application — the order was never actually constructed</span></div>
+    </div>
+    <div class="fb" id="fb1"></div>
+   </div>
+
+   <div class="scn off" id="sc2">
+    <div class="sk" data-i18n="lab.s2k">INCIDENT 02</div>
+    <div class="ev" data-i18n="lab.s2e">Trader: "It says accepted but I got nothing."
+
+Gateway    → 09:45:12.004  ACCEPTED  ClOrdID 91883
+Book       → 09:45:12.007  RESTING  BUY 500 @ 98.00
+Market     → best ASK all session: 98.35
+Report     → no execution report sent</div>
+    <div class="qt" data-i18n="lab.s2q">Where did the order stop?</div>
+    <div class="opts">
+     <div class="opt" data-ok="0"><span class="ol">A</span><span data-i18n="lab.s2a">Gateway — the acceptance message was a false positive</span></div>
+     <div class="opt" data-ok="1"><span class="ol">B</span><span data-i18n="lab.s2b">Nowhere — the order is healthy and resting; no counterparty met its limit price</span></div>
+     <div class="opt" data-ok="0"><span class="ol">C</span><span data-i18n="lab.s2c">Market data — the execution happened but the report was lost in transit</span></div>
+     <div class="opt" data-ok="0"><span class="ol">D</span><span data-i18n="lab.s2d">Matching engine — price-time priority was applied incorrectly</span></div>
+    </div>
+    <div class="fb" id="fb2"></div>
+   </div>
+
+   <div class="scn off" id="sc3">
+    <div class="sk" data-i18n="lab.s3k">INCIDENT 03</div>
+    <div class="ev" data-i18n="lab.s3e">Trader: "Half of it filled, the rest disappeared."
+
+Gateway    → 10:02:55.201  ACCEPTED  ClOrdID 77310  BUY 1000 @ 100.50
+Engine     → 10:02:55.203  FILL 400 @ 100.50   (level exhausted)
+Book       → 10:02:55.203  RESTING 600 @ 100.50
+Reports    → FILL 400 delivered · no further message
+Market     → ASK moved to 100.55 and stayed</div>
+    <div class="qt" data-i18n="lab.s3q">What is the correct state of the remaining 600?</div>
+    <div class="opts">
+     <div class="opt" data-ok="0"><span class="ol">A</span><span data-i18n="lab.s3a">Cancelled — a partial fill automatically cancels the remainder</span></div>
+     <div class="opt" data-ok="0"><span class="ol">B</span><span data-i18n="lab.s3b">Lost — the engine dropped the balance when the level was exhausted</span></div>
+     <div class="opt" data-ok="1"><span class="ol">C</span><span data-i18n="lab.s3c">Partially filled and still open — 600 rest at 100.50, waiting for the ASK to come back down</span></div>
+     <div class="opt" data-ok="0"><span class="ol">D</span><span data-i18n="lab.s3d">Rejected — the engine rejected the balance because the price moved</span></div>
+    </div>
+    <div class="fb" id="fb3"></div>
+   </div>
+
+   <div class="labdone" id="labdone">
+    <div class="t" data-i18n="lab.dt">TRIAGE COMPLETE</div>
+    <p data-i18n="lab.db">Three identical complaints, three different owners: network, nobody, and the trader's own expectation. Notice that in two of the three cases the correct action is not to fix anything — it is to explain the lifecycle to the person reporting the incident. That conversation is only possible for an engineer who can locate the order precisely.</p>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section>
+ <p class="ln" data-i18n="s7.k">VII</p>
+ <h2 data-i18n="s7.h">The architecture to memorise</h2>
+ <p data-i18n="s7.p1">If you keep one diagram from this chapter, keep this one. Everything in the following entries attaches to a point on it.</p>
+
+ <div class="fig">
+  <div class="figh">
+   <span class="t" data-i18n="fig2.tag">FULL LIFECYCLE</span>
+   <h3 data-i18n="fig2.h">From intent to post-trade, with both return flows</h3>
+  </div>
+  <div class="figb">
+   <svg viewBox="0 0 900 420" role="img" aria-label="Complete order lifecycle">
+    <defs><marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,1 L7,4.5 L0,8 Z" fill="#93A6BB"/></marker></defs>
+    <g font-family="DM Sans, sans-serif">
+     <rect x="355" y="10" width="190" height="34" rx="8" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="32" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="fl.1">INTENT</text>
+     <line x1="450" y1="44" x2="450" y2="58" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <rect x="355" y="60" width="190" height="34" rx="8" fill="#E5F1FA" stroke="#00BCEB" stroke-width="1.5"/>
+     <text x="450" y="82" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="fl.2">ORDER MESSAGE</text>
+     <line x1="450" y1="94" x2="450" y2="108" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <rect x="355" y="110" width="190" height="34" rx="8" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="132" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="fl.3">NIC · NETWORK</text>
+     <line x1="450" y1="144" x2="450" y2="158" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <rect x="355" y="160" width="190" height="34" rx="8" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="182" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="fl.4">GATEWAY</text>
+
+     <path d="M545,177 L690,177" stroke="#C93327" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#a3)"/>
+     <rect x="698" y="160" width="140" height="34" rx="8" fill="#FCEDEB" stroke="#C93327" stroke-width="1.5"/>
+     <text x="768" y="182" text-anchor="middle" font-size="12" font-weight="700" fill="#C93327" data-i18n="fl.rej">REJECT</text>
+
+     <line x1="450" y1="194" x2="450" y2="208" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <rect x="355" y="210" width="190" height="34" rx="8" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="450" y="232" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="fl.5">ORDER BOOK</text>
+     <line x1="450" y1="244" x2="450" y2="258" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <rect x="355" y="260" width="190" height="34" rx="8" fill="#E5F1FA" stroke="#00BCEB" stroke-width="2"/>
+     <text x="450" y="282" text-anchor="middle" font-size="12.5" font-weight="700" fill="#08213E" data-i18n="fl.6">MATCHING ENGINE</text>
+
+     <path d="M355,277 L218,277" stroke="#93A6BB" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#a3)"/>
+     <rect x="62" y="260" width="150" height="34" rx="8" fill="#fff" stroke="#BFD5E8" stroke-width="1.5"/>
+     <text x="137" y="282" text-anchor="middle" font-size="12" font-weight="700" fill="#4A5E78" data-i18n="fl.rest">RESTING</text>
+
+     <line x1="450" y1="294" x2="450" y2="308" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <rect x="370" y="310" width="160" height="34" rx="8" fill="#E7F6EE" stroke="#0F8B4C" stroke-width="2"/>
+     <text x="450" y="332" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0F8B4C" data-i18n="fl.7">TRADE</text>
+
+     <line x1="450" y1="344" x2="450" y2="356" stroke="#93A6BB" stroke-width="1.5"/>
+     <line x1="180" y1="356" x2="720" y2="356" stroke="#93A6BB" stroke-width="1.5"/>
+     <line x1="180" y1="356" x2="180" y2="372" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <line x1="450" y1="356" x2="450" y2="372" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+     <line x1="720" y1="356" x2="720" y2="372" stroke="#93A6BB" stroke-width="1.5" marker-end="url(#a3)"/>
+
+     <rect x="88" y="374" width="184" height="36" rx="8" fill="#fff" stroke="#DCE7F1" stroke-width="1.5"/>
+     <text x="180" y="397" text-anchor="middle" font-size="12" font-weight="700" fill="#2A3B52" data-i18n="fl.8">EXECUTION REPORT</text>
+     <rect x="360" y="374" width="180" height="36" rx="8" fill="#FDF5E7" stroke="#B87610" stroke-width="1.5"/>
+     <text x="450" y="397" text-anchor="middle" font-size="12" font-weight="700" fill="#B87610" data-i18n="fl.9">MARKET DATA</text>
+     <rect x="630" y="374" width="180" height="36" rx="8" fill="#12395F"/>
+     <text x="720" y="397" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" data-i18n="fl.10">POST-TRADE</text>
+    </g>
+   </svg>
+  </div>
+  <div class="figf" data-i18n="fig2.cap">One order produces up to three outbound flows from a single match: a private report to the participant, a public update to every subscriber, and a record to clearing.</div>
+ </div>
+
+ <p data-i18n="s7.p2">That fan-out is the detail most capacity models omit. A single incoming order can generate multiple trade events, each of which generates a report and a market data update. The output volume is not proportional to the input volume — it is a multiple of it, and the multiplier rises with volatility.</p>
+
+ <p class="pull" data-i18n="s7.pull">You cannot observe what you cannot locate. The lifecycle is not documentation — it is the coordinate system your telemetry needs.</p>
+
+ <div class="nxt">
+  <div class="i">
+   <div class="k" data-i18n="nxt.k">NEXT — JOURNAL 03</div>
+   <h3 data-i18n="nxt.h">Market Data &amp; Multicast</h3>
+   <p data-i18n="nxt.p">Why the exchange publishes over UDP multicast, what A and B feeds are for, how a sequence gap is detected in microseconds, and what a feed handler does when it realises it has lost a message.</p>
+  </div>
+  <a href="#" data-i18n="nxt.b">Coming soon</a>
+ </div>
+
+ <div class="sig">
+  <p class="nm">Josimar Caitano</p>
+  <p class="rl" data-i18n="sig.r">Principal Solutions Architect · Capital Markets · Double CCIE (Enterprise + Service Provider) · CCDE</p>
+  <p class="oep">O.E.P. — <span data-i18n="sig.oep">Order · Strategy · Patience</span></p>
+ </div>
+</section>
+
+</article></main>
+
+<footer><div class="r">
+ <h3>Josimar Caitano</h3>
+ <p class="cr"><b>Josimar Caitano</b> — Principal Solutions Architect | Capital Markets<br>
+  <span data-i18n="ft.1">Cisco Networking Academy instructor since 2006</span><br>
+  <span data-i18n="ft.2">High-performance network engineering for capital markets</span></p>
+ <div class="lk">
+  <a href="https://www.linkedin.com/in/josimar-caitano/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+  <a href="https://www.youtube.com/@Josinfo" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+  <a href="mailto:josimaru@gmail.com">josimaru@gmail.com</a>
+ </div>
+ <p class="oep">O.E.P. — <span data-i18n="ft.oep">Order · Strategy · Patience</span></p>
+ <p class="mt" data-i18n="ft.legal">Academy · Trading Network Journal · entry 02 · v1.0 — Original didactic material. Latency figures, book states and incident logs are illustrative orders of magnitude, intended to teach architectural reasoning. They are not investment advice nor a project specification. MIT licence.</p>
+</div></footer>
+
+<script>
+/* ══════════ i18n dictionary ══════════ */
+var T={
+es:{
+"h.kicker":"Diario de Redes de Trading · 02","h.title":"El Ciclo de Vida de la Orden",
+"h.lead":"Una sola orden, seguida de extremo a extremo. Dónde se vuelve mensaje, dónde se vuelve paquete, dónde arranca el reloj y cada punto en el que puede morir en silencio.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestructura de Mercados de Capitales",
+"h.date":"Septiembre 2026","h.read":"30 min · con laboratorio","h.cat":"Ciclo de Vida · Latencia",
+"h.prvb":"Diario 01","h.prvt":"— Estructura de Mercado",
+"p.1":"En la entrada anterior establecimos que una orden no es una operación. Esa distinción es inútil hasta que usted pueda decir exactamente dónde, a lo largo del camino, una orden deja de ser una cosa y se convierte en otra. Este capítulo es ese camino.",
+"p.2":"Voy a tomar una sola orden y seguirla desde una decisión humana hasta una confirmación que vuelve a una pantalla. En el trayecto cambia de forma cuatro veces: intención, mensaje, paquete, evento. Cada transformación ocurre en un sistema distinto, cuesta un tiempo distinto y falla de un modo distinto.",
+"nv.t":"POR QUÉ ESTE CAPÍTULO DECIDE SU CAPACIDAD DE DIAGNÓSTICO",
+"nv.b":"Cuando un trader dice “mi orden no se ejecutó”, esa frase tiene al menos siete causas posibles, y solo una involucra al matching engine. Un ingeniero que no ha internalizado el ciclo de vida empezará a diagnosticar en la capa equivocada bajo presión — y en este entorno, diagnosticar en la capa equivocada es indistinguible de no tener respuesta.",
+"s1.k":"I","s1.h":"La intención no es una orden",
+"s1.p1":"Un trader decide comprar 1.000 contratos a 100,50. Esa decisión es una intención — existe en una cabeza humana y en ningún otro lugar. Los mercados electrónicos no procesan intenciones. Procesan mensajes estructurados con campos obligatorios, y la aplicación de trading es la que realiza esa traducción.",
+"s1.p2":"Esto importa más de lo que parece. Cada campo de ese mensaje es una decisión, y varios cargan consecuencias de latencia y de riesgo. Recórralos.",
+"s1.h3":"Market o limit: el campo que lo cambia todo",
+"msg.h":"MENSAJE DE ORDEN — haga clic en cualquier campo",
+"msg.inst":"Identifica qué se negocia. Símbolos incorrectos o desconocidos se rechazan en el gateway antes de llegar al libro — una causa muy común de “mi orden desapareció” que nada tiene que ver con el matching engine.",
+"msg.side":"Compra o venta. Parece trivial, pero es el campo que determina contra qué lado del libro se intenta casar. Un error de lado no se rechaza: se ejecuta, y en la dirección opuesta a la intención.",
+"msg.qty":"Cuántos contratos. La cantidad determina si la orden se ejecuta en un nivel o barre varios — y por tanto cuántos eventos de operación genera un solo mensaje entrante.",
+"msg.price":"El precio límite. Es una frontera, no una instrucción: comprar a 100,50 significa 100,50 o menos. Los ingenieros que leen esto como precio exacto construyen validaciones que rechazan órdenes válidas.",
+"msg.type":"LIMIT o MARKET. Define si prevalece la certeza de precio o la certeza de ejecución. Es el campo que decide si la orden puede quedar descansando indefinidamente.",
+"msg.clid":"Identificador asignado por el cliente. Es la clave con la que usted correlaciona log de aplicación, captura de red, acuse del gateway y reporte de ejecución. Sin él, no hay diagnóstico posible.",
+"msg.acct":"La cuenta bajo la cual se negocia. Determina los controles de riesgo pre-trade aplicables. Muchos rechazos “inexplicables” son límites de cuenta, no problemas técnicos.",
+"msg.ts":"El momento en que el participante envió el mensaje. Es el T1 de todo cálculo de latencia — y solo es confiable si el reloj que lo generó es trazable al UTC.",
+"ot.a":"ORDEN A MERCADO","ot.b":"ORDEN LIMITADA",
+"ot.af":"Prioriza la ejecución sobre el precio. Consumirá la liquidez que exista, barriendo niveles hasta completarse. Certeza de ejecución, incertidumbre de precio.",
+"ot.bf":"Fija una frontera: pagar hasta 100,50, nunca por encima. Certeza de precio, incertidumbre de ejecución. Puede quedar en el libro indefinidamente.",
+"s2.k":"II","s2.h":"Mensaje no es paquete",
+"s2.p1":"Aquí empieza mi propia disciplina. La aplicación produce un mensaje de orden. La red transporta paquetes. Son abstracciones distintas del mismo flujo, observadas desde capas distintas, y confundirlas vuelve incoherente cualquier conversación sobre latencia.",
+"fig1.tag":"CRUCE DE ABSTRACCIÓN","fig1.h":"Dónde un mensaje de orden se vuelve tráfico en el cable",
+"ly.1":"MENSAJE DE APLICACIÓN","ly.1n":"BUY 1000 XYZ @ 100,50",
+"ly.2":"TRANSPORTE","ly.2n":"segmento · secuencia · ack",
+"ly.3":"RED","ly.3n":"paquete · direccionamiento · ruta",
+"ly.4":"ENLACE · FÍSICO","ly.4n":"trama · bits en la fibra",
+"ly.tools":"DÓNDE SE OBSERVA","ly.t1":"↑ logs FIX / binarios","ly.t2":"↓ tcpdump · Wireshark",
+"ly.t3":"↓ captura en packet broker","ly.t4":"↓ timestamp en hardware","ly.t5":"misma orden, cuatro puntos de vista",
+"fig1.cap":"Una orden “perdida” en el log de aplicación puede ser perfectamente visible en una captura de paquetes. Las dos observaciones responden preguntas distintas.",
+"s3.k":"III","s3.h":"Siga la orden, salto a salto",
+"s3.p1":"Ahora la pieza central de este capítulo. Abajo está la misma orden atravesando el camino completo, con un timestamp en cada transición. Ejecútelo. Observe dónde se acumula realmente el tiempo — casi nunca es donde los ingenieros suponen.",
+"s3.p2":"Note la forma. El matching engine — la parte de la que todos hablan — representa menos de un cuarto del round trip. El tramo de vuelta a la pantalla del trader cuesta más que todo el procesamiento de la bolsa. Los presupuestos de optimización basados en intuición apuntan sistemáticamente al segmento equivocado.",
+"tr.tag":"TRACE","tr.h":"BUY 1000 XYZ · LIMIT 100,50",
+"tr.s":"Diez timestamps, cuatro zonas, un round trip. Los valores son órdenes de magnitud ilustrativas para un participante en colocation.",
+"tr.z1":"LADO DEL PARTICIPANTE","tr.z2":"RED","tr.z3":"BOLSA","tr.z4":"CAMINO DE VUELTA",
+"tr.n1":"Orden creada","tr.d1":"aplicación de trading · decisión codificada",
+"tr.n2":"Orden enviada","tr.d2":"entregada al stack de red",
+"tr.n3":"Sale de la NIC","tr.d3":"cable · primer bit en la fibra",
+"tr.n4":"Fabric de switching","tr.d4":"cross-connect · propagación",
+"tr.n5":"Llega al gateway","tr.d5":"sesión · formato · controles de riesgo",
+"tr.n6":"Llega al matching engine","tr.d6":"entra al libro",
+"tr.n7":"Ocurre el match","tr.d7":"prioridad precio-tiempo aplicada",
+"tr.n8":"Ejecución generada","tr.d8":"evento de operación creado",
+"tr.n9":"Sale de la bolsa","tr.d9":"reporte de ejecución en el cable",
+"tr.n10":"El trader recibe","tr.d10":"confirmación en pantalla",
+"tr.run":"Enviar la orden","tr.rst":"Reiniciar","tr.tot":"round trip",
+"s4.k":"IV","s4.h":"“Latencia” no es un número",
+"s4.p1":"Esta es la pregunta que uso para separar a los ingenieros que han trabajado en este entorno de los que han leído sobre él. Cuando un proveedor o un colega dice “nuestra latencia es de 8 microsegundos”, la única respuesta correcta es: <strong>¿entre qué y qué?</strong>",
+"s4.p2":"Elija dos timestamps cualesquiera del trace anterior y la respuesta cambia por completo — junto con el equipo responsable de ella.",
+"pk.h":"¿LATENCIA ENTRE QUÉ Y QUÉ?",
+"s4.nt":"LA CONSECUENCIA ORGANIZACIONAL",
+"s4.nb":"Cada uno de esos segmentos tiene un dueño distinto. La latencia de aplicación pertenece a desarrollo. La latencia de cable pertenece al equipo de redes. El procesamiento de la bolsa pertenece al venue y no es negociable. Cuando una institución reporta un único número extremo a extremo a su directorio, destruye exactamente la información necesaria para decidir dónde la inversión produce retorno.",
+"s5.k":"V","s5.h":"Aceptada no es ejecutada",
+"s5.p1":"Una orden tiene un ciclo de vida observable con estados discretos. Los nombres exactos dependen del protocolo y del venue, pero la forma es universal — y las transiciones son lo que su monitoreo debe exponer. Haga clic en cualquier estado.",
+"s5.pull":"Una orden puede morir en seis puntos distintos antes de que el matching engine la vea. Solo uno de ellos es un problema del matching engine.",
+"sm.tag":"MÁQUINA DE ESTADOS","sm.h":"¿Dónde está mi orden ahora mismo?",
+"sm.new":"La orden existe en la aplicación del participante. Todavía no ha salido. Si un trader reporta un problema y la orden está aquí, la falla es local — y ninguna cantidad de análisis de red la encontrará.",
+"sm.submitted":"El mensaje fue transmitido pero aún no hay acuse del venue. Este es el estado de mayor ambigüedad operacional: no se sabe si llegó. Aquí es donde la captura de paquetes deja de ser opcional.",
+"sm.accepted":"El venue confirmó que el mensaje es válido y la orden ahora existe en su sistema. Este es el estado que más se confunde con ejecución. Aceptada significa que la orden está viva — no dice nada sobre si se encontró contraparte.",
+"sm.rejected":"El venue se negó a aceptar la orden. Formato, instrumento desconocido, sesión inválida, límite de riesgo, banda de precio. El rechazo siempre trae un motivo — y ese motivo es el diagnóstico completo, si alguien lo lee.",
+"sm.open":"La orden está en el libro, visible para el mecanismo de casamiento, esperando contraparte. Puede permanecer aquí toda la sesión. Una orden descansando no es una orden con problema.",
+"sm.cancelled":"Retirada antes de ejecutarse, por el participante o por una regla del venue al cierre de sesión. Una cancelación también viaja por el mismo camino y también tiene latencia — y en mercados rápidos, una cancelación lenta es una pérdida real.",
+"sm.partial":"Parte de la cantidad se ejecutó; el saldo sigue abierto en el libro. Este estado genera múltiples reportes de ejecución para una sola orden, y es la principal razón por la que el volumen de salida no es proporcional al de entrada.",
+"sm.filled":"La cantidad completa se ejecutó. El ciclo de negociación terminó — pero el ciclo de la operación apenas empieza: clearing, liquidación y custodia aún no han ocurrido.",
+"s6.k":"VI","s6.h":"La latencia media esconde lo que le hace daño",
+"s6.p1":"Diez órdenes consecutivas en un enlace de apariencia sana. La media es cómoda. Una de ellas no lo es. En infraestructura de trading, esa única es toda la historia — y tiende a ocurrir exactamente cuando el volumen se dispara, que es cuando el valor de cada orden es máximo.",
+"tl.h":"DIEZ ÓRDENES CONSECUTIVAS · LATENCIA DE CABLE",
+"tl.avg":"MEDIA","tl.p50":"MEDIANA p50","tl.p99":"p99","tl.max":"MÁXIMO · LA COLA","tl.jit":"JITTER",
+"s6.nt":"POR QUÉ LA COLA ES ASIMÉTRICA EN SU CONTRA",
+"s6.nb":"Los eventos de cola no son aleatorios respecto a las condiciones de mercado. Se concentran en volatilidad, ráfagas de mensajes y ventanas de apertura y cierre — exactamente cuando la oportunidad es mayor y el costo de perder una ejecución es más alto. Reportar latencia media a un comité de riesgo equivale a reportar retorno medio sin desviación estándar.",
+"lab.k":"LAB 02","lab.h":"Diagnostique la orden",
+"lab.p":"Tres incidentes. En cada uno, un trader reporta el mismo síntoma: la orden no se ejecutó. Usted tiene la evidencia disponible para un SRE de guardia. Identifique dónde se detuvo realmente la orden en el ciclo de vida. Equivocarse aquí bajo presión es cómo las caídas se escalan al equipo equivocado.",
+"lab.tag":"LAB 02","lab.th":"Triaje de incidentes · razonamiento de ciclo de vida",
+"lab.ts":"Mismo síntoma, tres causas raíz distintas, tres dueños distintos",
+"lab.s1k":"INCIDENTE 01",
+"lab.s1e":"Trader: “La envié a las 09:31:04, no pasó nada.”\n\nLog app    → 09:31:04.118  ORDER SENT  ClOrdID 84721\nCaptura    → 09:31:04.118  TCP salida, 1 paquete, seq ok\nGateway    → 09:31:04.126  sesión activa, ningún mensaje recibido\nLibro      → sin registro de ClOrdID 84721",
+"lab.s1q":"¿Dónde se detuvo la orden?",
+"lab.s1a":"Matching engine — no había contraparte disponible a ese precio",
+"lab.s1b":"Validación del gateway — la orden fue rechazada por una regla de riesgo",
+"lab.s1c":"Conectividad — el paquete salió de la NIC pero nunca llegó al gateway",
+"lab.s1d":"Aplicación — la orden nunca llegó a construirse",
+"lab.s2k":"INCIDENTE 02",
+"lab.s2e":"Trader: “Dice aceptada pero no recibí nada.”\n\nGateway    → 09:45:12.004  ACCEPTED  ClOrdID 91883\nLibro      → 09:45:12.007  RESTING  BUY 500 @ 98,00\nMercado    → mejor ASK de toda la sesión: 98,35\nReporte    → ningún reporte de ejecución enviado",
+"lab.s2q":"¿Dónde se detuvo la orden?",
+"lab.s2a":"Gateway — el mensaje de aceptación fue un falso positivo",
+"lab.s2b":"En ningún lugar — la orden está sana y descansando; ninguna contraparte alcanzó su precio límite",
+"lab.s2c":"Market data — la ejecución ocurrió pero el reporte se perdió en tránsito",
+"lab.s2d":"Matching engine — la prioridad precio-tiempo se aplicó incorrectamente",
+"lab.s3k":"INCIDENTE 03",
+"lab.s3e":"Trader: “Se ejecutó la mitad, el resto desapareció.”\n\nGateway    → 10:02:55.201  ACCEPTED  ClOrdID 77310  BUY 1000 @ 100,50\nEngine     → 10:02:55.203  FILL 400 @ 100,50   (nivel agotado)\nLibro      → 10:02:55.203  RESTING 600 @ 100,50\nReportes   → FILL 400 entregado · ningún mensaje más\nMercado    → el ASK se movió a 100,55 y se mantuvo",
+"lab.s3q":"¿Cuál es el estado correcto de los 600 restantes?",
+"lab.s3a":"Cancelada — una ejecución parcial cancela automáticamente el saldo",
+"lab.s3b":"Perdida — el engine descartó el saldo al agotarse el nivel",
+"lab.s3c":"Parcialmente ejecutada y aún abierta — 600 descansan a 100,50, esperando que el ASK vuelva a bajar",
+"lab.s3d":"Rechazada — el engine rechazó el saldo porque el precio se movió",
+"lab.dt":"TRIAJE COMPLETO",
+"lab.db":"Tres quejas idénticas, tres dueños distintos: red, nadie, y la expectativa del propio trader. Note que en dos de los tres casos la acción correcta no es arreglar nada — es explicar el ciclo de vida a quien reporta el incidente. Esa conversación solo es posible para un ingeniero capaz de ubicar la orden con precisión.",
+"s7.k":"VII","s7.h":"La arquitectura para memorizar",
+"s7.p1":"Si se queda con un diagrama de este capítulo, quédese con este. Todo lo de las siguientes entradas se conecta a un punto de él.",
+"s7.p2":"Ese fan-out es el detalle que la mayoría de los modelos de capacidad omite. Una sola orden entrante puede generar múltiples eventos de operación, cada uno de los cuales genera un reporte y una actualización de market data. El volumen de salida no es proporcional al de entrada — es un múltiplo, y el multiplicador sube con la volatilidad.",
+"s7.pull":"No se puede observar lo que no se puede ubicar. El ciclo de vida no es documentación — es el sistema de coordenadas que su telemetría necesita.",
+"fig2.tag":"CICLO COMPLETO","fig2.h":"De la intención al post-trade, con los dos flujos de retorno",
+"fl.1":"INTENCIÓN","fl.2":"MENSAJE DE ORDEN","fl.3":"NIC · RED","fl.4":"GATEWAY","fl.rej":"RECHAZO",
+"fl.5":"LIBRO DE ÓRDENES","fl.6":"MATCHING ENGINE","fl.rest":"DESCANSANDO","fl.7":"OPERACIÓN",
+"fl.8":"REPORTE DE EJECUCIÓN","fl.9":"MARKET DATA","fl.10":"POST-TRADE",
+"fig2.cap":"Una orden produce hasta tres flujos de salida desde un solo match: un reporte privado al participante, una actualización pública a cada suscriptor y un registro al clearing.",
+"nxt.k":"SIGUIENTE — DIARIO 03","nxt.h":"Market Data y Multicast",
+"nxt.p":"Por qué la bolsa publica sobre UDP multicast, para qué sirven los feeds A y B, cómo se detecta un gap de secuencia en microsegundos y qué hace un feed handler cuando descubre que perdió un mensaje.",
+"nxt.b":"Próximamente",
+"sig.r":"Principal Solutions Architect · Mercados de Capitales · Double CCIE (Enterprise + Service Provider) · CCDE",
+"sig.oep":"Orden · Estrategia · Paciencia",
+"ft.1":"Instructor Cisco Networking Academy desde 2006",
+"ft.2":"Ingeniería de redes de alto rendimiento para mercados de capitales",
+"ft.oep":"Orden · Estrategia · Paciencia",
+"ft.legal":"Academia · Diario de Redes de Trading · entrada 02 · v1.0 — Material didáctico original. Las cifras de latencia, estados de libro y logs de incidentes son órdenes de magnitud ilustrativas, destinadas a enseñar el razonamiento de arquitectura. No constituyen recomendación de inversión ni especificación de proyecto. Licencia MIT."
+},
+pt:{
+"h.kicker":"Diário de Redes de Trading · 02","h.title":"O Ciclo de Vida da Ordem",
+"h.lead":"Uma única ordem, seguida de ponta a ponta. Onde ela vira mensagem, onde vira pacote, onde o relógio começa e cada ponto em que ela pode morrer em silêncio.",
+"h.role":"Principal Solutions Architect · NTT DATA · Infraestrutura de Mercado de Capitais",
+"h.date":"Setembro de 2026","h.read":"30 min · com laboratório","h.cat":"Ciclo de Vida · Latência",
+"h.prvb":"Diário 01","h.prvt":"— Estrutura de Mercado",
+"p.1":"Na entrada anterior estabelecemos que uma ordem não é um negócio. Essa distinção é inútil até você conseguir dizer exatamente onde, ao longo do caminho, uma ordem deixa de ser uma coisa e se torna outra. Este capítulo é esse caminho.",
+"p.2":"Vou pegar uma única ordem e segui-la de uma decisão humana até uma confirmação chegando de volta numa tela. No percurso ela muda de forma quatro vezes: intenção, mensagem, pacote, evento. Cada transformação acontece num sistema diferente, custa um tempo diferente e falha de um jeito diferente.",
+"nv.t":"POR QUE ESTE CAPÍTULO DECIDE SUA CAPACIDADE DE DIAGNÓSTICO",
+"nv.b":"Quando um trader diz “minha ordem não executou”, essa frase tem pelo menos sete causas possíveis, e só uma envolve o matching engine. Um engenheiro que não internalizou o ciclo de vida vai começar a diagnosticar na camada errada sob pressão — e neste ambiente, diagnosticar na camada errada é indistinguível de não ter resposta nenhuma.",
+"s1.k":"I","s1.h":"Intenção não é ordem",
+"s1.p1":"Um trader decide comprar 1.000 contratos a 100,50. Essa decisão é uma intenção — existe dentro de uma cabeça humana e em nenhum outro lugar. Mercado eletrônico não processa intenção. Processa mensagem estruturada com campos obrigatórios, e a aplicação de trading é quem faz essa tradução.",
+"s1.p2":"Isso importa mais do que parece. Cada campo dessa mensagem é uma decisão, e vários carregam consequência de latência e de risco. Percorra os campos.",
+"s1.h3":"Market ou limit: o campo que muda tudo",
+"msg.h":"MENSAGEM DE ORDEM — clique em qualquer campo",
+"msg.inst":"Identifica o que está sendo negociado. Símbolo errado ou desconhecido é rejeitado no gateway antes de chegar ao livro — uma causa muito comum de “minha ordem sumiu” que não tem nada a ver com o matching engine.",
+"msg.side":"Compra ou venda. Parece trivial, mas é o campo que determina contra qual lado do livro o casamento é tentado. Erro de lado não é rejeitado: ele executa, na direção oposta à intenção.",
+"msg.qty":"Quantos contratos. A quantidade determina se a ordem executa num nível só ou varre vários — e portanto quantos eventos de negócio uma única mensagem de entrada gera.",
+"msg.price":"O preço limite. É uma fronteira, não uma instrução: comprar a 100,50 significa 100,50 ou menos. Engenheiro que lê isso como preço exato constrói validação que rejeita ordem válida.",
+"msg.type":"LIMIT ou MARKET. Define se prevalece a certeza de preço ou a certeza de execução. É o campo que decide se a ordem pode ficar descansando indefinidamente.",
+"msg.clid":"Identificador atribuído pelo cliente. É a chave com que você correlaciona log de aplicação, captura de rede, acknowledgement do gateway e relatório de execução. Sem ele, não existe diagnóstico.",
+"msg.acct":"A conta sob a qual se negocia. Determina os controles de risco pré-trade aplicáveis. Muita rejeição “inexplicável” é limite de conta, não problema técnico.",
+"msg.ts":"O instante em que o participante enviou a mensagem. É o T1 de todo cálculo de latência — e só é confiável se o relógio que o gerou for rastreável ao UTC.",
+"ot.a":"ORDEM A MERCADO","ot.b":"ORDEM LIMITADA",
+"ot.af":"Prioriza execução sobre preço. Vai consumir a liquidez que existir, varrendo níveis até completar. Certeza de execução, incerteza de preço.",
+"ot.bf":"Estabelece uma fronteira: pagar até 100,50, nunca acima. Certeza de preço, incerteza de execução. Pode ficar no livro indefinidamente.",
+"s2.k":"II","s2.h":"Mensagem não é pacote",
+"s2.p1":"É aqui que a minha própria disciplina começa. A aplicação produz uma mensagem de ordem. A rede transporta pacotes. São abstrações diferentes do mesmo fluxo, observadas de camadas diferentes, e confundir as duas torna incoerente qualquer conversa sobre latência.",
+"fig1.tag":"CRUZAMENTO DE ABSTRAÇÃO","fig1.h":"Onde uma mensagem de ordem vira tráfego no fio",
+"ly.1":"MENSAGEM DE APLICAÇÃO","ly.1n":"BUY 1000 XYZ @ 100,50",
+"ly.2":"TRANSPORTE","ly.2n":"segmento · sequência · ack",
+"ly.3":"REDE","ly.3n":"pacote · endereçamento · rota",
+"ly.4":"ENLACE · FÍSICO","ly.4n":"quadro · bits na fibra",
+"ly.tools":"ONDE SE OBSERVA","ly.t1":"↑ logs FIX / binários","ly.t2":"↓ tcpdump · Wireshark",
+"ly.t3":"↓ captura em packet broker","ly.t4":"↓ timestamp em hardware","ly.t5":"mesma ordem, quatro pontos de vista",
+"fig1.cap":"Uma ordem “sumida” no log da aplicação pode estar perfeitamente visível numa captura de pacotes. As duas observações respondem perguntas diferentes.",
+"s3.k":"III","s3.h":"Siga a ordem, salto a salto",
+"s3.p1":"Agora a peça central deste capítulo. Abaixo está a mesma ordem atravessando o caminho completo, com um timestamp em cada transição. Execute. Repare onde o tempo de fato se acumula — quase nunca é onde o engenheiro supõe.",
+"s3.p2":"Repare no formato. O matching engine — a parte de que todo mundo fala — responde por menos de um quarto do round trip. A perna de volta até a tela do trader custa mais do que o processamento inteiro da bolsa. Orçamento de otimização construído sobre intuição mira sistematicamente o segmento errado.",
+"tr.tag":"TRACE","tr.h":"BUY 1000 XYZ · LIMIT 100,50",
+"tr.s":"Dez timestamps, quatro zonas, um round trip. Os valores são ordens de grandeza ilustrativas para um participante em colocation.",
+"tr.z1":"LADO DO PARTICIPANTE","tr.z2":"REDE","tr.z3":"BOLSA","tr.z4":"CAMINHO DE VOLTA",
+"tr.n1":"Ordem criada","tr.d1":"aplicação de trading · decisão codificada",
+"tr.n2":"Ordem enviada","tr.d2":"entregue à pilha de rede",
+"tr.n3":"Sai da NIC","tr.d3":"fio · primeiro bit na fibra",
+"tr.n4":"Fabric de switching","tr.d4":"cross-connect · propagação",
+"tr.n5":"Chega ao gateway","tr.d5":"sessão · formato · controles de risco",
+"tr.n6":"Chega ao matching engine","tr.d6":"entra no livro",
+"tr.n7":"Ocorre o match","tr.d7":"prioridade preço-tempo aplicada",
+"tr.n8":"Execução gerada","tr.d8":"evento de negócio criado",
+"tr.n9":"Sai da bolsa","tr.d9":"relatório de execução no fio",
+"tr.n10":"Trader recebe","tr.d10":"confirmação na tela",
+"tr.run":"Enviar a ordem","tr.rst":"Reiniciar","tr.tot":"round trip",
+"s4.k":"IV","s4.h":"“Latência” não é um número",
+"s4.p1":"Essa é a pergunta que eu uso para separar engenheiro que trabalhou neste ambiente de engenheiro que leu sobre ele. Quando um fornecedor ou um colega diz “nossa latência é 8 microssegundos”, a única resposta correta é: <strong>entre o quê e o quê?</strong>",
+"s4.p2":"Escolha dois timestamps quaisquer do trace acima e a resposta muda completamente — junto com o time responsável por ela.",
+"pk.h":"LATÊNCIA ENTRE O QUÊ E O QUÊ?",
+"s4.nt":"A CONSEQUÊNCIA ORGANIZACIONAL",
+"s4.nb":"Cada um desses segmentos tem um dono diferente. Latência de aplicação é de desenvolvimento. Latência de fio é do time de redes. Processamento da bolsa é do venue e não é negociável. Quando uma instituição reporta um único número ponta a ponta ao seu board, ela destrói exatamente a informação necessária para decidir onde o investimento produz retorno.",
+"s5.k":"V","s5.h":"Aceita não é executada",
+"s5.p1":"Uma ordem tem ciclo de vida observável com estados discretos. Os nomes exatos dependem do protocolo e do venue, mas o formato é universal — e as transições são o que a sua monitoração precisa expor. Clique em qualquer estado.",
+"s5.pull":"Uma ordem pode morrer em seis pontos diferentes antes de o matching engine sequer vê-la. Só um deles é problema do matching engine.",
+"sm.tag":"MÁQUINA DE ESTADOS","sm.h":"Onde está minha ordem agora?",
+"sm.new":"A ordem existe na aplicação do participante. Ainda não saiu. Se um trader reporta problema e a ordem está aqui, a falha é local — e nenhuma análise de rede vai encontrá-la.",
+"sm.submitted":"A mensagem foi transmitida mas ainda não há acknowledgement do venue. É o estado de maior ambiguidade operacional: não se sabe se chegou. É aqui que captura de pacote deixa de ser opcional.",
+"sm.accepted":"O venue confirmou que a mensagem é válida e a ordem agora existe no sistema dele. É o estado mais confundido com execução. Aceita significa que a ordem está viva — não diz nada sobre ter encontrado contraparte.",
+"sm.rejected":"O venue recusou a ordem. Formato, instrumento desconhecido, sessão inválida, limite de risco, banda de preço. A rejeição sempre traz um motivo — e esse motivo é o diagnóstico inteiro, se alguém ler.",
+"sm.open":"A ordem está no livro, visível ao mecanismo de casamento, esperando contraparte. Pode ficar aqui a sessão inteira. Ordem descansando não é ordem com problema.",
+"sm.cancelled":"Retirada antes de executar, pelo participante ou por regra do venue no fechamento. Cancelamento também percorre o mesmo caminho e também tem latência — e em mercado rápido, cancelamento lento é prejuízo real.",
+"sm.partial":"Parte da quantidade executou; o saldo continua aberto no livro. Esse estado gera múltiplos relatórios de execução para uma única ordem, e é a principal razão pela qual o volume de saída não é proporcional ao de entrada.",
+"sm.filled":"A quantidade inteira executou. O ciclo de negociação terminou — mas o ciclo do negócio está só começando: clearing, liquidação e custódia ainda não aconteceram.",
+"s6.k":"VI","s6.h":"A latência média esconde o que machuca",
+"s6.p1":"Dez ordens consecutivas num enlace de aparência saudável. A média é confortável. Uma delas não é. Em infraestrutura de trading, essa uma é a história inteira — e ela tende a acontecer exatamente quando o volume dispara, que é quando o valor de cada ordem é máximo.",
+"tl.h":"DEZ ORDENS CONSECUTIVAS · LATÊNCIA DE FIO",
+"tl.avg":"MÉDIA","tl.p50":"MEDIANA p50","tl.p99":"p99","tl.max":"MÁXIMO · A CAUDA","tl.jit":"JITTER",
+"s6.nt":"POR QUE A CAUDA É ASSIMÉTRICA CONTRA VOCÊ",
+"s6.nb":"Eventos de cauda não são aleatórios em relação às condições de mercado. Eles se concentram em volatilidade, rajadas de mensagens e janelas de abertura e fechamento — exatamente quando a oportunidade é maior e o custo de perder uma execução é mais alto. Reportar latência média a um comitê de risco equivale a reportar retorno médio sem desvio-padrão.",
+"lab.k":"LAB 02","lab.h":"Diagnostique a ordem",
+"lab.p":"Três incidentes. Em cada um, um trader reporta o mesmo sintoma: a ordem não executou. Você tem a evidência disponível a um SRE de plantão. Identifique onde no ciclo de vida a ordem de fato parou. Errar isso sob pressão é como incidente vai parar no time errado.",
+"lab.tag":"LAB 02","lab.th":"Triagem de incidentes · raciocínio de ciclo de vida",
+"lab.ts":"Mesmo sintoma, três causas-raiz diferentes, três donos diferentes",
+"lab.s1k":"INCIDENTE 01",
+"lab.s1e":"Trader: “Mandei às 09:31:04, não aconteceu nada.”\n\nLog app    → 09:31:04.118  ORDER SENT  ClOrdID 84721\nCaptura    → 09:31:04.118  TCP saída, 1 pacote, seq ok\nGateway    → 09:31:04.126  sessão ativa, nenhuma mensagem recebida\nLivro      → sem registro de ClOrdID 84721",
+"lab.s1q":"Onde a ordem parou?",
+"lab.s1a":"Matching engine — não havia contraparte disponível naquele preço",
+"lab.s1b":"Validação do gateway — a ordem foi rejeitada por uma regra de risco",
+"lab.s1c":"Conectividade — o pacote saiu da NIC mas nunca chegou ao gateway",
+"lab.s1d":"Aplicação — a ordem nunca chegou a ser construída",
+"lab.s2k":"INCIDENTE 02",
+"lab.s2e":"Trader: “Diz aceita mas não recebi nada.”\n\nGateway    → 09:45:12.004  ACCEPTED  ClOrdID 91883\nLivro      → 09:45:12.007  RESTING  BUY 500 @ 98,00\nMercado    → melhor ASK da sessão inteira: 98,35\nRelatório  → nenhum relatório de execução enviado",
+"lab.s2q":"Onde a ordem parou?",
+"lab.s2a":"Gateway — a mensagem de aceitação foi um falso positivo",
+"lab.s2b":"Em lugar nenhum — a ordem está saudável e descansando; nenhuma contraparte atingiu o preço limite dela",
+"lab.s2c":"Market data — a execução aconteceu mas o relatório se perdeu no caminho",
+"lab.s2d":"Matching engine — a prioridade preço-tempo foi aplicada incorretamente",
+"lab.s3k":"INCIDENTE 03",
+"lab.s3e":"Trader: “Metade executou, o resto sumiu.”\n\nGateway    → 10:02:55.201  ACCEPTED  ClOrdID 77310  BUY 1000 @ 100,50\nEngine     → 10:02:55.203  FILL 400 @ 100,50   (nível esgotado)\nLivro      → 10:02:55.203  RESTING 600 @ 100,50\nRelatórios → FILL 400 entregue · nenhuma outra mensagem\nMercado    → o ASK subiu para 100,55 e ficou",
+"lab.s3q":"Qual é o estado correto dos 600 restantes?",
+"lab.s3a":"Cancelada — execução parcial cancela automaticamente o saldo",
+"lab.s3b":"Perdida — o engine descartou o saldo quando o nível se esgotou",
+"lab.s3c":"Parcialmente executada e ainda aberta — 600 descansam a 100,50, esperando o ASK voltar a cair",
+"lab.s3d":"Rejeitada — o engine rejeitou o saldo porque o preço se moveu",
+"lab.dt":"TRIAGEM COMPLETA",
+"lab.db":"Três reclamações idênticas, três donos diferentes: rede, ninguém, e a expectativa do próprio trader. Repare que em dois dos três casos a ação correta não é consertar nada — é explicar o ciclo de vida a quem reportou o incidente. Essa conversa só é possível para o engenheiro que sabe localizar a ordem com precisão.",
+"s7.k":"VII","s7.h":"A arquitetura para memorizar",
+"s7.p1":"Se você guardar um diagrama deste capítulo, guarde este. Tudo das próximas entradas se conecta a um ponto dele.",
+"s7.p2":"Esse fan-out é o detalhe que a maioria dos modelos de capacidade omite. Uma única ordem de entrada pode gerar múltiplos eventos de negócio, cada um gerando um relatório e uma atualização de market data. O volume de saída não é proporcional ao de entrada — é um múltiplo dele, e o multiplicador sobe com a volatilidade.",
+"s7.pull":"Você não observa o que não consegue localizar. O ciclo de vida não é documentação — é o sistema de coordenadas de que a sua telemetria precisa.",
+"fig2.tag":"CICLO COMPLETO","fig2.h":"Da intenção à pós-negociação, com os dois fluxos de retorno",
+"fl.1":"INTENÇÃO","fl.2":"MENSAGEM DE ORDEM","fl.3":"NIC · REDE","fl.4":"GATEWAY","fl.rej":"REJEIÇÃO",
+"fl.5":"LIVRO DE OFERTAS","fl.6":"MATCHING ENGINE","fl.rest":"DESCANSANDO","fl.7":"NEGÓCIO",
+"fl.8":"RELATÓRIO DE EXECUÇÃO","fl.9":"MARKET DATA","fl.10":"PÓS-NEGOCIAÇÃO",
+"fig2.cap":"Uma ordem produz até três fluxos de saída a partir de um único match: um relatório privado ao participante, uma atualização pública a cada assinante e um registro ao clearing.",
+"nxt.k":"PRÓXIMO — DIÁRIO 03","nxt.h":"Market Data e Multicast",
+"nxt.p":"Por que a bolsa publica sobre UDP multicast, para que servem os feeds A e B, como um gap de sequência é detectado em microssegundos e o que um feed handler faz quando percebe que perdeu uma mensagem.",
+"nxt.b":"Em breve",
+"sig.r":"Principal Solutions Architect · Mercado de Capitais · Double CCIE (Enterprise + Service Provider) · CCDE",
+"sig.oep":"Ordem · Estratégia · Paciência",
+"ft.1":"Instrutor Cisco Networking Academy desde 2006",
+"ft.2":"Engenharia de redes de alta performance para mercado de capitais",
+"ft.oep":"Ordem · Estratégia · Paciência",
+"ft.legal":"Academia · Diário de Redes de Trading · entrada 02 · v1.0 — Material didático original. Números de latência, estados de livro e logs de incidente são ordens de grandeza ilustrativas, destinados ao ensino do raciocínio de arquitetura. Não constituem recomendação de investimento nem especificação de projeto. Licença MIT."
+}};
+
+/* ══════════ i18n engine ══════════ */
+var LANG="en";
+(function(){
+"use strict";
+var origs=null;
+function applyLang(lang){
+  document.body.dataset.lang=lang;
+  document.documentElement.lang=lang==="pt"?"pt-BR":lang;
+  var nodes=document.querySelectorAll("[data-i18n]");
+  if(!origs){origs=new Map();nodes.forEach(function(n){origs.set(n,n.innerHTML);});}
+  nodes.forEach(function(n){
+    var k=n.getAttribute("data-i18n");
+    if(lang==="en"){n.innerHTML=origs.get(n);return;}
+    var v=T[lang]&&T[lang][k];
+    if(v==null)return;
+    n.innerHTML=v;
+  });
+  LANG=lang;
+  refreshDynamic();
+}
+window.addEventListener("jc:lang",function(e){applyLang(e.detail.lang);});
+window.__applyLang=applyLang;
+setTimeout(function(){applyLang((window.jcHeader&&window.jcHeader.lang)||"en");},0);
+})();
+
+/* ══════════ jl-msg : field anatomy ══════════ */
+var MSGK={inst:"INSTRUMENT",side:"SIDE",qty:"QUANTITY",price:"PRICE",type:"ORDTYPE",clid:"CLORDID",acct:"ACCOUNT",ts:"SENDINGTIME"};
+var curField="inst";
+document.querySelectorAll(".jl-f").forEach(function(f){
+  f.addEventListener("click",function(){
+    document.querySelectorAll(".jl-f").forEach(function(x){x.classList.remove("on");});
+    f.classList.add("on");
+    curField=f.dataset.f;
+    paintField();
+  });
+});
+function paintField(){
+  var key="msg."+curField;
+  document.getElementById("msg-k").textContent=MSGK[curField];
+  var d=document.getElementById("msg-d");
+  d.setAttribute("data-i18n",key);
+  if(LANG==="en"){d.innerHTML=EN_MSG[curField];}
+  else{d.innerHTML=(T[LANG]&&T[LANG][key])||EN_MSG[curField];}
+}
+var EN_MSG={
+ inst:"Identifies what is being traded. Wrong or unknown symbols are rejected at the gateway before reaching the book — a very common cause of \"my order vanished\" that has nothing to do with the matching engine.",
+ side:"Buy or sell. It looks trivial, but it is the field that determines which side of the book the match is attempted against. A side error is not rejected: it executes, in the opposite direction to the intention.",
+ qty:"How many contracts. Quantity determines whether the order fills at one level or sweeps several — and therefore how many trade events a single inbound message generates.",
+ price:"The limit price. It is a boundary, not an instruction: buying at 100.50 means 100.50 or lower. Engineers who read this as an exact price build validation that rejects valid orders.",
+ type:"LIMIT or MARKET. Defines whether price certainty or fill certainty prevails. It is the field that decides whether the order can rest indefinitely.",
+ clid:"The client-assigned identifier. It is the key you use to correlate application log, packet capture, gateway acknowledgement and execution report. Without it, no diagnosis is possible.",
+ acct:"The account the trade is booked against. It determines which pre-trade risk controls apply. A great many \"unexplained\" rejections are account limits, not technical faults.",
+ ts:"The moment the participant sent the message. It is the T1 of every latency calculation — and it is only trustworthy if the clock that produced it is traceable to UTC."
+};
+
+/* ══════════ jl-trace ══════════ */
+var HOPS=[0,2.5,3.7,7.7,8.5,12.0,13.1,13.7,15.9,20.9];
+var TNAME=["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10"];
+var running=false;
+function resetTrace(){
+  running=false;
+  document.querySelectorAll(".jl-hop").forEach(function(h){h.classList.remove("lit","cur");});
+  document.getElementById("tot").textContent="—";
+}
+document.getElementById("rst").addEventListener("click",resetTrace);
+document.getElementById("run").addEventListener("click",function(){
+  if(running)return;
+  resetTrace();running=true;
+  var hops=document.querySelectorAll(".jl-hop");
+  var i=0;
+  (function step(){
+    if(i>0)hops[i-1].classList.remove("cur");
+    if(i>=hops.length){
+      running=false;
+      document.getElementById("tot").textContent="20.9 µs";
+      return;
+    }
+    hops[i].classList.add("lit","cur");
+    i++;
+    setTimeout(step,260);
+  })();
+});
+
+/* ══════════ jl-pick : latency selector ══════════ */
+var PAIRS={
+ "0-1":{en:["Application latency","Time inside the trading application, from decision to handing the message to the network stack. Owned by the application team, not the network team."],
+        es:["Latencia de aplicación","Tiempo dentro de la aplicación de trading, de la decisión hasta entregar el mensaje al stack de red. Pertenece al equipo de aplicación, no al de redes."],
+        pt:["Latência de aplicação","Tempo dentro da aplicação de trading, da decisão até entregar a mensagem à pilha de rede. É do time de aplicação, não do time de redes."]},
+ "2-4":{en:["Wire latency","Pure network transit: NIC to gateway. This is the only segment a network team can directly reduce, through topology, hardware and proximity."],
+        es:["Latencia de cable","Tránsito puro de red: de la NIC al gateway. Es el único segmento que un equipo de redes puede reducir directamente, vía topología, hardware y proximidad."],
+        pt:["Latência de fio","Trânsito puro de rede: da NIC ao gateway. É o único segmento que um time de redes consegue reduzir diretamente, via topologia, hardware e proximidade."]},
+ "4-6":{en:["Exchange processing","Gateway to match. This belongs to the venue. You cannot optimise it — you can only measure it and hold the venue accountable against its published figures."],
+        es:["Procesamiento de la bolsa","Del gateway al match. Pertenece al venue. No se puede optimizar — solo medir y exigir al venue coherencia con sus cifras publicadas."],
+        pt:["Processamento da bolsa","Do gateway ao match. Pertence ao venue. Você não otimiza — você mede e cobra coerência com os números que ele publica."]},
+ "2-8":{en:["Wire-to-wire","First bit out to first bit back. This is the figure vendors quote and the one comparable across participants, because it excludes everything inside your own application."],
+        es:["Wire-to-wire","Del primer bit de salida al primer bit de vuelta. Es la cifra que citan los proveedores y la comparable entre participantes, porque excluye todo lo interno de su aplicación."],
+        pt:["Wire-to-wire","Do primeiro bit de saída ao primeiro bit de volta. É o número que fornecedor cita e o comparável entre participantes, porque exclui tudo que é interno à sua aplicação."]},
+ "0-9":{en:["End-to-end round trip","Decision to confirmation on screen. The only number a trader actually experiences — and the one that hides which team is responsible for which portion."],
+        es:["Round trip extremo a extremo","De la decisión a la confirmación en pantalla. El único número que un trader realmente experimenta — y el que oculta qué equipo responde por qué porción."],
+        pt:["Round trip ponta a ponta","Da decisão à confirmação na tela. O único número que o trader de fato experimenta — e o que esconde qual time responde por qual parcela."]},
+ "5-6":{en:["Matching latency","The engine's own processing. Almost always the smallest segment in the chain, and almost always the first one blamed."],
+        es:["Latencia de casamiento","El procesamiento propio del engine. Casi siempre el segmento más pequeño de la cadena, y casi siempre el primero al que se culpa."],
+        pt:["Latência de casamento","O processamento do próprio engine. Quase sempre o menor segmento da cadeia, e quase sempre o primeiro a ser culpado."]},
+ "7-9":{en:["Return path","Execution generated to trader screen. Frequently larger than the entire exchange processing, and frequently ignored in optimisation budgets."],
+        es:["Camino de vuelta","De la ejecución generada a la pantalla del trader. Con frecuencia mayor que todo el procesamiento de la bolsa, y con frecuencia ignorado en los presupuestos de optimización."],
+        pt:["Caminho de volta","Da execução gerada até a tela do trader. Frequentemente maior que o processamento inteiro da bolsa, e frequentemente ignorado nos orçamentos de otimização."]}
+};
+var GEN={
+ en:["Segment latency","A valid measurement, but not one of the named industry segments. Always state both endpoints when you report it — a number without its boundaries is not a measurement, it is a claim."],
+ es:["Latencia de segmento","Una medición válida, pero no uno de los segmentos nombrados de la industria. Declare siempre ambos extremos al reportarla — un número sin sus fronteras no es una medición, es una afirmación."],
+ pt:["Latência de segmento","Uma medição válida, mas não um dos segmentos nomeados do setor. Sempre declare os dois extremos ao reportar — número sem fronteira não é medição, é alegação."]};
+var BAD={
+ en:["Invalid direction","The second timestamp must come after the first. Time does not run backwards, and a negative latency is always a clock problem, not a network problem."],
+ es:["Dirección inválida","El segundo timestamp debe ser posterior al primero. El tiempo no corre hacia atrás, y una latencia negativa es siempre un problema de reloj, no de red."],
+ pt:["Direção inválida","O segundo timestamp precisa ser posterior ao primeiro. Tempo não corre para trás, e latência negativa é sempre problema de relógio, não de rede."]};
+
+var selFrom=document.getElementById("from"),selTo=document.getElementById("to");
+TNAME.forEach(function(t,i){
+  var o1=document.createElement("option");o1.value=i;o1.textContent=t+" · "+HOPS[i].toFixed(1)+" µs";selFrom.appendChild(o1);
+  var o2=document.createElement("option");o2.value=i;o2.textContent=t+" · "+HOPS[i].toFixed(1)+" µs";selTo.appendChild(o2);
+});
+selFrom.value=0;selTo.value=1;
+selFrom.addEventListener("change",calcPick);
+selTo.addEventListener("change",calcPick);
+
+function calcPick(){
+  var a=parseInt(selFrom.value,10),b=parseInt(selTo.value,10);
+  var out=document.getElementById("pout");
+  var d=HOPS[b]-HOPS[a];
+  if(d<0){
+    out.classList.add("bad");
+    document.getElementById("pval").textContent=d.toFixed(1)+" µs";
+    var bd=BAD[LANG]||BAD.en;
+    document.getElementById("pname").textContent=bd[0];
+    document.getElementById("pdesc").textContent=bd[1];
+    return;
+  }
+  out.classList.remove("bad");
+  document.getElementById("pval").textContent=d.toFixed(1)+" µs";
+  var key=a+"-"+b;
+  var rec=PAIRS[key];
+  var arr=rec?(rec[LANG]||rec.en):(GEN[LANG]||GEN.en);
+  document.getElementById("pname").textContent=arr[0];
+  document.getElementById("pdesc").textContent=arr[1];
+}
+
+/* ══════════ jl-state ══════════ */
+var SMK={new:"NEW",submitted:"SUBMITTED",accepted:"ACCEPTED",rejected:"REJECTED",open:"OPEN / RESTING",cancelled:"CANCELLED",partial:"PARTIALLY FILLED",filled:"FULLY FILLED"};
+var EN_SM={
+ "new":"The order exists in the participant's application. It has not left yet. If a trader reports a problem and the order is here, the fault is local — and no amount of network analysis will find it.",
+ submitted:"The message was transmitted but no acknowledgement has arrived from the venue. This is the state of maximum operational ambiguity: you do not know whether it arrived. This is where packet capture stops being optional.",
+ accepted:"The venue confirmed the message is valid and the order now exists in its system. This is the state most often mistaken for execution. Accepted means the order is alive — it says nothing about whether a counterparty was found.",
+ rejected:"The venue refused the order. Format, unknown instrument, invalid session, risk limit, price band. A rejection always carries a reason — and that reason is the entire diagnosis, if somebody reads it.",
+ open:"The order is on the book, visible to the matching mechanism, waiting for a counterparty. It may stay here all session. A resting order is not a broken order.",
+ cancelled:"Withdrawn before execution, either by the participant or by a venue rule at session close. A cancellation travels the same path and also has latency — and in fast markets, a slow cancellation is a real loss.",
+ partial:"Part of the quantity executed; the balance remains open on the book. This state generates multiple execution reports for a single order, and it is the primary reason output volume is not proportional to input volume.",
+ filled:"The full quantity executed. The trading lifecycle is over — but the trade lifecycle is just beginning: clearing, settlement and custody have not happened yet."
+};
+var curState="accepted";
+document.querySelectorAll(".jl-state-b g.st").forEach(function(g){
+  g.addEventListener("click",function(){curState=g.dataset.s;paintState();});
+});
+function paintState(){
+  document.getElementById("sm-k").textContent=SMK[curState];
+  var d=document.getElementById("sm-d");
+  var key="sm."+curState;
+  d.setAttribute("data-i18n",key);
+  if(LANG==="en"){d.innerHTML=EN_SM[curState];}
+  else{d.innerHTML=(T[LANG]&&T[LANG][key])||EN_SM[curState];}
+}
+
+/* ══════════ jl-tail ══════════ */
+var SAMPLES=[9.8,10.1,9.9,10.4,9.7,10.0,41.6,10.2,9.9,10.3];
+(function(){
+  var max=Math.max.apply(null,SAMPLES);
+  var bars=document.getElementById("bars"),axis=document.getElementById("axis");
+  SAMPLES.forEach(function(v,i){
+    var b=document.createElement("div");
+    b.className="jl-bar"+(v>25?" out":"");
+    b.style.height=Math.max(6,(v/max)*100)+"%";
+    b.title=v.toFixed(1)+" µs";
+    bars.appendChild(b);
+    var s=document.createElement("span");s.textContent=(i+1);axis.appendChild(s);
+  });
+  var sorted=SAMPLES.slice().sort(function(a,b){return a-b;});
+  var avg=SAMPLES.reduce(function(a,b){return a+b;},0)/SAMPLES.length;
+  var p50=(sorted[4]+sorted[5])/2;
+  var p99=sorted[sorted.length-1];
+  var mx=p99;
+  document.getElementById("s-avg").textContent=avg.toFixed(1);
+  document.getElementById("s-p50").textContent=p50.toFixed(1);
+  document.getElementById("s-p99").textContent=p99.toFixed(1);
+  document.getElementById("s-max").textContent=mx.toFixed(1);
+  document.getElementById("s-jit").textContent=(mx/p50).toFixed(1)+"×";
+})();
+
+/* ══════════ lab 02 ══════════ */
+var LABFB={
+ en:[
+  {ok:"Correct. The application produced the order and the capture proves a packet left the NIC — but the gateway never received a message on an active session. The order died in transit. This is a network incident, and the evidence chain (app log → capture → gateway) is exactly how you prove it in under a minute.",
+   no:"Not correct. Read the evidence chain in order: the application sent it, the capture confirms a packet on the wire, the session was active at the gateway, and yet no message arrived there. Everything downstream of the gateway never saw this order, so nothing downstream can be the cause."},
+  {ok:"Correct — and the hardest answer to give under pressure. The order is accepted, resting, and correctly priced at its own limit. The best ASK never came down to 98.00. Nothing is broken. The required action is not a fix; it is explaining accepted-is-not-executed to the trader.",
+   no:"Not correct. Compare the limit price to the market: the order bids 98.00, the best ASK all session was 98.35. No counterparty ever met that price. The order is behaving exactly as a limit order should."},
+  {ok:"Correct. A partial fill does not cancel the balance — that is a different order type. 400 filled when the level was exhausted, 600 remain resting at 100.50. The absence of a further report is not a lost message; it is the absence of a further event.",
+   no:"Not correct. A limit order that partially fills leaves the balance resting unless it carries an instruction to do otherwise. The level was exhausted, the ASK moved up, and 600 are still open at 100.50 waiting for the market to come back."}
+ ],
+ es:[
+  {ok:"Correcto. La aplicación produjo la orden y la captura prueba que un paquete salió de la NIC — pero el gateway nunca recibió un mensaje en una sesión activa. La orden murió en tránsito. Es un incidente de red, y la cadena de evidencia (log app → captura → gateway) es exactamente cómo se prueba en menos de un minuto.",
+   no:"Incorrecto. Lea la cadena de evidencia en orden: la aplicación la envió, la captura confirma un paquete en el cable, la sesión estaba activa en el gateway, y aun así ningún mensaje llegó ahí. Todo lo que está después del gateway nunca vio esta orden, así que nada de eso puede ser la causa."},
+  {ok:"Correcto — y la respuesta más difícil de dar bajo presión. La orden está aceptada, descansando y correctamente valorada en su propio límite. El mejor ASK nunca bajó a 98,00. Nada está roto. La acción requerida no es un arreglo; es explicar al trader que aceptada no es ejecutada.",
+   no:"Incorrecto. Compare el precio límite con el mercado: la orden ofrece 98,00, el mejor ASK de toda la sesión fue 98,35. Ninguna contraparte alcanzó ese precio. La orden se comporta exactamente como debe comportarse una orden limitada."},
+  {ok:"Correcto. Una ejecución parcial no cancela el saldo — eso es otro tipo de orden. 400 se ejecutaron al agotarse el nivel, 600 siguen descansando a 100,50. La ausencia de otro reporte no es un mensaje perdido; es la ausencia de otro evento.",
+   no:"Incorrecto. Una orden limitada que se ejecuta parcialmente deja el saldo descansando salvo que lleve una instrucción en contrario. El nivel se agotó, el ASK subió, y 600 siguen abiertos a 100,50 esperando que el mercado vuelva."}
+ ],
+ pt:[
+  {ok:"Correto. A aplicação produziu a ordem e a captura prova que um pacote saiu da NIC — mas o gateway nunca recebeu mensagem numa sessão ativa. A ordem morreu em trânsito. É incidente de rede, e a cadeia de evidência (log app → captura → gateway) é exatamente como se prova isso em menos de um minuto.",
+   no:"Incorreto. Leia a cadeia de evidência na ordem: a aplicação enviou, a captura confirma pacote no fio, a sessão estava ativa no gateway, e mesmo assim nenhuma mensagem chegou lá. Tudo que fica depois do gateway nunca viu essa ordem, então nada dali pode ser a causa."},
+  {ok:"Correto — e a resposta mais difícil de dar sob pressão. A ordem está aceita, descansando e corretamente precificada no próprio limite. O melhor ASK nunca desceu a 98,00. Nada está quebrado. A ação necessária não é conserto; é explicar ao trader que aceita não é executada.",
+   no:"Incorreto. Compare o preço limite com o mercado: a ordem oferece 98,00, o melhor ASK da sessão inteira foi 98,35. Nenhuma contraparte atingiu esse preço. A ordem está se comportando exatamente como uma ordem limitada deve."},
+  {ok:"Correto. Execução parcial não cancela o saldo — isso é outro tipo de ordem. 400 executaram quando o nível se esgotou, 600 continuam descansando a 100,50. A ausência de outro relatório não é mensagem perdida; é ausência de outro evento.",
+   no:"Incorreto. Ordem limitada que executa parcialmente deixa o saldo descansando, a menos que carregue instrução em contrário. O nível se esgotou, o ASK subiu, e 600 continuam abertos a 100,50 esperando o mercado voltar."}
+ ]
+};
+var labDone=[false,false,false];
+document.querySelectorAll(".scn").forEach(function(scn,idx){
+  scn.querySelectorAll(".opt").forEach(function(opt){
+    opt.addEventListener("click",function(){
+      if(labDone[idx])return;
+      var ok=opt.dataset.ok==="1";
+      var fb=document.getElementById("fb"+(idx+1));
+      var set=(LABFB[LANG]||LABFB.en)[idx];
+      fb.textContent=(ok?"✓ ":"✕ ")+set[ok?"ok":"no"];
+      fb.className="fb on "+(ok?"ok":"no");
+      if(ok){
+        labDone[idx]=true;
+        opt.classList.add("ok");
+        scn.querySelectorAll(".opt").forEach(function(o){if(o!==opt)o.classList.add("dead");});
+        var nx=document.getElementById("sc"+(idx+2));
+        if(nx)nx.classList.remove("off");
+        if(labDone.every(Boolean))setTimeout(function(){document.getElementById("labdone").classList.add("on");},400);
+      }else{
+        opt.classList.add("no");
+        setTimeout(function(){opt.classList.remove("no");},1800);
+      }
+    });
+  });
+});
+
+/* ══════════ refresh dynamic text on language change ══════════ */
+function refreshDynamic(){
+  if(document.getElementById("msg-d"))paintField();
+  if(document.getElementById("sm-d"))paintState();
+  if(document.getElementById("pval"))calcPick();
+}
+calcPick();paintField();paintState();
+</script>
+</body>
+</html>
